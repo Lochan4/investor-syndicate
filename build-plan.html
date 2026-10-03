@@ -633,19 +633,14 @@ body {
     </table>
     <div class="cost-note" style="display:flex; flex-direction:column; gap:10px;">
       <div style="display:flex; align-items:baseline; gap:10px;">
-        <strong style="white-space:nowrap;">Claude Opus 4.6</strong>
-        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">group consensus · final report generation</span>
-        <span style="color:var(--dim); font-size:11px;">$15/MTok in · $75/MTok out</span>
+        <strong style="white-space:nowrap;">Claude Haiku 4.5</strong>
+        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">cell chat answers · per-asset analysis · NER extraction · keyword filtering · classification</span>
+        <span style="color:var(--dim); font-size:11px;">$0.80/MTok in · $4/MTok out</span>
       </div>
       <div style="display:flex; align-items:baseline; gap:10px;">
         <strong style="white-space:nowrap;">Claude Sonnet 4.6</strong>
-        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">cell chat answers · competitive assessment · image vision · per-asset analysis</span>
+        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">group consensus · final report generation · competitive assessment · image vision · cell synthesis</span>
         <span style="color:var(--dim); font-size:11px;">$3/MTok in · $15/MTok out</span>
-      </div>
-      <div style="display:flex; align-items:baseline; gap:10px;">
-        <strong style="white-space:nowrap;">Claude Haiku 4.5</strong>
-        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">NER extraction · keyword filtering · simple classification</span>
-        <span style="color:var(--dim); font-size:11px;">$0.80/MTok in · $4/MTok out</span>
       </div>
       <div style="display:flex; align-items:baseline; gap:10px;">
         <strong style="white-space:nowrap;">text-embedding-3-large</strong>
@@ -844,7 +839,7 @@ body {
               <div class="ti s">Step 2: BFS expand via chunk_edges NEXT/SIMILAR_TO + chunk_mentions</div>
               <div class="ti s">Step 3: Relevance = cosine_sim × 0.85^depth — threshold 0.45, cap 40 nodes</div>
               <div class="ti s">Step 4: Inject upstream cell_analysis from Redis (if downstream cell)</div>
-              <div class="ti s">Step 5: Claude Opus streams answer over top-12 chunks as context</div>
+              <div class="ti s">Step 5: Claude Haiku streams answer over top-12 chunks as context</div>
               <div class="ti">SSE stream endpoint <span class="mono">GET /conversation/{id}/stream</span></div>
               <div class="ti s">Events: answer_token {token} → answer_done {sources: [asset_ids]}</div>
               <div class="ti s">No node_visited events exposed to frontend</div>
@@ -955,10 +950,10 @@ body {
               <div class="ti">Group consensus worker <span class="mono">workers/pipeline.py</span></div>
               <div class="ti s">Read all cell_ctx keys (all investors, all cells)</div>
               <div class="ti s">Read all cell_analysis summaries from Redis</div>
-              <div class="ti s">Claude Opus → aggregate sentiment, per-topic summary, key concerns</div>
+              <div class="ti s">Claude Sonnet → aggregate sentiment, per-topic summary, key concerns</div>
               <div class="ti s">INSERT analyses(stage='group'), enqueue run_final_consensus</div>
               <div class="ti">Final consensus worker</div>
-              <div class="ti s">Group analysis → Claude Opus → final report JSON</div>
+              <div class="ti s">Group analysis → Claude Sonnet → final report JSON</div>
               <div class="ti s">INSERT analyses(stage='final') → UPDATE projects status='final'</div>
             </div>
           </div>
@@ -1112,8 +1107,8 @@ body {
         </tr>
         <tr>
           <td><div class="svc-name">Claude API <span class="badge b-pay">Pay per token</span></div></td>
-          <td><div class="svc-desc">Opus 4.6 — group consensus, final analysis, cell chat answers. Sonnet 4.6 — NER extraction, competitive assessment, cell synthesis, image vision, per-asset analysis.</div></td>
-          <td><div class="svc-desc">Opus: $15/MTok in · $75/MTok out<br>Sonnet: $3/MTok in · $15/MTok out</div></td>
+          <td><div class="svc-desc">Haiku 4.5 — cell chat answers, per-asset analysis, NER extraction, classification. Sonnet 4.6 — group consensus, final report, competitive assessment, image vision, cell synthesis.</div></td>
+          <td><div class="svc-desc">Haiku: $0.80/MTok in · $4/MTok out<br>Sonnet: $3/MTok in · $15/MTok out</div></td>
         </tr>
         <tr>
           <td><div class="svc-name">OpenAI <span class="badge b-pay">Pay per token</span></div></td>
@@ -1144,19 +1139,14 @@ body {
     </table>
     <div class="cost-note" style="display:flex; flex-direction:column; gap:10px;">
       <div style="display:flex; align-items:baseline; gap:10px;">
-        <strong style="white-space:nowrap;">Claude Opus 4.6</strong>
-        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">group consensus · final report generation</span>
-        <span style="color:var(--dim); font-size:11px;">$15/MTok in · $75/MTok out</span>
+        <strong style="white-space:nowrap;">Claude Haiku 4.5</strong>
+        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">cell chat answers · per-asset analysis · NER extraction · keyword filtering · classification</span>
+        <span style="color:var(--dim); font-size:11px;">$0.80/MTok in · $4/MTok out</span>
       </div>
       <div style="display:flex; align-items:baseline; gap:10px;">
         <strong style="white-space:nowrap;">Claude Sonnet 4.6</strong>
-        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">cell chat answers · competitive assessment · image vision · per-asset analysis</span>
+        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">group consensus · final report generation · competitive assessment · image vision · cell synthesis</span>
         <span style="color:var(--dim); font-size:11px;">$3/MTok in · $15/MTok out</span>
-      </div>
-      <div style="display:flex; align-items:baseline; gap:10px;">
-        <strong style="white-space:nowrap;">Claude Haiku 4.5</strong>
-        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">NER extraction · keyword filtering · simple classification</span>
-        <span style="color:var(--dim); font-size:11px;">$0.80/MTok in · $4/MTok out</span>
       </div>
       <div style="display:flex; align-items:baseline; gap:10px;">
         <strong style="white-space:nowrap;">text-embedding-3-large</strong>
@@ -1209,8 +1199,8 @@ body {
       </tr>
       <tr>
         <td><span class="stack-layer">LLM</span></td>
-        <td><span class="stack-choice">Claude API — Opus 4.6 / Sonnet 4.6</span></td>
-        <td><span class="stack-why">Opus for deep analysis (consensus, final report, chat). Sonnet for extraction tasks (NER, competitive assessment, cell synthesis, vision).</span></td>
+        <td><span class="stack-choice">Claude API — Haiku 4.5 / Sonnet 4.6</span></td>
+        <td><span class="stack-why">Haiku for chat answers, NER, per-asset analysis (fast + cheap). Sonnet for group consensus, final report, competitive assessment, image vision (complex reasoning).</span></td>
       </tr>
       <tr>
         <td><span class="stack-layer">Embeddings</span></td>
