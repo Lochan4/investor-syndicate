@@ -487,8 +487,8 @@ body {
           <td><div class="day-pill w1">1</div></td>
           <td><div class="focus-label">Foundation</div><div class="focus-sub">Schema, auth, project skeleton</div></td>
           <td><div class="track-pills">
-            <span class="tp tp-be">DB schema (22 tables)</span>
-            <span class="tp tp-be">WorkOS JWT middleware</span>
+            <span class="tp tp-be">Database schema (22 tables)</span>
+            <span class="tp tp-be">WorkOS auth token middleware</span>
             <span class="tp tp-be">FastAPI skeleton</span>
             <span class="tp tp-be">WorkOS webhook</span>
           </div></td>
@@ -498,7 +498,7 @@ body {
             <span class="tp tp-fe">WorkOS AuthKit (3 files)</span>
             <span class="tp tp-fe">Sidebar + nav</span>
           </div></td>
-          <td><span class="del-badge">↳ DB live · All routes render · Auth validates</span></td>
+          <td><span class="del-badge">↳ Database live · All routes render · Auth validates</span></td>
         </tr>
 
         <tr>
@@ -517,15 +517,15 @@ body {
             <span class="tp tp-fe">Per-asset analysis panel</span>
             <span class="tp tp-fe">Dashboard · Investments · Hub · Report</span>
           </div></td>
-          <td><span class="del-badge">↳ Real file upload + processing works · Every UI screen exists</span></td>
+          <td><span class="del-badge">↳ Real file upload + processing works · Every interface screen exists</span></td>
         </tr>
 
         <tr>
           <td><div class="day-pill w1">3</div></td>
-          <td><div class="focus-label">Knowledge Graph</div><div class="focus-sub">Edges, NER, SIMILAR_TO</div></td>
+          <td><div class="focus-label">Knowledge Graph</div><div class="focus-sub">Edges, entity extraction, SIMILAR_TO</div></td>
           <td><div class="track-pills">
             <span class="tp tp-be">NEXT edges (sequential)</span>
-            <span class="tp tp-be">Claude Sonnet NER → entities</span>
+            <span class="tp tp-be">Claude Sonnet entity extraction → entities</span>
             <span class="tp tp-be">SIMILAR_TO edges (pgvector, score &gt; 0.82)</span>
             <span class="tp tp-be">Per-asset analysis worker</span>
           </div></td>
@@ -535,22 +535,22 @@ body {
             <span class="tp tp-fe">Real analysis_cache display</span>
             <span class="tp tp-fe">API client layer (typed fetch)</span>
           </div></td>
-          <td><span class="del-badge">↳ Graph builds after upload · NER entities extracted · Analysis panels show real data</span></td>
+          <td><span class="del-badge">↳ Graph builds after upload · entities extracted · Analysis panels show real data</span></td>
         </tr>
 
         <tr>
           <td><div class="day-pill w1">4</div></td>
-          <td><div class="focus-label">GraphRAG Engine</div><div class="focus-sub">BFS traversal + SSE stream</div></td>
+          <td><div class="focus-label">GraphRAG Engine</div><div class="focus-sub">graph traversal + real-time streaming</div></td>
           <td><div class="track-pills">
-            <span class="tp tp-be">BFS traversal (pgvector ANN seed)</span>
+            <span class="tp tp-be">graph traversal (pgvector nearest-neighbor seed)</span>
             <span class="tp tp-be">Relevance decay (0.85/hop)</span>
-            <span class="tp tp-be">SSE stream endpoint</span>
+            <span class="tp tp-be">real-time stream endpoint</span>
             <span class="tp tp-be">Redis cell_ctx + cell_analysis</span>
             <span class="tp tp-be">Upstream context injection</span>
           </div></td>
           <td><div class="track-pills">
             <span class="tp tp-fe">CellChat component</span>
-            <span class="tp tp-fe">EventSource SSE consumer</span>
+            <span class="tp tp-fe">real-time stream listener</span>
             <span class="tp tp-fe">Thinking dots animation</span>
             <span class="tp tp-fe">Typewriter + source pills</span>
           </div></td>
@@ -562,7 +562,7 @@ body {
           <td><div class="focus-label">Flow Canvas</div><div class="focus-sub">React Flow + versioned template</div></td>
           <td><div class="track-pills">
             <span class="tp tp-be">Flow template versioning endpoints</span>
-            <span class="tp tp-be">Per-project flow cell CRUD</span>
+            <span class="tp tp-be">Per-project flow cell management</span>
             <span class="tp tp-be">Project open → copy live template</span>
             <span class="tp tp-be">build_cell_views worker</span>
           </div></td>
@@ -581,14 +581,14 @@ body {
           <td><div class="track-pills">
             <span class="tp tp-be">Conversation session handler</span>
             <span class="tp tp-be">maybe_close_collection</span>
-            <span class="tp tp-be">LLM wrapper (run_stage, retry)</span>
+            <span class="tp tp-be">AI model wrapper (run_stage, retry)</span>
             <span class="tp tp-be">Group consensus worker</span>
             <span class="tp tp-be">Final consensus worker</span>
           </div></td>
           <td><div class="track-pills">
             <span class="tp tp-fe">Cell deep-dive page (admin + investor view)</span>
             <span class="tp tp-fe">Investor view cards (sentiment badges)</span>
-            <span class="tp tp-fe">Wire cell chat → real SSE</span>
+            <span class="tp tp-fe">Wire cell chat → real-time stream</span>
             <span class="tp tp-fe">Final report → real analyses</span>
           </div></td>
           <td><span class="del-badge">↳ Full loop: chat → submit → analysis → final report</span></td>
@@ -618,7 +618,7 @@ body {
           <td><div class="track-pills">
             <span class="tp tp-be">Whisper API endpoint (POST /voice)</span>
             <span class="tp tp-be">Admin invite (WorkOS sendInvitation)</span>
-            <span class="tp tp-be">E2E test · access control audit · bug fixes</span>
+            <span class="tp tp-be">end-to-end test · access control audit · bug fixes</span>
             <span class="tp tp-be">Vercel + Railway + Upstash + R2 deploy</span>
           </div></td>
           <td><div class="track-pills">
@@ -634,7 +634,7 @@ body {
     <div class="cost-note" style="display:flex; flex-direction:column; gap:10px;">
       <div style="display:flex; align-items:baseline; gap:10px;">
         <strong style="white-space:nowrap;">Claude Haiku 4.5</strong>
-        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">cell chat answers · per-asset analysis · NER extraction · keyword filtering · classification</span>
+        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">cell chat answers · per-asset analysis · entity extraction · keyword filtering · classification</span>
         <span style="color:var(--dim); font-size:11px;">$0.80/MTok in · $4/MTok out</span>
       </div>
       <div style="display:flex; align-items:baseline; gap:10px;">
@@ -666,9 +666,9 @@ body {
         <div class="day-header">
           <div class="day-label">Day 1</div>
           <div class="day-theme">Foundation</div>
-          <div class="day-del">↳ DB live · Auth validates · All routes render</div>
+          <div class="day-del">↳ Database live · Auth validates · All routes render</div>
         </div>
-        <div class="day-note">Full database schema in a single migration. WorkOS AuthKit wired in 3 files. FastAPI skeleton with JWT validation. All Next.js routes created with mock data so frontend is never blocked.</div>
+        <div class="day-note">Full database schema in a single migration. WorkOS AuthKit wired in 3 files. FastAPI skeleton with auth token validation. All Next.js routes created with mock data so frontend is never blocked.</div>
         <div class="day-tracks">
           <div class="track">
             <div class="track-head be"><div class="hdot"></div> Backend</div>
@@ -682,14 +682,14 @@ body {
               <div class="ti s">prompts, prompt_versions, llm_runs, audit_log, pending_invites</div>
               <div class="ti">pgvector HNSW index on chunks.embedding + cell_conversation_turns.embedding</div>
               <div class="ti">FastAPI project structure <span class="mono">main.py</span></div>
-              <div class="ti s">CORS, router registration, asyncpg pool lifespan</div>
+              <div class="ti s">cross-origin policy, router registration, asyncpg pool lifespan</div>
               <div class="ti s">routers/ — projects, assets, conversation, flow, analyses, notifications (stubs)</div>
-              <div class="ti">WorkOS JWT validation middleware <span class="mono">auth.py</span></div>
-              <div class="ti s">Decode WorkOS JWT → extract user_id → lookup platform_role in users table</div>
+              <div class="ti">WorkOS auth token validation middleware <span class="mono">auth.py</span></div>
+              <div class="ti s">Decode WorkOS auth token → extract user_id → lookup platform_role in users table</div>
               <div class="ti">WorkOS webhook handler <span class="mono">POST /webhooks/workos</span></div>
               <div class="ti s">user.created → INSERT users → move pending_invite → project_members</div>
               <div class="ti">Docker Compose — Redis only for local dev</div>
-              <div class="ti">Basic project CRUD live (GET /projects, POST /projects)</div>
+              <div class="ti">Basic project create / read / update / delete live (GET /projects, POST /projects)</div>
             </div>
           </div>
           <div class="track">
@@ -712,7 +712,7 @@ body {
             </div>
           </div>
         </div>
-        <div class="eod"><div class="eod-dot">✓</div><div>End of Day 1: <strong>DB schema exists. All frontend routes render on mock data. WorkOS validates tokens in 3 files.</strong></div></div>
+        <div class="eod"><div class="eod-dot">✓</div><div>End of Day 1: <strong>Database schema exists. All frontend routes render on mock data. WorkOS validates tokens in 3 files.</strong></div></div>
       </div>
     </div>
 
@@ -723,7 +723,7 @@ body {
         <div class="day-header">
           <div class="day-label">Day 2</div>
           <div class="day-theme">Asset Pipeline + All Frontend Screens</div>
-          <div class="day-del">↳ Real file upload works · Every UI screen exists</div>
+          <div class="day-del">↳ Real file upload works · Every interface screen exists</div>
         </div>
         <div class="day-note">Full file processing pipeline across 4 file types. OpenAI embedding for every chunk. All frontend screens built simultaneously on mock data so Day 3+ only needs wiring.</div>
         <div class="day-tracks">
@@ -778,7 +778,7 @@ body {
       <div class="day-content">
         <div class="day-header">
           <div class="day-label">Day 3</div>
-          <div class="day-theme">Knowledge Graph — Edges, NER, Per-Asset Analysis</div>
+          <div class="day-theme">Knowledge Graph — Edges, entity extraction, Per-Asset Analysis</div>
           <div class="day-del">↳ Graph builds after upload · Analysis panels show real data</div>
         </div>
         <div class="day-note">Complete the graph construction layer. Wire asset upload frontend to the real backend so the full upload-to-analysis loop works from the browser.</div>
@@ -790,7 +790,7 @@ body {
               <div class="ti">SIMILAR_TO edges via pgvector <span class="mono">workers/process_asset.py</span></div>
               <div class="ti s">Per-chunk: SELECT chunks WHERE 1-(embedding &lt;=&gt; $vec) &gt; 0.82</div>
               <div class="ti s">INSERT chunk_edges (cap 20 neighbors per chunk)</div>
-              <div class="ti">NER extraction <span class="mono">Claude Sonnet</span></div>
+              <div class="ti">entity extraction <span class="mono">Claude Sonnet</span></div>
               <div class="ti s">Extract: persons, companies, locations, metrics, concepts</div>
               <div class="ti s">INSERT entities (project_id, name, kind) — UPSERT on conflict</div>
               <div class="ti s">INSERT chunk_mentions (chunk_id, entity_id)</div>
@@ -816,7 +816,7 @@ body {
             </div>
           </div>
         </div>
-        <div class="eod"><div class="eod-dot">✓</div><div>End of Day 3: <strong>Graph builds automatically after upload. NER entities extracted. Analysis panels show real Claude-generated data.</strong></div></div>
+        <div class="eod"><div class="eod-dot">✓</div><div>End of Day 3: <strong>Graph builds automatically after upload. entities extracted. Analysis panels show real Claude-generated data.</strong></div></div>
       </div>
     </div>
 
@@ -829,22 +829,22 @@ body {
           <div class="day-theme">GraphRAG Engine + Conversation</div>
           <div class="day-del">↳ Investor can have a real AI conversation</div>
         </div>
-        <div class="day-note">The core AI: BFS traversal over pgvector, SSE streaming to the browser, Redis context store for upstream cell injection. CellChat component wired to real backend.</div>
+        <div class="day-note">The core AI: graph traversal over pgvector, real-time streaming to the browser, Redis context store for upstream cell injection. CellChat component wired to real backend.</div>
         <div class="day-tracks">
           <div class="track">
             <div class="track-head be"><div class="hdot"></div> Backend</div>
             <div class="track-body">
-              <div class="ti">GraphRAG BFS traversal <span class="mono">services/traversal.py</span></div>
-              <div class="ti s">Step 1: pgvector ANN seed search (top-5 chunks by cosine sim)</div>
-              <div class="ti s">Step 2: BFS expand via chunk_edges NEXT/SIMILAR_TO + chunk_mentions</div>
+              <div class="ti">GraphRAG graph traversal <span class="mono">services/traversal.py</span></div>
+              <div class="ti s">Step 1: pgvector nearest-neighbor seed search (top-5 chunks by cosine sim)</div>
+              <div class="ti s">Step 2: graph expansion via chunk_edges NEXT/SIMILAR_TO + chunk_mentions</div>
               <div class="ti s">Step 3: Relevance = cosine_sim × 0.85^depth — threshold 0.45, cap 40 nodes</div>
               <div class="ti s">Step 4: Inject upstream cell_analysis from Redis (if downstream cell)</div>
               <div class="ti s">Step 5: Claude Haiku streams answer over top-12 chunks as context</div>
-              <div class="ti">SSE stream endpoint <span class="mono">GET /conversation/{id}/stream</span></div>
+              <div class="ti">real-time stream endpoint <span class="mono">GET /conversation/{id}/stream</span></div>
               <div class="ti s">Events: answer_token {token} → answer_done {sources: [asset_ids]}</div>
               <div class="ti s">No node_visited events exposed to frontend</div>
               <div class="ti">Redis cell context store <span class="mono">services/cell_context.py</span></div>
-              <div class="ti s">RPUSH cell_ctx:{pid}:{cid}:{uid} per turn — TTL 30 days</div>
+              <div class="ti s">RPUSH cell_ctx:{pid}:{cid}:{uid} per turn — 30-day expiry</div>
               <div class="ti s">GET cell_analysis:{pid}:{cid} → inject into downstream prompts</div>
               <div class="ti">Conversation endpoints</div>
               <div class="ti s">POST /projects/{id}/sessions/{cellId} — create/get session</div>
@@ -868,7 +868,7 @@ body {
             </div>
           </div>
         </div>
-        <div class="eod"><div class="eod-dot">✓</div><div>End of Day 4: <strong>Investor asks a question → BFS traversal → Claude streams answer → source pills appear. The core AI loop is live.</strong></div></div>
+        <div class="eod"><div class="eod-dot">✓</div><div>End of Day 4: <strong>Investor asks a question → graph traversal → Claude streams answer → source pills appear. The core AI loop is live.</strong></div></div>
       </div>
     </div>
 
@@ -942,7 +942,7 @@ body {
               <div class="ti">maybe_close_collection logic</div>
               <div class="ti s">After each session submit: check if all invited investors submitted</div>
               <div class="ti s">If all done: status='consensus', enqueue run_group_consensus</div>
-              <div class="ti">LLM wrapper <span class="mono">services/llm.py</span></div>
+              <div class="ti">AI model wrapper <span class="mono">services/llm.py</span></div>
               <div class="ti s">run_stage(stage_key, inputs) — fetch live prompt, Jinja2 render</div>
               <div class="ti s">Claude API call → Pydantic validate output</div>
               <div class="ti s">Retry once on validation fail → store raw + flag on second fail</div>
@@ -965,7 +965,7 @@ body {
               <div class="ti s">Cards pulled from cell_analysis synthesis data</div>
               <div class="ti s">Sentiment badges: ✓ Positive · ⚡ Mixed · ⚠ Caution</div>
               <div class="ti s">Full-width CellChat below the cards (admin asking follow-ups)</div>
-              <div class="ti">Wire cell chat → real SSE (remove mock delays)</div>
+              <div class="ti">Wire cell chat → real-time stream (remove mock delays)</div>
               <div class="ti">Wire final report → real analyses data</div>
               <div class="ti s">Per-topic breakdown cards</div>
               <div class="ti s">Investor participation count + aggregate view</div>
@@ -1040,19 +1040,19 @@ body {
           <div class="day-theme">Voice + Wire + Deploy</div>
           <div class="day-del amber">↳ Voice works · Zero mocks · Live on production · Done</div>
         </div>
-        <div class="day-note">Morning: voice input + admin invite + wire all remaining mocks to real APIs. Afternoon: E2E test, access control audit, fix bugs, full production deploy across all services. Prompt editor, audit log UI, and admin user management UI are deferred — not user-facing for v1.</div>
+        <div class="day-note">Morning: voice input + admin invite + wire all remaining mocks to real APIs. Afternoon: end-to-end test, access control audit, fix bugs, full production deploy across all services. Prompt editor, audit log interface, and admin user management interface are deferred — not user-facing for v1.</div>
         <div class="day-tracks">
           <div class="track">
             <div class="track-head be"><div class="hdot"></div> Backend</div>
             <div class="track-body">
               <div class="ti">Voice endpoint <span class="mono">POST /conversation/{id}/voice</span></div>
               <div class="ti s">Audio blob (webm/mp3) → R2 temp key → Whisper API → transcript</div>
-              <div class="ti s">Pass transcript to standard message handler → SSE stream</div>
-              <div class="ti s">Return {transcript} before SSE answer starts</div>
+              <div class="ti s">Pass transcript to standard message handler → real-time stream</div>
+              <div class="ti s">Return {transcript} before streaming answer starts</div>
               <div class="ti">Admin invite <span class="mono">POST /admin/invite</span></div>
               <div class="ti s">workos_client.user_management.send_invitation(email, org_id)</div>
               <div class="ti s">INSERT pending_invites → WorkOS sends email → webhook moves to project_members</div>
-              <div class="ti">Full E2E test with real data — upload, graph, chat, submit, consensus</div>
+              <div class="ti">Full end-to-end test with real data — upload, graph, chat, submit, consensus</div>
               <div class="ti">Access control audit — all role combinations</div>
               <div class="ti">Fix integration bugs (budget ~3hrs)</div>
             </div>
@@ -1102,12 +1102,12 @@ body {
         </tr>
         <tr>
           <td><div class="svc-name">Supabase <span class="badge b-free">Free</span></div></td>
-          <td><div class="svc-desc">Postgres + pgvector. Replaces Neo4j. HNSW index for ANN search and GraphRAG BFS traversal. Project isolation via FK.</div></td>
+          <td><div class="svc-desc">Postgres + pgvector. Replaces Neo4j. HNSW index for ANN search and GraphRAG graph traversal. Project isolation via FK.</div></td>
           <td><div class="svc-desc">Free tier · $25/mo Pro</div></td>
         </tr>
         <tr>
           <td><div class="svc-name">Claude API <span class="badge b-pay">Pay per token</span></div></td>
-          <td><div class="svc-desc">Haiku 4.5 — cell chat answers, per-asset analysis, NER extraction, classification. Sonnet 4.6 — group consensus, final report, competitive assessment, image vision, cell synthesis.</div></td>
+          <td><div class="svc-desc">Haiku 4.5 — cell chat answers, per-asset analysis, entity extraction, classification. Sonnet 4.6 — group consensus, final report, competitive assessment, image vision, cell synthesis.</div></td>
           <td><div class="svc-desc">Haiku: $0.80/MTok in · $4/MTok out<br>Sonnet: $3/MTok in · $15/MTok out</div></td>
         </tr>
         <tr>
@@ -1117,7 +1117,7 @@ body {
         </tr>
         <tr>
           <td><div class="svc-name">Upstash Redis <span class="badge b-free">Free</span></div></td>
-          <td><div class="svc-desc">Arq background job queue + Redis cell context store (cell_ctx and cell_analysis keys with TTL). Serverless, pay-per-request above free tier.</div></td>
+          <td><div class="svc-desc">Arq background job queue + Redis cell context store (cell_ctx and cell_analysis keys with 30-day expiry). Serverless, pay-per-request above free tier.</div></td>
           <td><div class="svc-desc">Free tier (10k cmds/day)</div></td>
         </tr>
         <tr>
@@ -1140,7 +1140,7 @@ body {
     <div class="cost-note" style="display:flex; flex-direction:column; gap:10px;">
       <div style="display:flex; align-items:baseline; gap:10px;">
         <strong style="white-space:nowrap;">Claude Haiku 4.5</strong>
-        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">cell chat answers · per-asset analysis · NER extraction · keyword filtering · classification</span>
+        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">cell chat answers · per-asset analysis · entity extraction · keyword filtering · classification</span>
         <span style="color:var(--dim); font-size:11px;">$0.80/MTok in · $4/MTok out</span>
       </div>
       <div style="display:flex; align-items:baseline; gap:10px;">
@@ -1185,7 +1185,7 @@ body {
       <tr>
         <td><span class="stack-layer">Backend API</span></td>
         <td><span class="stack-choice">FastAPI + Pydantic + asyncpg</span></td>
-        <td><span class="stack-why">Async-first, native SSE support, Pydantic validates every LLM JSON output, asyncpg for non-blocking DB queries</span></td>
+        <td><span class="stack-why">Async-first, native real-time streaming support, Pydantic validates every AI model JSON output, asyncpg for non-blocking database queries</span></td>
       </tr>
       <tr>
         <td><span class="stack-layer">Database</span></td>
@@ -1195,12 +1195,12 @@ body {
       <tr>
         <td><span class="stack-layer">Job Queue</span></td>
         <td><span class="stack-choice">Arq + Upstash Redis</span></td>
-        <td><span class="stack-why">Async-native Python worker queue, idempotent job keys, progress reporting via Redis TTL keys, 180s timeout for LLM calls</span></td>
+        <td><span class="stack-why">Async-native Python worker queue, idempotent job keys, progress reporting via Redis expiry keys, 180s timeout for AI model calls</span></td>
       </tr>
       <tr>
-        <td><span class="stack-layer">LLM</span></td>
+        <td><span class="stack-layer">AI Model</span></td>
         <td><span class="stack-choice">Claude API — Haiku 4.5 / Sonnet 4.6</span></td>
-        <td><span class="stack-why">Haiku for chat answers, NER, per-asset analysis (fast + cheap). Sonnet for group consensus, final report, competitive assessment, image vision (complex reasoning).</span></td>
+        <td><span class="stack-why">Haiku for chat answers, entity extraction, per-asset analysis (fast + cheap). Sonnet for group consensus, final report, competitive assessment, image vision (complex reasoning).</span></td>
       </tr>
       <tr>
         <td><span class="stack-layer">Embeddings</span></td>
