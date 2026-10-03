@@ -631,9 +631,32 @@ body {
         </tr>
       </tbody>
     </table>
-    <div class="cost-note">
-      <strong>Claude API</strong> — Opus 4.6 for group consensus, final analysis, cell chat answers ($15/MTok in · $75/MTok out). Sonnet 4.6 for NER extraction, competitive assessment, cell synthesis, image vision, per-asset analysis ($3/MTok in · $15/MTok out).<br>
-      <strong>OpenAI</strong> — text-embedding-3-large for all chunk embeddings stored in pgvector ($0.13/MTok). Whisper API for voice-to-text transcription in cell chat ($0.006/min audio).
+    <div class="cost-note" style="display:flex; flex-direction:column; gap:10px;">
+      <div style="display:flex; align-items:baseline; gap:10px;">
+        <strong style="white-space:nowrap;">Claude Opus 4.6</strong>
+        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">group consensus · final report generation</span>
+        <span style="color:var(--dim); font-size:11px;">$15/MTok in · $75/MTok out</span>
+      </div>
+      <div style="display:flex; align-items:baseline; gap:10px;">
+        <strong style="white-space:nowrap;">Claude Sonnet 4.6</strong>
+        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">cell chat answers · competitive assessment · image vision · per-asset analysis</span>
+        <span style="color:var(--dim); font-size:11px;">$3/MTok in · $15/MTok out</span>
+      </div>
+      <div style="display:flex; align-items:baseline; gap:10px;">
+        <strong style="white-space:nowrap;">Claude Haiku 4.5</strong>
+        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">NER extraction · keyword filtering · simple classification</span>
+        <span style="color:var(--dim); font-size:11px;">$0.80/MTok in · $4/MTok out</span>
+      </div>
+      <div style="display:flex; align-items:baseline; gap:10px;">
+        <strong style="white-space:nowrap;">text-embedding-3-large</strong>
+        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">all chunk embeddings stored in pgvector</span>
+        <span style="color:var(--dim); font-size:11px;">$0.13/MTok</span>
+      </div>
+      <div style="display:flex; align-items:baseline; gap:10px;">
+        <strong style="white-space:nowrap;">Whisper API</strong>
+        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">voice-to-text transcription in cell chat</span>
+        <span style="color:var(--dim); font-size:11px;">$0.006/min audio</span>
+      </div>
     </div>
   </div>
 
@@ -1119,8 +1142,32 @@ body {
         </tr>
       </tbody>
     </table>
-    <div class="cost-note">
-      <strong>Note on AI API costs during build:</strong> The two variable cost services are <strong>Claude API</strong> (used for NLP — conversation answers, group consensus, NER extraction, per-asset analysis, competitive assessment) and <strong>OpenAI</strong> (used for text-embedding-3-large to generate chunk embeddings, and Whisper for voice transcription). During the 10-day build period with test data, total API spend is estimated at <strong>$20–60</strong> depending on how many test files are processed and how many conversations are run. In production, cost scales with the number of projects and investor conversations — typically $2–8 per project for a standard due diligence run.
+    <div class="cost-note" style="display:flex; flex-direction:column; gap:10px;">
+      <div style="display:flex; align-items:baseline; gap:10px;">
+        <strong style="white-space:nowrap;">Claude Opus 4.6</strong>
+        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">group consensus · final report generation</span>
+        <span style="color:var(--dim); font-size:11px;">$15/MTok in · $75/MTok out</span>
+      </div>
+      <div style="display:flex; align-items:baseline; gap:10px;">
+        <strong style="white-space:nowrap;">Claude Sonnet 4.6</strong>
+        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">cell chat answers · competitive assessment · image vision · per-asset analysis</span>
+        <span style="color:var(--dim); font-size:11px;">$3/MTok in · $15/MTok out</span>
+      </div>
+      <div style="display:flex; align-items:baseline; gap:10px;">
+        <strong style="white-space:nowrap;">Claude Haiku 4.5</strong>
+        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">NER extraction · keyword filtering · simple classification</span>
+        <span style="color:var(--dim); font-size:11px;">$0.80/MTok in · $4/MTok out</span>
+      </div>
+      <div style="display:flex; align-items:baseline; gap:10px;">
+        <strong style="white-space:nowrap;">text-embedding-3-large</strong>
+        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">all chunk embeddings stored in pgvector</span>
+        <span style="color:var(--dim); font-size:11px;">$0.13/MTok</span>
+      </div>
+      <div style="display:flex; align-items:baseline; gap:10px;">
+        <strong style="white-space:nowrap;">Whisper API</strong>
+        <span style="font-size:11px; background:var(--surface-3); border:1px solid var(--border); border-radius:4px; padding:1px 7px; white-space:nowrap;">voice-to-text transcription in cell chat</span>
+        <span style="color:var(--dim); font-size:11px;">$0.006/min audio</span>
+      </div>
     </div>
   </div>
 
