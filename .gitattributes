@@ -1,0 +1,6 @@
+# askr — append-only files use union merge to prevent concurrent-push conflicts
+askr_state/decisions.jsonl    merge=union
+askr_state/goals.jsonl        merge=union
+askr_state/failed_approaches.md merge=union
+askr_state/tasks/queue_*.jsonl merge=union
+askr_state/implementation_*.jsonl merge=union

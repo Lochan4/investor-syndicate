@@ -1,0 +1,1925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Syndicate — Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:          #0A0A0F;
+  --surface:     #111118;
+  --surface-2:   #16161F;
+  --surface-3:   #1C1C28;
+  --border:      rgba(255,255,255,0.06);
+  --border-h:    rgba(255,255,255,0.12);
+  --text:        #F0F0FF;
+  --muted:       #6B7280;
+  --dim:         #374151;
+  --blue:        #6366F1;
+  --blue-glow:   rgba(99,102,241,0.15);
+  --green:       #10B981;
+  --amber:       #F59E0B;
+  --red:         #EF4444;
+  --cyan:        #06B6D4;
+  --pink:        #EC4899;
+  --orange:      #F97316;
+  --purple:      #8B5CF6;
+  --radius:      10px;
+  --nav-h:       52px;
+  --sidebar-w:   220px;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Screen system ── */
+.screen {
+  display: none;
+  min-height: calc(100vh - var(--nav-h));
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.screen.active {
+  display: flex;
+  flex-direction: column;
+}
+.screen.visible { opacity: 1; }
+
+/* ── Bottom nav ── */
+#bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: var(--nav-h);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 1000;
+}
+#nav-label {
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+#nav-counter {
+  font-size: 11px;
+  color: var(--dim);
+  margin-left: 8px;
+}
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--blue);
+  color: #fff;
+}
+.btn-primary:hover { background: #5558e8; }
+.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover {
+  color: var(--text);
+  border-color: var(--border-h);
+  background: var(--surface-2);
+}
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.btn:disabled { opacity: 0.35; cursor: default; }
+
+/* ── Chip / badge ── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.chip-green  { background: rgba(16,185,129,0.15); color: var(--green); }
+.chip-blue   { background: rgba(99,102,241,0.15);  color: var(--blue); }
+.chip-amber  { background: rgba(245,158,11,0.15); color: var(--amber); }
+.chip-red    { background: rgba(239,68,68,0.15);  color: var(--red); }
+.chip-dim    { background: rgba(55,65,81,0.4);    color: var(--dim); }
+.chip-cyan   { background: rgba(6,182,212,0.12);  color: var(--cyan); }
+
+/* ── Inputs ── */
+.input {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 10px 14px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.input:focus { border-color: var(--blue); }
+.input::placeholder { color: var(--dim); }
+
+/* ─────────────────────────────────────────────
+   SCREEN 1 — Login
+───────────────────────────────────────────── */
+#s1 {
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  min-height: calc(100vh - var(--nav-h));
+}
+
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 40px 36px;
+  width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.login-logo {
+  width: 44px; height: 44px;
+  background: var(--blue);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.login-title { font-size: 20px; font-weight: 600; }
+.login-sub { font-size: 13px; color: var(--muted); margin-top: -12px; }
+
+.input-group { display: flex; flex-direction: column; gap: 6px; }
+.input-group label { font-size: 12px; font-weight: 500; color: var(--muted); }
+
+.login-foot {
+  font-size: 11px;
+  color: var(--dim);
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+/* ─────────────────────────────────────────────
+   SCREEN 2 — 2FA
+───────────────────────────────────────────── */
+#s2 {
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+}
+
+.twofa-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 40px 36px;
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: center;
+}
+
+.twofa-icon {
+  width: 48px; height: 48px;
+  background: var(--blue-glow);
+  border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+.twofa-title { font-size: 18px; font-weight: 600; }
+.twofa-sub { font-size: 13px; color: var(--muted); text-align: center; }
+
+.otp-row {
+  display: flex;
+  gap: 10px;
+}
+
+.otp-box {
+  width: 48px; height: 56px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 22px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.otp-box:focus { border-color: var(--blue); }
+
+/* ─────────────────────────────────────────────
+   SCREEN 3 — Dashboard (sidebar layout)
+───────────────────────────────────────────── */
+.sidebar-layout {
+  display: flex;
+  min-height: calc(100vh - var(--nav-h));
+}
+
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: calc(100vh - var(--nav-h));
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand-icon {
+  width: 30px; height: 30px;
+  background: var(--blue);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.brand-name { font-size: 14px; font-weight: 700; letter-spacing: 0.02em; }
+
+.sidebar-user {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-user-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sidebar-user-role {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 1px;
+}
+
+.sidebar-nav { padding: 10px 8px; flex: 1; }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 2px;
+  border-left: 2px solid transparent;
+  margin-left: -2px;
+  padding-left: 12px;
+}
+.nav-item:hover { color: var(--text); background: var(--surface-2); }
+.nav-item.active {
+  color: var(--blue);
+  background: var(--blue-glow);
+  border-left-color: var(--blue);
+}
+
+.nav-item .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+
+.main-area {
+  flex: 1;
+  background: var(--bg);
+  padding: 28px 32px;
+  overflow-y: auto;
+  max-height: calc(100vh - var(--nav-h));
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.topbar-left { display: flex; flex-direction: column; gap: 2px; }
+.page-title { font-size: 20px; font-weight: 600; }
+.page-sub { font-size: 13px; color: var(--muted); }
+
+.topbar-actions { display: flex; gap: 10px; align-items: center; }
+
+/* Project card */
+.project-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 22px;
+  cursor: pointer;
+  transition: all 0.15s;
+  max-width: 440px;
+}
+.project-card:hover {
+  border-color: var(--border-h);
+  background: var(--surface-2);
+}
+
+.project-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.project-name { font-size: 16px; font-weight: 600; }
+.project-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+.project-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.tag {
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.project-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--dim);
+}
+
+/* ─────────────────────────────────────────────
+   SCREEN 4 — Project Hub
+───────────────────────────────────────────── */
+.hub-topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.breadcrumb {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.breadcrumb span { color: var(--text); font-weight: 500; }
+
+.assets-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: rgba(245,158,11,0.12);
+  border: 1px solid rgba(245,158,11,0.25);
+  color: var(--amber);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.assets-pill:hover { background: rgba(245,158,11,0.2); }
+
+/* Status trail */
+.status-trail {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 28px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.status-trail-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.trail-dot {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--dim);
+}
+
+.trail-dot.active {
+  background: var(--blue-glow);
+  border-color: rgba(99,102,241,0.4);
+  color: var(--blue);
+  font-weight: 600;
+}
+
+.trail-line {
+  width: 28px;
+  height: 1px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+/* Stat cards */
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+
+.stat-num {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Investor avatars */
+.avatars {
+  display: flex;
+  gap: -4px;
+  margin: 8px 0;
+}
+
+.avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  margin-left: -6px;
+  flex-shrink: 0;
+}
+.avatar:first-child { margin-left: 0; }
+.avatar-blue { background: var(--blue); color: #fff; }
+.avatar-dim  { background: var(--surface-3); color: var(--muted); border-color: var(--border); }
+
+/* Template chips */
+.template-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.t-chip {
+  font-size: 10px;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 2px 7px;
+  border-radius: 20px;
+}
+
+.hub-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* ─────────────────────────────────────────────
+   SCREEN 5 — Flow Canvas (Admin)
+───────────────────────────────────────────── */
+.canvas-screen {
+  background: var(--bg);
+  padding: 0;
+  flex-direction: column;
+}
+
+.canvas-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.canvas-breadcrumb {
+  font-size: 14px;
+  color: var(--muted);
+}
+.canvas-breadcrumb strong { color: var(--text); }
+
+.role-switcher {
+  display: flex;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.role-pill {
+  padding: 4px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--muted);
+  transition: all 0.15s;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+}
+
+.role-pill.active {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.canvas-body {
+  flex: 1;
+  padding: 32px 24px;
+  overflow-x: auto;
+}
+
+/* Flow cells row */
+.flow-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  min-width: max-content;
+}
+
+.flow-cell-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  position: relative;
+}
+
+.flow-io-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  width: 100%;
+  justify-content: space-between;
+  padding: 0 6px;
+  margin-bottom: 0;
+}
+
+.flow-bubble {
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 9px;
+  font-size: 10px;
+  color: var(--muted);
+  position: relative;
+}
+
+.flow-bubble-in::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 8px;
+  background: var(--border);
+}
+
+.flow-bubble-out::before {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 8px;
+  background: var(--border);
+}
+
+.flow-cell {
+  width: 200px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+  position: relative;
+}
+.flow-cell:hover {
+  border-color: var(--border-h);
+  background: var(--surface-2);
+}
+.flow-cell:hover .hover-label { opacity: 1; }
+
+.hover-label {
+  position: absolute;
+  bottom: 6px;
+  left: 0; right: 0;
+  text-align: center;
+  font-size: 10px;
+  color: var(--blue);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.flow-cell.done {
+  border-color: rgba(16,185,129,0.4);
+  box-shadow: 0 0 12px rgba(16,185,129,0.08);
+}
+
+.flow-cell.partial {
+  border-color: rgba(99,102,241,0.4);
+  box-shadow: 0 0 10px rgba(99,102,241,0.07);
+}
+
+.flow-cell.dim-cell {
+  border-color: rgba(55,65,81,0.4);
+  opacity: 0.6;
+}
+
+.cell-topic {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.cell-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.progress-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cell-arrow {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  color: var(--dim);
+  font-size: 20px;
+  margin-top: 42px;
+}
+
+/* ─────────────────────────────────────────────
+   SCREEN 6 — Cell Deep Dive
+───────────────────────────────────────────── */
+.deepdive-screen {
+  flex-direction: column;
+  background: var(--bg);
+}
+
+.deepdive-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.back-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.back-link:hover { color: var(--text); }
+
+.deepdive-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  height: calc(100vh - var(--nav-h) - 53px);
+}
+
+/* Right panel */
+.right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Investor views */
+.investor-views {
+  border-bottom: 1px solid var(--border);
+  padding: 16px 20px;
+}
+
+.iv-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.iv-cards {
+  display: flex;
+  gap: 10px;
+}
+
+.iv-card {
+  flex: 1;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.iv-name {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.iv-quote {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+
+/* Chat panel */
+.chat-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.msg {
+  display: flex;
+  flex-direction: column;
+  max-width: 88%;
+}
+
+.msg-user {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.msg-system {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+
+.msg-bubble {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.msg-user .msg-bubble {
+  background: var(--blue);
+  color: #fff;
+  border-bottom-right-radius: 3px;
+}
+
+.msg-system .msg-bubble {
+  background: var(--surface-2);
+  color: var(--text);
+  border-left: 2px solid var(--blue);
+  border-bottom-left-radius: 3px;
+}
+
+.msg-meta {
+  font-size: 10px;
+  color: var(--dim);
+  margin-bottom: 3px;
+}
+
+.source-pills {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.source-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 10px;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.chat-input-row {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: var(--surface);
+}
+
+.chat-input-row .input {
+  flex: 1;
+}
+
+/* ─────────────────────────────────────────────
+   SCREEN 7 — Flow Canvas (Investor)
+───────────────────────────────────────────── */
+.investor-banner {
+  background: rgba(99,102,241,0.08);
+  border-bottom: 1px solid rgba(99,102,241,0.2);
+  padding: 10px 24px;
+  font-size: 13px;
+  color: #a5a7f8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Pulse ring animation for Team cell */
+@keyframes ring-pulse {
+  0%   { box-shadow: 0 0 0 0px rgba(99,102,241,0.0); }
+  40%  { box-shadow: 0 0 0 5px rgba(99,102,241,0.35); }
+  70%  { box-shadow: 0 0 0 10px rgba(99,102,241,0.12); }
+  100% { box-shadow: 0 0 0 14px rgba(99,102,241,0.0); }
+}
+
+.pulse-cell {
+  animation: ring-pulse 2s ease-out infinite;
+  border-color: rgba(99,102,241,0.7) !important;
+}
+
+.start-here {
+  position: absolute;
+  top: -26px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: var(--blue);
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ─────────────────────────────────────────────
+   SCREEN 8 — Investor Chat (thinking dots)
+───────────────────────────────────────────── */
+.thinking-dots { display: flex; gap: 4px; align-items: center; padding: 4px 0; }
+.thinking-dots span {
+  font-size: 22px;
+  line-height: 1;
+  color: var(--muted);
+  animation: blink-dot 1.4s infinite;
+}
+.thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+.thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink-dot {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+/* ─────────────────────────────────────────────
+   SCREEN 9 — Assets Overlay
+───────────────────────────────────────────── */
+.overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 500;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.overlay-backdrop.open { display: flex; }
+
+.assets-modal {
+  width: 85vw;
+  height: 80vh;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.assets-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.assets-modal-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.toggle-pills {
+  display: flex;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.toggle-pill {
+  padding: 4px 18px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--muted);
+  transition: all 0.15s;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+}
+.toggle-pill.active {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.assets-body {
+  flex: 1;
+  overflow: hidden;
+}
+
+.assets-files {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.asset-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.asset-left { display: flex; align-items: center; gap: 12px; }
+.asset-icon { font-size: 20px; }
+.asset-name { font-size: 14px; font-weight: 500; }
+.asset-type { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.asset-nodes { font-size: 12px; color: var(--muted); }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.spin { display: inline-block; animation: spin 1s linear infinite; }
+
+.upload-zone {
+  margin-top: 8px;
+  border: 1.5px dashed var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  text-align: center;
+  color: var(--dim);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.upload-zone:hover {
+  border-color: var(--blue);
+  color: var(--muted);
+  background: var(--blue-glow);
+}
+
+/* Invite modal */
+.invite-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 600;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.invite-modal.open { display: flex; }
+
+.invite-inner {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  width: 380px;
+}
+
+.invite-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.invite-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+
+.invite-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.invite-check {
+  width: 16px; height: 16px;
+  accent-color: var(--blue);
+  cursor: pointer;
+}
+
+.invite-name { font-size: 13px; font-weight: 500; }
+.invite-email { font-size: 11px; color: var(--muted); }
+
+.invite-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 2px; }
+
+/* ─────────────────────────────────────────────
+   Misc utilities
+───────────────────────────────────────────── */
+.flex { display: flex; }
+.items-center { align-items: center; }
+.gap-2 { gap: 8px; }
+.gap-1 { gap: 4px; }
+.ml-auto { margin-left: auto; }
+.text-muted { color: var(--muted); }
+.text-dim { color: var(--dim); }
+.font-600 { font-weight: 600; }
+.font-700 { font-weight: 700; }
+.text-sm { font-size: 12px; }
+.text-xs { font-size: 11px; }
+.mt-1 { margin-top: 4px; }
+.mt-2 { margin-top: 8px; }
+.mt-3 { margin-top: 12px; }
+
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 1 — Login
+════════════════════════════════════════════ -->
+<div id="s1" class="screen">
+  <div class="login-card">
+    <div class="login-logo">S</div>
+    <div>
+      <div class="login-title">Welcome back</div>
+      <div class="login-sub" style="margin-top:4px">Sign in to Syndicate</div>
+    </div>
+    <div class="input-group">
+      <label>Email</label>
+      <input class="input" type="email" value="sarah.chen@syndicate.io" placeholder="you@example.com">
+    </div>
+    <div class="input-group">
+      <label>Password</label>
+      <input class="input" type="password" value="••••••••••" placeholder="Password">
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="showScreen(2)">
+      Sign in &nbsp;→
+    </button>
+    <div class="login-foot">Invite-only &nbsp;·&nbsp; Protected by 2FA</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 2 — 2FA
+════════════════════════════════════════════ -->
+<div id="s2" class="screen">
+  <div class="twofa-card">
+    <div class="twofa-icon">🔐</div>
+    <div class="twofa-title">Two-factor authentication</div>
+    <div class="twofa-sub">Enter the 6-digit code from your authenticator app</div>
+    <div class="otp-row">
+      <input class="otp-box" type="text" maxlength="1" value="4">
+      <input class="otp-box" type="text" maxlength="1" value="8">
+      <input class="otp-box" type="text" maxlength="1" value="2">
+      <input class="otp-box" type="text" maxlength="1" value="1">
+      <input class="otp-box" type="text" maxlength="1" value="">
+      <input class="otp-box" type="text" maxlength="1" value="">
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="showScreen(3)">
+      Verify &nbsp;→
+    </button>
+    <div style="font-size:12px;color:var(--dim)">Didn't receive a code? <span style="color:var(--blue);cursor:pointer">Resend</span></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 3 — Admin Dashboard
+════════════════════════════════════════════ -->
+<div id="s3" class="screen">
+  <div class="sidebar-layout">
+    <nav class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">S</div>
+        <div class="brand-name">Syndicate</div>
+      </div>
+      <div class="sidebar-user">
+        <div class="sidebar-user-name">Sarah Chen</div>
+        <div class="sidebar-user-role">Admin</div>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-item active">
+          <span class="nav-icon">⊞</span> Dashboard
+        </div>
+        <div class="nav-item">
+          <span class="nav-icon">⬡</span> Projects
+        </div>
+        <div class="nav-item">
+          <span class="nav-icon">◈</span> My Investments
+        </div>
+        <div class="nav-item">
+          <span class="nav-icon">⚙</span> Settings
+        </div>
+      </div>
+    </nav>
+    <div class="main-area">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="page-title">Good morning, Sarah ☀️</div>
+          <div class="page-sub">You have 1 active project · 3 investors exploring</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost btn-sm">My Investments</button>
+          <button class="btn btn-primary btn-sm" onclick="showScreen(4)">+ New Project</button>
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:12px;">Active Projects</div>
+
+      <div class="project-card" onclick="showScreen(4)">
+        <div class="project-card-head">
+          <div>
+            <div class="project-name">Vaulta</div>
+            <div class="project-meta">Series A &nbsp;·&nbsp; $8M raise</div>
+          </div>
+          <div class="chip chip-green">● Graph Ready</div>
+        </div>
+        <div class="project-tags">
+          <span class="tag">B2B SaaS</span>
+          <span class="tag">Fintech</span>
+          <span class="tag">AI-powered</span>
+        </div>
+        <div class="project-card-foot">
+          <span>3 assets &nbsp;·&nbsp; 1,847 nodes</span>
+          <span style="color:var(--blue);font-weight:500;">3 of 5 investors exploring →</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 4 — Project Hub (Admin)
+════════════════════════════════════════════ -->
+<div id="s4" class="screen">
+  <div class="sidebar-layout">
+    <nav class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">S</div>
+        <div class="brand-name">Syndicate</div>
+      </div>
+      <div class="sidebar-user">
+        <div class="sidebar-user-name">Sarah Chen</div>
+        <div class="sidebar-user-role">Admin</div>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-item">
+          <span class="nav-icon">⊞</span> Dashboard
+        </div>
+        <div class="nav-item active">
+          <span class="nav-icon">⬡</span> Projects
+        </div>
+        <div class="nav-item">
+          <span class="nav-icon">◈</span> My Investments
+        </div>
+        <div class="nav-item">
+          <span class="nav-icon">⚙</span> Settings
+        </div>
+      </div>
+    </nav>
+    <div class="main-area">
+      <!-- Topbar -->
+      <div class="hub-topbar">
+        <button class="assets-pill" onclick="openAssets()">⬡ Assets</button>
+        <div class="breadcrumb">Projects &nbsp;/&nbsp; <span>Vaulta</span></div>
+        <div class="ml-auto topbar-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openInvite()">Invite Investors</button>
+          <button class="btn btn-primary btn-sm" onclick="showScreen(5)">View Flow Canvas →</button>
+        </div>
+      </div>
+
+      <!-- Status trail -->
+      <div class="status-trail">
+        <div class="status-trail-pill">
+          <div class="trail-dot">Draft</div>
+        </div>
+        <div class="trail-line"></div>
+        <div class="status-trail-pill">
+          <div class="trail-dot">Building Graph</div>
+        </div>
+        <div class="trail-line"></div>
+        <div class="status-trail-pill">
+          <div class="trail-dot active">Open</div>
+        </div>
+        <div class="trail-line"></div>
+        <div class="status-trail-pill">
+          <div class="trail-dot">Consensus</div>
+        </div>
+        <div class="trail-line"></div>
+        <div class="status-trail-pill">
+          <div class="trail-dot">Final</div>
+        </div>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="stat-cards">
+        <div class="stat-card">
+          <div class="stat-label">Knowledge Graph</div>
+          <div class="stat-num">1,847</div>
+          <div class="stat-sub">nodes &nbsp;·&nbsp; 4,203 edges &nbsp;·&nbsp; 3 assets</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Investors</div>
+          <div style="font-size:18px;font-weight:700;margin-bottom:8px;margin-top:2px;">3 / 5 exploring</div>
+          <div class="avatars" style="margin-top:0">
+            <div class="avatar avatar-blue" title="Sarah Chen">SC</div>
+            <div class="avatar avatar-blue" title="Marcus Webb">MW</div>
+            <div class="avatar avatar-blue" title="Priya Rajan">PR</div>
+            <div class="avatar avatar-dim">JL</div>
+            <div class="avatar avatar-dim">TK</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Flow Template</div>
+          <div style="font-size:15px;font-weight:600;margin-bottom:6px;margin-top:2px;">v3 &nbsp;·&nbsp; 6 cells</div>
+          <div class="template-chips">
+            <span class="t-chip">Team</span>
+            <span class="t-chip">Market</span>
+            <span class="t-chip">Traction</span>
+            <span class="t-chip">Competition</span>
+            <span class="t-chip">Risks</span>
+            <span class="t-chip">Financials</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 5 — Flow Canvas (Admin)
+════════════════════════════════════════════ -->
+<div id="s5" class="screen canvas-screen">
+  <div class="canvas-topbar">
+    <div class="canvas-breadcrumb">Vaulta &nbsp;/&nbsp; <strong>Flow Canvas</strong></div>
+    <div class="role-switcher">
+      <button class="role-pill active" onclick="setRole('admin',this)">Admin</button>
+      <button class="role-pill" onclick="setRole('investor',this)">Investor</button>
+    </div>
+    <div class="flex gap-2 items-center">
+      <button class="btn btn-ghost btn-sm" onclick="showScreen(4)">← Hub</button>
+    </div>
+  </div>
+  <div class="canvas-body">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:20px;">Click any cell to view investor analysis &nbsp;·&nbsp; Admin sees all 5 investor perspectives</div>
+    <div class="flow-row" id="admin-flow-row">
+      <!-- Cells rendered by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 6 — Cell Deep Dive: Team (Admin)
+════════════════════════════════════════════ -->
+<div id="s6" class="screen deepdive-screen">
+  <div class="deepdive-topbar">
+    <div class="back-link" onclick="showScreen(5)">
+      ← Flow Canvas
+    </div>
+    <div class="flex items-center gap-2">
+      <div style="font-size:15px;font-weight:600;">Team Analysis</div>
+      <div class="chip chip-green">5/5 investors explored</div>
+    </div>
+    <div style="width:120px;"></div>
+  </div>
+  <div class="deepdive-body">
+    <!-- Right panel -->
+    <div class="right-panel">
+      <div class="investor-views">
+        <div class="iv-title">Investor Views</div>
+        <div class="iv-cards">
+          <div class="iv-card">
+            <div class="iv-name">Sarah Chen</div>
+            <div class="iv-quote">"Strong technical pedigree. Gap in enterprise sales."</div>
+            <div class="chip chip-amber" style="font-size:10px;">⚡ Mixed</div>
+          </div>
+          <div class="iv-card">
+            <div class="iv-name">Marcus Webb</div>
+            <div class="iv-quote">"Impressive pedigree but first-time founders."</div>
+            <div class="chip chip-amber" style="font-size:10px;">⚡ Caution</div>
+          </div>
+          <div class="iv-card">
+            <div class="iv-name">Priya Rajan</div>
+            <div class="iv-quote">"Team risk manageable — GTM hire plan covers gap."</div>
+            <div class="chip chip-green" style="font-size:10px;">✓ Positive</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-panel">
+        <div class="chat-messages">
+          <div class="msg msg-user">
+            <div class="msg-meta">Admin</div>
+            <div class="msg-bubble">Does the team have prior enterprise sales experience?</div>
+          </div>
+          <div class="msg msg-system">
+            <div class="msg-meta">Syndicate AI</div>
+            <div class="msg-bubble">
+              Based on the pitch deck (Slide 7) and founder audio (03:41), the founding team has strong technical credentials — Aryan Mehta (Stanford MBA) and Tanvi Shah (IIT Bombay, 8 years enterprise infra) — but no direct enterprise sales experience. Their GTM plan addresses this with a planned VP Sales hire in Q2, with Aryan playing a product-led sales role in the interim based on his Stripe experience.
+              <div class="source-pills">
+                <div class="source-pill">📄 Slide 7</div>
+                <div class="source-pill">🎤 Founder audio</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-row">
+          <input class="input" type="text" placeholder="Ask another question…" style="font-size:13px;">
+          <button class="btn btn-ghost btn-sm">🎤</button>
+          <button class="btn btn-primary btn-sm">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 7 — Flow Canvas (Investor View)
+════════════════════════════════════════════ -->
+<div id="s7" class="screen canvas-screen">
+  <div class="canvas-topbar">
+    <div class="canvas-breadcrumb">Vaulta &nbsp;/&nbsp; <strong>Flow Canvas</strong></div>
+    <div class="role-switcher">
+      <button class="role-pill" onclick="setRole('admin',this)">Admin</button>
+      <button class="role-pill active" onclick="setRole('investor',this)">Investor</button>
+    </div>
+    <div class="flex gap-2 items-center" style="font-size:13px;color:var(--muted);">
+      Marcus Webb &nbsp;<span class="chip chip-dim" style="font-size:10px;">Investor</span>
+    </div>
+  </div>
+  <div class="investor-banner">
+    <span>💡</span>
+    Explore each topic below — your conversations build the collective analysis.
+  </div>
+  <div class="canvas-body">
+    <div class="flow-row" id="investor-flow-row">
+      <!-- Cells rendered by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 8 — Investor 40/60 Chat
+════════════════════════════════════════════ -->
+<div id="s8" class="screen deepdive-screen">
+  <div class="deepdive-topbar">
+    <div class="back-link" onclick="showScreen(7)">← Topics</div>
+    <div class="flex items-center gap-2">
+      <div class="chip chip-blue">Team</div>
+      <div style="font-size:13px;color:var(--muted);">Syndicate · Vaulta</div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);">Marcus Webb &nbsp;·&nbsp; Investor</div>
+  </div>
+  <div class="deepdive-body">
+    <!-- Full-width Chat -->
+    <div class="right-panel">
+      <div class="chat-panel" style="background:var(--surface);">
+        <div style="padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
+          <div class="chip chip-blue" style="font-size:11px;">Team Analysis</div>
+        </div>
+        <div class="chat-messages" id="inv-chat-messages">
+          <!-- Pre-loaded history -->
+          <div class="msg msg-user" style="opacity:0.45;">
+            <div class="msg-meta">Marcus Webb</div>
+            <div class="msg-bubble">Who are the key team members?</div>
+          </div>
+          <div class="msg msg-system" style="opacity:0.45;">
+            <div class="msg-meta">Syndicate AI</div>
+            <div class="msg-bubble">
+              The founding team consists of Aryan Mehta (CEO, Stanford MBA, ex-Stripe) and Tanvi Shah (CTO, IIT Bombay, 8 years enterprise infra at Cisco). Together they bring strong technical depth and prior fintech exposure.
+            </div>
+          </div>
+          <!-- Active message will be appended by JS -->
+        </div>
+        <div class="chat-input-row" id="inv-input-row">
+          <input class="input" type="text" id="inv-chat-input" value="Does the team have enterprise sales experience?" style="font-size:13px;">
+          <button class="btn btn-ghost btn-sm">🎤</button>
+          <button class="btn btn-primary btn-sm" id="inv-send-btn" onclick="runTraversal()">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 9 — Assets Panel (standalone screen for nav)
+════════════════════════════════════════════ -->
+<div id="s9" class="screen" style="align-items:center;justify-content:center;background:var(--bg);">
+  <div style="color:var(--muted);font-size:13px;">Assets panel shown as overlay. Use the ⬡ Assets button in Screen 4 topbar.</div>
+  <button class="btn btn-primary" style="margin-top:16px;" onclick="showScreen(4);setTimeout(openAssets,300)">Open Assets Panel →</button>
+</div>
+
+<!-- ══════════════════════════════════════════
+     ASSETS OVERLAY (accessible from S4 topbar)
+════════════════════════════════════════════ -->
+<div class="overlay-backdrop" id="assets-overlay" onclick="closeAssetsIfOutside(event)">
+  <div class="assets-modal">
+    <div class="assets-modal-header">
+      <div class="assets-modal-title">Assets &nbsp;·&nbsp; Vaulta</div>
+      <div class="toggle-pills">
+        <button class="toggle-pill active" id="tab-files">Files</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="closeAssets()">✕</button>
+    </div>
+    <div class="assets-body">
+      <!-- FILES MODE -->
+      <div id="assets-files-view" class="assets-files">
+        <div class="asset-row">
+          <div class="asset-left">
+            <div class="asset-icon">📄</div>
+            <div>
+              <div class="asset-name">Vaulta_SeriesA_Deck.pdf</div>
+              <div class="asset-type">PDF &nbsp;·&nbsp; 4.2 MB &nbsp;·&nbsp; 482 nodes · 127 entities</div>
+            </div>
+          </div>
+          <div class="chip chip-green">✓ Ready</div>
+        </div>
+        <div class="asset-row">
+          <div class="asset-left">
+            <div class="asset-icon">🎤</div>
+            <div>
+              <div class="asset-name">Founder_Interview.mp3</div>
+              <div class="asset-type">Audio &nbsp;·&nbsp; 38 min &nbsp;·&nbsp; 341 nodes · 89 entities</div>
+            </div>
+          </div>
+          <div class="chip chip-green">✓ Ready</div>
+        </div>
+        <div class="asset-row">
+          <div class="asset-left">
+            <div class="asset-icon">📊</div>
+            <div>
+              <div class="asset-name">Financials_Q3_2026.xlsx</div>
+              <div class="asset-type">Spreadsheet &nbsp;·&nbsp; Extracting…</div>
+            </div>
+          </div>
+          <div class="chip chip-amber"><span class="spin">⟳</span> &nbsp;Processing</div>
+        </div>
+        <div class="upload-zone">
+          <div style="font-size:20px;margin-bottom:6px;">⊕</div>
+          Drag files here or click to upload<br>
+          <span style="color:var(--dim);">PDF, MP3, XLSX, images supported</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INVITE MODAL -->
+<div class="invite-modal" id="invite-modal" onclick="closeInviteIfOutside(event)">
+  <div class="invite-inner">
+    <div class="invite-title">Invite Investors</div>
+    <div class="invite-list">
+      <div class="invite-row">
+        <input type="checkbox" class="invite-check" checked>
+        <div>
+          <div class="invite-name">James Liu</div>
+          <div class="invite-email">j.liu@partnersvc.io</div>
+        </div>
+        <span class="chip chip-dim" style="margin-left:auto;font-size:10px;">Not invited</span>
+      </div>
+      <div class="invite-row">
+        <input type="checkbox" class="invite-check" checked>
+        <div>
+          <div class="invite-name">Tara Kim</div>
+          <div class="invite-email">tara@tkvcp.com</div>
+        </div>
+        <span class="chip chip-dim" style="margin-left:auto;font-size:10px;">Not invited</span>
+      </div>
+      <div class="invite-row">
+        <input type="checkbox" class="invite-check">
+        <div>
+          <div class="invite-name">David Park</div>
+          <div class="invite-email">david@sequoia.com</div>
+        </div>
+        <span class="chip chip-blue" style="margin-left:auto;font-size:10px;">Invited</span>
+      </div>
+    </div>
+    <div class="invite-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeInvite()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="closeInvite()">Send Invites</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     BOTTOM NAV BAR
+════════════════════════════════════════════ -->
+<div id="bottom-nav">
+  <button class="btn btn-ghost btn-sm" id="nav-back" onclick="goBack()">← Back</button>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span id="nav-label">Admin signs in</span>
+    <span id="nav-counter">1 / 9</span>
+  </div>
+  <button class="btn btn-primary btn-sm" id="nav-next" onclick="goNext()">Next →</button>
+</div>
+
+<script>
+// ─── State ─────────────────────────────────
+let current = 1;
+const TOTAL = 9;
+
+const LABELS = [
+  '',
+  'Admin signs in',
+  'Two-factor authentication',
+  'Admin dashboard — project overview',
+  'Project hub — graph ready, investors invited',
+  'Flow canvas — admin sees investor progress',
+  'Cell deep dive — admin reviews Team analysis',
+  'Flow canvas — investor (Marcus) view',
+  '40/60 KG + chat — investor explores Team topic',
+  'Assets panel — Files and Graph view',
+];
+
+// ─── Screen show/hide ──────────────────────
+function showScreen(n) {
+  const prev = document.getElementById('s' + current);
+  const next = document.getElementById('s' + n);
+  if (!next) return;
+
+  if (prev) {
+    prev.classList.remove('visible');
+    setTimeout(() => prev.classList.remove('active'), 250);
+  }
+
+  current = n;
+  next.classList.add('active');
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => next.classList.add('visible'));
+  });
+
+  updateNav();
+
+  // Screen-specific init
+  if (n === 5) buildAdminCanvas();
+  if (n === 7) buildInvestorCanvas();
+  if (n === 8) resetInvestorChat();
+  if (n === 9) { showScreen(4); setTimeout(openAssets, 300); return; }
+}
+
+function goBack() { if (current > 1) showScreen(current - 1); }
+function goNext() { if (current < TOTAL) showScreen(current + 1); }
+
+function updateNav() {
+  document.getElementById('nav-label').textContent = LABELS[current] || '';
+  document.getElementById('nav-counter').textContent = current + ' / ' + TOTAL;
+  document.getElementById('nav-back').disabled = current === 1;
+  document.getElementById('nav-next').disabled = current === TOTAL;
+}
+
+// ─── Flow canvas builder ───────────────────
+const CELLS = [
+  { topic: 'Team',        progress: '5/5', state: 'done',    dot: '#10B981', screen: 6 },
+  { topic: 'Market Size', progress: '4/5', state: 'partial', dot: '#6366F1', screen: null },
+  { topic: 'Traction',    progress: '3/5', state: 'partial', dot: '#6366F1', screen: null },
+  { topic: 'Competition', progress: '2/5', state: 'dim-cell',dot: '#374151', screen: null },
+  { topic: 'Risks',       progress: '1/5', state: 'dim-cell',dot: '#374151', screen: null },
+  { topic: 'Financials',  progress: '0/5', state: 'dim-cell',dot: '#374151', screen: null },
+];
+
+function buildAdminCanvas() {
+  const row = document.getElementById('admin-flow-row');
+  row.innerHTML = '';
+  CELLS.forEach((c, i) => {
+    if (i > 0) {
+      const arrow = document.createElement('div');
+      arrow.className = 'cell-arrow';
+      arrow.textContent = '→';
+      row.appendChild(arrow);
+    }
+    const wrap = document.createElement('div');
+    wrap.className = 'flow-cell-wrapper';
+
+    const ioRow = document.createElement('div');
+    ioRow.className = 'flow-io-row';
+    ioRow.innerHTML = `
+      <div class="flow-bubble flow-bubble-in">docs + prompt ↓</div>
+      <div class="flow-bubble flow-bubble-out">synthesis → ↓</div>
+    `;
+    wrap.appendChild(ioRow);
+
+    const cell = document.createElement('div');
+    cell.className = `flow-cell ${c.state}`;
+    if (c.screen) cell.onclick = () => showScreen(c.screen);
+    cell.innerHTML = `
+      <div class="cell-topic">${c.topic}</div>
+      <div class="cell-progress">
+        <div class="progress-dot" style="background:${c.dot}"></div>
+        ${c.progress} explored${c.state === 'done' ? ' ✓' : ''}
+      </div>
+      ${c.screen ? '<div class="hover-label">View analysis →</div>' : ''}
+    `;
+    wrap.appendChild(cell);
+    row.appendChild(wrap);
+  });
+}
+
+function buildInvestorCanvas() {
+  const row = document.getElementById('investor-flow-row');
+  row.innerHTML = '';
+  const topics = ['Team','Market Size','Traction','Competition','Risks','Financials'];
+  const states  = ['partial','dim-cell','dim-cell','dim-cell','dim-cell','dim-cell'];
+
+  topics.forEach((t, i) => {
+    if (i > 0) {
+      const arrow = document.createElement('div');
+      arrow.className = 'cell-arrow';
+      arrow.textContent = '→';
+      row.appendChild(arrow);
+    }
+    const wrap = document.createElement('div');
+    wrap.className = 'flow-cell-wrapper';
+    wrap.style.position = 'relative';
+
+    const ioRow = document.createElement('div');
+    ioRow.className = 'flow-io-row';
+    ioRow.innerHTML = `
+      <div class="flow-bubble flow-bubble-in">docs + prompt ↓</div>
+      <div class="flow-bubble flow-bubble-out">synthesis → ↓</div>
+    `;
+    wrap.appendChild(ioRow);
+
+    const cell = document.createElement('div');
+    cell.className = `flow-cell ${states[i]}`;
+    if (i === 0) cell.classList.add('pulse-cell');
+
+    if (i === 0) {
+      const sh = document.createElement('div');
+      sh.className = 'start-here';
+      sh.innerHTML = '▸ Start here';
+      wrap.appendChild(sh);
+    }
+
+    cell.onclick = () => { if (i === 0) showScreen(8); };
+    cell.innerHTML = `
+      <div class="cell-topic">${t}</div>
+      <div class="cell-progress" style="color:var(--dim);">
+        ${i === 0 ? '<div class="progress-dot" style="background:#6366F1"></div>Tap to explore' : '—'}
+      </div>
+      ${i === 0 ? '<div class="hover-label" style="opacity:1;color:var(--blue);">Tap to explore →</div>' : ''}
+    `;
+    wrap.appendChild(cell);
+    row.appendChild(wrap);
+  });
+}
+
+// ─── Role switcher (canvas) ────────────────
+function setRole(role, btn) {
+  const pills = btn.closest('.role-switcher').querySelectorAll('.role-pill');
+  pills.forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  if (role === 'investor') showScreen(7);
+  else showScreen(5);
+}
+
+// ─── Assets overlay ────────────────────────
+function openAssets() {
+  document.getElementById('assets-overlay').classList.add('open');
+}
+function closeAssets() {
+  document.getElementById('assets-overlay').classList.remove('open');
+}
+function closeAssetsIfOutside(e) {
+  if (e.target === document.getElementById('assets-overlay')) closeAssets();
+}
+
+// ─── Invite modal ──────────────────────────
+function openInvite() { document.getElementById('invite-modal').classList.add('open'); }
+function closeInvite() { document.getElementById('invite-modal').classList.remove('open'); }
+function closeInviteIfOutside(e) {
+  if (e.target === document.getElementById('invite-modal')) closeInvite();
+}
+
+// ─── Investor chat animation (Screen 8) ────
+let traversalDone = false;
+
+const ANSWER = 'Based on the pitch deck (Slide 7) and founder audio, the team has strong technical credentials but no direct enterprise sales experience. Aryan previously led product at Stripe and Razorpay — adjacent to enterprise but not a pure sales background. Their Series A plan includes a VP Sales hire in Q2 2026 to address this gap directly.';
+
+function resetInvestorChat() {
+  traversalDone = false;
+  document.getElementById('inv-send-btn').disabled = false;
+  document.getElementById('inv-chat-input').value = 'Does the team have enterprise sales experience?';
+  const msgs = document.getElementById('inv-chat-messages');
+  while (msgs.children.length > 2) msgs.removeChild(msgs.lastChild);
+}
+
+function runTraversal() {
+  if (traversalDone) return;
+  traversalDone = true;
+
+  const btn = document.getElementById('inv-send-btn');
+  btn.disabled = true;
+
+  const inputEl = document.getElementById('inv-chat-input');
+  const question = inputEl.value || 'Does the team have enterprise sales experience?';
+  inputEl.value = '';
+
+  const msgs = document.getElementById('inv-chat-messages');
+
+  const userMsg = document.createElement('div');
+  userMsg.className = 'msg msg-user';
+  userMsg.innerHTML = `<div class="msg-meta">Marcus Webb</div><div class="msg-bubble">${question}</div>`;
+  msgs.appendChild(userMsg);
+
+  // Thinking dots
+  const sysMsg = document.createElement('div');
+  sysMsg.className = 'msg msg-system';
+  const bubbleId = 'answer-bubble-' + Date.now();
+  sysMsg.innerHTML = `
+    <div class="msg-meta">Syndicate AI</div>
+    <div class="msg-bubble" id="${bubbleId}">
+      <div class="thinking-dots"><span>·</span><span>·</span><span>·</span></div>
+    </div>
+  `;
+  msgs.appendChild(sysMsg);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  setTimeout(() => {
+    const bubble = document.getElementById(bubbleId);
+    if (!bubble) return;
+    bubble.innerHTML = '';
+
+    const answerText = document.createElement('div');
+    answerText.style.cssText = 'font-size:13px;line-height:1.6;';
+    bubble.appendChild(answerText);
+
+    const sourcePills = document.createElement('div');
+    sourcePills.className = 'source-pills';
+    sourcePills.style.display = 'none';
+    sourcePills.innerHTML = `<div class="source-pill">📄 Slide 7</div><div class="source-pill">🎤 Founder audio 03:41</div>`;
+    bubble.appendChild(sourcePills);
+
+    let idx = 0;
+    function typeChar() {
+      if (idx < ANSWER.length) {
+        answerText.textContent += ANSWER[idx++];
+        msgs.scrollTop = msgs.scrollHeight;
+        setTimeout(typeChar, 15);
+      } else {
+        sourcePills.style.display = 'flex';
+        msgs.scrollTop = msgs.scrollHeight;
+        setTimeout(() => {
+          inputEl.placeholder = 'Ask another question…';
+          btn.disabled = false;
+          btn.textContent = 'Send';
+          btn.onclick = null;
+        }, 300);
+      }
+    }
+    typeChar();
+  }, 1800);
+}
+
+// ─── Init ──────────────────────────────────
+showScreen(1);
+</script>
+</body>
+</html>

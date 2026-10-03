@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Investor Syndicate Platform — LLD</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0D1117; overflow: hidden; font-family: 'SF Mono', 'Fira Code', monospace; }
+  svg#canvas { width: 100vw; height: 100vh; cursor: grab; display: block; }
+  svg#canvas.grabbing { cursor: grabbing; }
+  #viewport > g, #viewport > path { transition: opacity 0.18s ease; }
+  #legend {
+    position: fixed; top: 16px; right: 16px;
+    background: rgba(13,17,23,0.92); border: 1px solid #30363d;
+    border-radius: 8px; padding: 12px 16px; color: #c9d1d9; font-size: 11px;
+    min-width: 160px; backdrop-filter: blur(4px);
+  }
+  #legend h4 { color: #8b949e; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  #legend .row { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+  #legend .dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  #title {
+    position: fixed; top: 16px; left: 16px;
+    color: #c9d1d9; font-size: 13px; font-weight: 600;
+    background: rgba(13,17,23,0.92); border: 1px solid #30363d;
+    border-radius: 8px; padding: 10px 14px; backdrop-filter: blur(4px);
+    line-height: 1.5;
+  }
+  #title span { color: #58a6ff; font-size: 11px; font-weight: 400; display: block; }
+  #controls {
+    position: fixed; bottom: 16px; right: 16px;
+    display: flex; gap: 6px;
+  }
+  #controls button {
+    background: rgba(13,17,23,0.92); border: 1px solid #30363d;
+    color: #c9d1d9; font-size: 14px; width: 32px; height: 32px;
+    border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  #controls button:hover { background: #21262d; }
+</style>
+</head>
+<body>
+
+<div id="title">
+  Investor Syndicate Platform
+  <span>Full LLD — Auth · Assets · Graph · Flow Canvas (template) · KG Traversal · No Forms</span>
+</div>
+
+<div id="legend">
+  <h4>Components</h4>
+  <div class="row"><div class="dot" style="background:#238636"></div>Auth / Security</div>
+  <div class="row"><div class="dot" style="background:#1f6feb"></div>Frontend / Clients</div>
+  <div class="row"><div class="dot" style="background:#0ea5e9"></div>FastAPI / API Layer</div>
+  <div class="row"><div class="dot" style="background:#7c3aed"></div>Supabase / Postgres</div>
+  <div class="row"><div class="dot" style="background:#b45309"></div>Redis / Arq Workers</div>
+  <div class="row"><div class="dot" style="background:#059669"></div>Neo4j / KG</div>
+  <div class="row"><div class="dot" style="background:#db61a2"></div>AI Pipeline</div>
+  <div class="row"><div class="dot" style="background:#e3b341"></div>External APIs</div>
+</div>
+
+<div id="controls">
+  <button id="zoomIn" title="Zoom In">+</button>
+  <button id="zoomOut" title="Zoom Out">−</button>
+  <button id="zoomReset" title="Reset">⊙</button>
+</div>
+
+<svg id="canvas" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <pattern id="dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+    <circle cx="1" cy="1" r="0.8" fill="#21262d"/>
+  </pattern>
+  <!-- Arrowheads -->
+  <marker id="arr-blue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#1f6feb"/>
+  </marker>
+  <marker id="arr-sky" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#0ea5e9"/>
+  </marker>
+  <marker id="arr-purple" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#7c3aed"/>
+  </marker>
+  <marker id="arr-orange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#b45309"/>
+  </marker>
+  <marker id="arr-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#059669"/>
+  </marker>
+  <marker id="arr-pink" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#db61a2"/>
+  </marker>
+  <marker id="arr-yellow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#e3b341"/>
+  </marker>
+  <marker id="arr-gray" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#6e7681"/>
+  </marker>
+</defs>
+
+<g id="viewport">
+<!-- Background -->
+<rect x="-5000" y="-5000" width="15000" height="15000" fill="url(#dots)"/>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- STATUS LIFECYCLE BAR -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<g transform="translate(60, 30)">
+  <text x="0" y="14" fill="#8b949e" font-size="9" font-family="'SF Mono',monospace" letter-spacing="1" text-anchor="start">PROJECT STATUS LIFECYCLE</text>
+
+  <!-- draft -->
+  <rect x="0" y="22" width="90" height="24" rx="4" fill="#21262d" stroke="#30363d" stroke-width="1"/>
+  <text x="45" y="38" fill="#8b949e" font-size="10" font-family="'SF Mono',monospace" text-anchor="middle">draft</text>
+  <path d="M90,34 L104,34" stroke="#6e7681" stroke-width="1.5" marker-end="url(#arr-gray)"/>
+
+  <!-- building_graph -->
+  <rect x="104" y="22" width="120" height="24" rx="4" fill="#1c2d3a" stroke="#0ea5e9" stroke-width="1"/>
+  <text x="164" y="38" fill="#0ea5e9" font-size="10" font-family="'SF Mono',monospace" text-anchor="middle">building_graph</text>
+  <path d="M224,34 L238,34" stroke="#6e7681" stroke-width="1.5" marker-end="url(#arr-gray)"/>
+
+  <!-- open -->
+  <rect x="238" y="22" width="70" height="24" rx="4" fill="#1c3a28" stroke="#238636" stroke-width="1"/>
+  <text x="273" y="38" fill="#3fb950" font-size="10" font-family="'SF Mono',monospace" text-anchor="middle">open</text>
+  <path d="M308,34 L322,34" stroke="#6e7681" stroke-width="1.5" marker-end="url(#arr-gray)"/>
+
+  <!-- consensus -->
+  <rect x="322" y="22" width="90" height="24" rx="4" fill="#2d1b4e" stroke="#7c3aed" stroke-width="1"/>
+  <text x="367" y="38" fill="#a371f7" font-size="10" font-family="'SF Mono',monospace" text-anchor="middle">consensus</text>
+  <path d="M412,34 L426,34" stroke="#6e7681" stroke-width="1.5" marker-end="url(#arr-gray)"/>
+
+  <!-- final -->
+  <rect x="426" y="22" width="70" height="24" rx="4" fill="#2d3a1c" stroke="#3fb950" stroke-width="1"/>
+  <text x="461" y="38" fill="#3fb950" font-size="10" font-family="'SF Mono',monospace" text-anchor="middle">final</text>
+</g>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ROW 1: ENTRY POINTS -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<!-- Auth Entry Box -->
+<g transform="translate(60, 100)">
+  <rect x="0" y="0" width="200" height="140" rx="6" fill="#0d1f0d" stroke="#238636" stroke-width="1.5"/>
+  <rect x="0" y="0" width="200" height="24" rx="6" fill="#238636" opacity="0.3"/>
+  <rect x="0" y="6" width="200" height="18" fill="#238636" opacity="0.3"/>
+  <text x="100" y="16" fill="#3fb950" font-size="10" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700" letter-spacing="1">AUTH ENTRY</text>
+
+  <text x="10" y="38" fill="#8b949e" font-size="9" font-family="'SF Mono',monospace">Supabase Auth (JWT + TOTP)</text>
+
+  <text x="10" y="56" fill="#3fb950" font-size="9" font-family="'SF Mono',monospace">1. POST /auth/v1/token</text>
+  <text x="10" y="70" fill="#c9d1d9" font-size="8.5" font-family="'SF Mono',monospace">   email + password → aal1 JWT</text>
+
+  <text x="10" y="86" fill="#3fb950" font-size="9" font-family="'SF Mono',monospace">2. POST /auth/v1/factors/verify</text>
+  <text x="10" y="100" fill="#c9d1d9" font-size="8.5" font-family="'SF Mono',monospace">   TOTP code → aal2 JWT</text>
+
+  <text x="10" y="116" fill="#3fb950" font-size="9" font-family="'SF Mono',monospace">Invite-only signup</text>
+  <text x="10" y="130" fill="#c9d1d9" font-size="8.5" font-family="'SF Mono',monospace">   magic link → accept-invite page</text>
+</g>
+
+<!-- Next.js Browser -->
+<g transform="translate(310, 100)">
+  <rect x="0" y="0" width="240" height="192" rx="6" fill="#0d1929" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="0" y="0" width="240" height="24" rx="6" fill="#1f6feb" opacity="0.2"/>
+  <rect x="0" y="6" width="240" height="18" fill="#1f6feb" opacity="0.2"/>
+  <text x="120" y="16" fill="#58a6ff" font-size="10" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700" letter-spacing="1">NEXT.JS 14 APP ROUTER</text>
+
+  <text x="10" y="38" fill="#58a6ff" font-size="9" font-family="'SF Mono',monospace">(auth)/login  (auth)/accept-invite</text>
+  <text x="10" y="52" fill="#58a6ff" font-size="9" font-family="'SF Mono',monospace">(app)/dashboard</text>
+  <text x="10" y="66" fill="#58a6ff" font-size="9" font-family="'SF Mono',monospace">(app)/projects/new</text>
+  <text x="10" y="80" fill="#58a6ff" font-size="9" font-family="'SF Mono',monospace">(app)/projects/[id]/assets</text>
+  <text x="10" y="94" fill="#58a6ff" font-size="9" font-family="'SF Mono',monospace">(app)/projects/[id]/graph</text>
+  <text x="10" y="108" fill="#58a6ff" font-size="9" font-family="'SF Mono',monospace">(app)/investments  ← investor portfolio view</text>
+  <text x="10" y="122" fill="#58a6ff" font-size="9" font-family="'SF Mono',monospace">(app)/projects/[id]/flow  ← investor entry point</text>
+  <text x="10" y="136" fill="#58a6ff" font-size="9" font-family="'SF Mono',monospace">(app)/projects/[id]/flow/[cellId]  ← 40/60 KG+chat</text>
+  <text x="10" y="150" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">NO form route — forms removed entirely</text>
+  <text x="10" y="164" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">(admin)/flow-template  ← global template editor</text>
+  <text x="10" y="178" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">shadcn/ui · Tailwind · D3.js · React Flow · React Query</text>
+</g>
+
+<!-- Developer Browser -->
+<g transform="translate(600, 100)">
+  <rect x="0" y="0" width="200" height="140" rx="6" fill="#0d1929" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="0" y="0" width="200" height="24" rx="6" fill="#1f6feb" opacity="0.2"/>
+  <rect x="0" y="6" width="200" height="18" fill="#1f6feb" opacity="0.2"/>
+  <text x="100" y="16" fill="#58a6ff" font-size="10" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700" letter-spacing="1">DEVELOPER BROWSER</text>
+
+  <text x="10" y="38" fill="#8b949e" font-size="9" font-family="'SF Mono',monospace">Prompt Registry Editor</text>
+  <text x="10" y="54" fill="#58a6ff" font-size="9" font-family="'SF Mono',monospace">(developer)/prompts/[stage]</text>
+  <text x="10" y="72" fill="#8b949e" font-size="9" font-family="'SF Mono',monospace">Guard: role = developer</text>
+  <text x="10" y="88" fill="#c9d1d9" font-size="8.5" font-family="'SF Mono',monospace">Edit system prompts per stage</text>
+  <text x="10" y="102" fill="#c9d1d9" font-size="8.5" font-family="'SF Mono',monospace">draft → test → publish → archived</text>
+  <text x="10" y="116" fill="#c9d1d9" font-size="8.5" font-family="'SF Mono',monospace">UNIQUE live per stage_key</text>
+</g>
+
+<!-- Roles box -->
+<g transform="translate(850, 100)">
+  <rect x="0" y="0" width="200" height="140" rx="6" fill="#0d1f0d" stroke="#238636" stroke-width="1.5"/>
+  <rect x="0" y="0" width="200" height="24" rx="6" fill="#238636" opacity="0.2"/>
+  <rect x="0" y="6" width="200" height="18" fill="#238636" opacity="0.2"/>
+  <text x="100" y="16" fill="#3fb950" font-size="10" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700" letter-spacing="1">ROLES &amp; ACCESS</text>
+
+  <text x="10" y="36" fill="#3fb950" font-size="9" font-family="'SF Mono',monospace">super_admin</text>
+  <text x="10" y="50" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">  full platform access</text>
+  <text x="10" y="64" fill="#3fb950" font-size="9" font-family="'SF Mono',monospace">attendee (admin)</text>
+  <text x="10" y="78" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">  owns projects, uploads assets</text>
+  <text x="10" y="92" fill="#3fb950" font-size="9" font-family="'SF Mono',monospace">reviewer (investor)</text>
+  <text x="10" y="106" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">  conversation + form only</text>
+  <text x="10" y="120" fill="#3fb950" font-size="9" font-family="'SF Mono',monospace">developer</text>
+  <text x="10" y="134" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">  prompt registry only</text>
+</g>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ROW 2: FASTAPI -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<g transform="translate(60, 280)">
+  <!-- FastAPI outer container -->
+  <rect x="0" y="0" width="990" height="158" rx="6" fill="#071b2e" stroke="#0ea5e9" stroke-width="1.5"/>
+  <rect x="0" y="0" width="990" height="24" rx="6" fill="#0ea5e9" opacity="0.2"/>
+  <rect x="0" y="6" width="990" height="18" fill="#0ea5e9" opacity="0.2"/>
+  <text x="495" y="16" fill="#38bdf8" font-size="10" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700" letter-spacing="1">FastAPI  /api/v1  ·  Supabase JWT validation + role check on every route</text>
+
+  <!-- 9 router boxes -->
+  <!-- auth -->
+  <rect x="8" y="30" width="90" height="90" rx="4" fill="#0a1628" stroke="#0ea5e9" stroke-width="1"/>
+  <text x="53" y="46" fill="#38bdf8" font-size="8.5" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700">auth</text>
+  <text x="53" y="60" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">login</text>
+  <text x="53" y="72" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">invite</text>
+  <text x="53" y="84" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">refresh</text>
+  <text x="53" y="96" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">me</text>
+  <text x="53" y="108" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">logout</text>
+
+  <!-- projects -->
+  <rect x="106" y="30" width="100" height="90" rx="4" fill="#0a1628" stroke="#0ea5e9" stroke-width="1"/>
+  <text x="156" y="46" fill="#38bdf8" font-size="8.5" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700">projects</text>
+  <text x="156" y="60" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">CRUD</text>
+  <text x="156" y="72" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">members</text>
+  <text x="156" y="84" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">invite</text>
+  <text x="156" y="96" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">status</text>
+
+  <!-- assets -->
+  <rect x="214" y="30" width="100" height="90" rx="4" fill="#0a1628" stroke="#0ea5e9" stroke-width="1"/>
+  <text x="264" y="46" fill="#38bdf8" font-size="8.5" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700">assets</text>
+  <text x="264" y="60" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">upload-url</text>
+  <text x="264" y="72" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">confirm</text>
+  <text x="264" y="84" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">list</text>
+  <text x="264" y="96" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">delete</text>
+  <text x="264" y="108" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">status SSE</text>
+
+  <!-- graph -->
+  <rect x="322" y="30" width="100" height="90" rx="4" fill="#0a1628" stroke="#0ea5e9" stroke-width="1"/>
+  <text x="372" y="46" fill="#38bdf8" font-size="8.5" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700">graph</text>
+  <text x="372" y="60" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">GET /graph</text>
+  <text x="372" y="72" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">full project</text>
+  <text x="372" y="84" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">graph for</text>
+  <text x="372" y="96" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">D3 frontend</text>
+
+  <!-- conversation -->
+  <rect x="430" y="30" width="120" height="90" rx="4" fill="#0a1628" stroke="#0ea5e9" stroke-width="1"/>
+  <text x="490" y="46" fill="#38bdf8" font-size="8.5" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700">conversation</text>
+  <text x="490" y="60" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">POST message</text>
+  <text x="490" y="72" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">POST voice</text>
+  <text x="490" y="84" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">GET /stream SSE</text>
+  <text x="490" y="96" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">POST submit</text>
+  <text x="490" y="108" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">GET session</text>
+
+  <!-- analyses -->
+  <rect x="558" y="30" width="100" height="90" rx="4" fill="#0a1628" stroke="#0ea5e9" stroke-width="1"/>
+  <text x="608" y="46" fill="#38bdf8" font-size="8.5" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700">analyses</text>
+  <text x="608" y="60" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">list</text>
+  <text x="608" y="72" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">get stage</text>
+  <text x="608" y="84" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">trigger</text>
+  <text x="608" y="96" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">rebuttals</text>
+
+  <!-- forms -->
+  <rect x="666" y="30" width="90" height="90" rx="4" fill="#0a1628" stroke="#0ea5e9" stroke-width="1"/>
+  <text x="711" y="46" fill="#38bdf8" font-size="8.5" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700">flow-tmpl</text>
+  <text x="711" y="60" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">GET version</text>
+  <text x="711" y="72" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">POST publish</text>
+  <text x="711" y="84" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">GET cells</text>
+  <text x="711" y="96" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">version list</text>
+
+  <!-- notifications -->
+  <rect x="764" y="30" width="110" height="90" rx="4" fill="#0a1628" stroke="#0ea5e9" stroke-width="1"/>
+  <text x="819" y="46" fill="#38bdf8" font-size="8.5" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700">notifications</text>
+  <text x="819" y="60" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">list</text>
+  <text x="819" y="72" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">mark read</text>
+  <text x="819" y="84" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">6 kinds</text>
+
+  <!-- prompts -->
+  <rect x="882" y="30" width="100" height="90" rx="4" fill="#0a1628" stroke="#0ea5e9" stroke-width="1"/>
+  <text x="932" y="46" fill="#38bdf8" font-size="8.5" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700">prompts</text>
+  <text x="932" y="60" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">CRUD</text>
+  <text x="932" y="72" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">publish</text>
+  <text x="932" y="84" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">test</text>
+  <text x="932" y="96" fill="#8b949e" font-size="7.5" font-family="'SF Mono',monospace" text-anchor="middle">archive</text>
+
+  <!-- New routers note -->
+  <rect x="8" y="128" width="974" height="22" rx="3" fill="#0a1628" stroke="#0ea5e9" stroke-width="0.5"/>
+  <text x="495" y="143" fill="#38bdf8" font-size="8.5" font-family="'SF Mono',monospace" text-anchor="middle">+ flow (cell CRUD · cell/analyse · cell/conversation/stream)  ·  investments (GET /investments)</text>
+</g>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ROW 3 LEFT: SUPABASE / POSTGRES -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<g transform="translate(60, 450)">
+  <rect x="0" y="0" width="310" height="900" rx="6" fill="#120d2e" stroke="#7c3aed" stroke-width="1.5"/>
+  <rect x="0" y="0" width="310" height="24" rx="6" fill="#7c3aed" opacity="0.2"/>
+  <rect x="0" y="6" width="310" height="18" fill="#7c3aed" opacity="0.2"/>
+  <text x="155" y="16" fill="#a371f7" font-size="10" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700" letter-spacing="1">SUPABASE POSTGRES  ·  RLS ENABLED</text>
+
+  <!-- Supabase Auth -->
+  <rect x="8" y="30" width="294" height="48" rx="4" fill="#0d1f0d" stroke="#238636" stroke-width="1"/>
+  <text x="155" y="46" fill="#3fb950" font-size="9" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700">Supabase Auth</text>
+  <text x="155" y="60" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace" text-anchor="middle">JWT 1hr access · 7d httpOnly refresh cookie · TOTP aal1→aal2</text>
+  <text x="155" y="72" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace" text-anchor="middle">Invite-only · invite_token in users table</text>
+
+  <!-- profiles — long role line split into two -->
+  <rect x="8" y="86" width="294" height="62" rx="4" fill="#0d0d1f" stroke="#7c3aed" stroke-width="1"/>
+  <text x="14" y="101" fill="#a371f7" font-size="9" font-family="'SF Mono',monospace" font-weight="700">profiles</text>
+  <text x="14" y="115" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">id(uuid) · email · full_name</text>
+  <text x="14" y="127" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">role(super_admin|attendee|reviewer|developer)</text>
+  <text x="14" y="141" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">invite_token · invited_at · created_at</text>
+
+  <!-- projects -->
+  <rect x="8" y="156" width="294" height="62" rx="4" fill="#0d0d1f" stroke="#7c3aed" stroke-width="1"/>
+  <text x="14" y="171" fill="#a371f7" font-size="9" font-family="'SF Mono',monospace" font-weight="700">projects</text>
+  <text x="14" y="185" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">id · created_by(fk) · name · startup_name · description</text>
+  <text x="14" y="197" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">status CHECK(draft|building_graph|open|consensus|rebuttals|final|failed)</text>
+  <text x="14" y="209" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">collection_closed_at · graph_built_at · created_at</text>
+
+  <!-- project_members -->
+  <rect x="8" y="226" width="294" height="52" rx="4" fill="#0d0d1f" stroke="#7c3aed" stroke-width="1"/>
+  <text x="14" y="241" fill="#a371f7" font-size="9" font-family="'SF Mono',monospace" font-weight="700">project_members</text>
+  <text x="14" y="255" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">id · project_id(fk) · user_id(fk) · role(attendee|reviewer)</text>
+  <text x="14" y="269" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">joined_at · UNIQUE(project_id, user_id)</text>
+
+  <!-- assets -->
+  <rect x="8" y="286" width="294" height="72" rx="4" fill="#0d0d1f" stroke="#7c3aed" stroke-width="1"/>
+  <text x="14" y="301" fill="#a371f7" font-size="9" font-family="'SF Mono',monospace" font-weight="700">assets</text>
+  <text x="14" y="315" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">id · project_id(fk) · uploaded_by(fk) · filename · storage_key</text>
+  <text x="14" y="327" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">kind CHECK(pdf|pptx|audio|image|spreadsheet|text|video)</text>
+  <text x="14" y="339" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">status CHECK(pending|processing|embedding|ready|failed)</text>
+  <text x="14" y="351" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">file_size · chunk_count · error_message · processed_at</text>
+
+  <!-- conversation_sessions -->
+  <rect x="8" y="366" width="294" height="52" rx="4" fill="#0d0d1f" stroke="#7c3aed" stroke-width="1"/>
+  <text x="14" y="381" fill="#a371f7" font-size="9" font-family="'SF Mono',monospace" font-weight="700">conversation_sessions</text>
+  <text x="14" y="395" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">id · project_id(fk) · user_id(fk) · status(active|submitted)</text>
+  <text x="14" y="409" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">created_at · UNIQUE(project_id, user_id)</text>
+
+  <!-- conversation_messages -->
+  <rect x="8" y="426" width="294" height="62" rx="4" fill="#0d0d1f" stroke="#7c3aed" stroke-width="1"/>
+  <text x="14" y="441" fill="#a371f7" font-size="9" font-family="'SF Mono',monospace" font-weight="700">conversation_messages</text>
+  <text x="14" y="455" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">id · session_id(fk) · role(user|assistant) · content</text>
+  <text x="14" y="467" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">traversal_summary(jsonb) · sources(text[])</text>
+  <text x="14" y="479" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">created_at</text>
+
+  <!-- flow_template_versions -->
+  <rect x="8" y="496" width="294" height="52" rx="4" fill="#0d0d1f" stroke="#7c3aed" stroke-width="1"/>
+  <text x="14" y="511" fill="#a371f7" font-size="9" font-family="'SF Mono',monospace" font-weight="700">flow_template_versions  ← global, not per-project</text>
+  <text x="14" y="525" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">id · version_number · status(draft|live|archived)</text>
+  <text x="14" y="539" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">published_by(fk) · published_at · UNIQUE live version</text>
+
+  <!-- flow_template_cells -->
+  <rect x="8" y="556" width="294" height="52" rx="4" fill="#0d0d1f" stroke="#7c3aed" stroke-width="1"/>
+  <text x="14" y="571" fill="#a371f7" font-size="9" font-family="'SF Mono',monospace" font-weight="700">flow_template_cells</text>
+  <text x="14" y="585" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">id · template_version_id(fk) · topic · topic_prompt</text>
+  <text x="14" y="599" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">position_index · UNIQUE(version_id, position_index)</text>
+
+  <!-- analyses — height 52→62, text y corrected -->
+  <rect x="8" y="616" width="294" height="62" rx="4" fill="#0d0d1f" stroke="#7c3aed" stroke-width="1"/>
+  <text x="14" y="631" fill="#a371f7" font-size="9" font-family="'SF Mono',monospace" font-weight="700">analyses</text>
+  <text x="14" y="645" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">id · project_id(fk) · stage CHECK(group|final)</text>
+  <text x="14" y="657" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">output(jsonb) · model · tokens_used · created_at</text>
+  <text x="14" y="669" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">projects.flow_template_version_id(fk) ← locked at creation</text>
+
+  <!-- notifications + prompt_versions — moved below analyses bottom (678+8=686) -->
+  <rect x="8" y="686" width="140" height="50" rx="4" fill="#0d0d1f" stroke="#7c3aed" stroke-width="1"/>
+  <text x="14" y="701" fill="#a371f7" font-size="9" font-family="'SF Mono',monospace" font-weight="700">notifications</text>
+  <text x="14" y="713" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">6 kinds · user_id(fk)</text>
+  <text x="14" y="725" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">read_at · created_at</text>
+
+  <rect x="162" y="686" width="140" height="50" rx="4" fill="#0d0d1f" stroke="#7c3aed" stroke-width="1"/>
+  <text x="168" y="701" fill="#a371f7" font-size="9" font-family="'SF Mono',monospace" font-weight="700">prompt_versions</text>
+  <text x="168" y="713" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">stage_key · body · status</text>
+  <text x="168" y="725" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">UNIQUE live per stage</text>
+
+  <line x1="8" y1="744" x2="302" y2="744" stroke="#30363d" stroke-width="1"/>
+
+  <!-- flow_cells -->
+  <rect x="8" y="752" width="294" height="62" rx="4" fill="#0d0d1f" stroke="#7c3aed" stroke-width="1"/>
+  <text x="14" y="767" fill="#a371f7" font-size="9" font-family="'SF Mono',monospace" font-weight="700">flow_cells  ← Analysis Flow Canvas</text>
+  <text x="14" y="781" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">id · project_id(fk) · topic · topic_prompt · admin_context</text>
+  <text x="14" y="793" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">asset_ids(uuid[]) · output_cache(jsonb) · position_x · position_y</text>
+  <text x="14" y="805" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">created_at</text>
+
+  <!-- flow_edges — height 42→52 to contain 3 lines -->
+  <rect x="8" y="822" width="294" height="52" rx="4" fill="#0d0d1f" stroke="#7c3aed" stroke-width="1"/>
+  <text x="14" y="837" fill="#a371f7" font-size="9" font-family="'SF Mono',monospace" font-weight="700">flow_edges</text>
+  <text x="14" y="851" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">id · project_id(fk) · source_cell_id(fk) · target_cell_id(fk)</text>
+  <text x="14" y="865" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">UNIQUE(source_cell_id, target_cell_id) · output propagates downstream</text>
+</g>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ROW 3 MIDDLE-LEFT: REDIS + ARQ WORKERS -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<g transform="translate(420, 450)">
+  <rect x="0" y="0" width="260" height="430" rx="6" fill="#1a1000" stroke="#b45309" stroke-width="1.5"/>
+  <rect x="0" y="0" width="260" height="24" rx="6" fill="#b45309" opacity="0.2"/>
+  <rect x="0" y="6" width="260" height="18" fill="#b45309" opacity="0.2"/>
+  <text x="130" y="16" fill="#f0883e" font-size="10" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700" letter-spacing="1">ARQ + REDIS WORKERS</text>
+
+  <text x="10" y="36" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">max_jobs=10 · timeout=180s · max_tries=3</text>
+
+  <!-- process_asset -->
+  <rect x="8" y="44" width="244" height="42" rx="4" fill="#0d0d00" stroke="#b45309" stroke-width="1"/>
+  <text x="14" y="59" fill="#f0883e" font-size="9" font-family="'SF Mono',monospace" font-weight="700">process_asset(asset_id)</text>
+  <text x="14" y="71" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">detect type → extract → chunk → embed → Neo4j nodes</text>
+  <text x="14" y="81" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">→ UPDATE asset.status='ready'  → enqueue build_graph</text>
+
+  <!-- build_graph_edges -->
+  <rect x="8" y="92" width="244" height="42" rx="4" fill="#0d0d00" stroke="#b45309" stroke-width="1"/>
+  <text x="14" y="107" fill="#f0883e" font-size="9" font-family="'SF Mono',monospace" font-weight="700">build_graph_edges(asset_id)</text>
+  <text x="14" y="119" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">NEXT edges · SIMILAR_TO (cosine&gt;0.82) · NER → Entity nodes</text>
+  <text x="14" y="131" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">MENTIONS · RELATED_TO · project status→'open' when all ready</text>
+
+  <!-- run_group_consensus -->
+  <rect x="8" y="140" width="244" height="42" rx="4" fill="#0d0d00" stroke="#b45309" stroke-width="1"/>
+  <text x="14" y="155" fill="#f0883e" font-size="9" font-family="'SF Mono',monospace" font-weight="700">run_group_consensus(project_id)</text>
+  <text x="14" y="167" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">all cell conversations (AdminConvTurn + investor turns)</text>
+  <text x="14" y="179" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">→ Claude Opus → group analysis  ·  NO forms</text>
+
+  <!-- run_final_consensus -->
+  <rect x="8" y="190" width="244" height="32" rx="4" fill="#0d0d00" stroke="#b45309" stroke-width="1"/>
+  <text x="14" y="205" fill="#f0883e" font-size="9" font-family="'SF Mono',monospace" font-weight="700">run_final_consensus(project_id)</text>
+  <text x="14" y="217" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">group analysis → Claude Opus → final report</text>
+
+  <!-- send_notification -->
+  <rect x="8" y="232" width="244" height="32" rx="4" fill="#0d0d00" stroke="#b45309" stroke-width="1"/>
+  <text x="14" y="247" fill="#f0883e" font-size="9" font-family="'SF Mono',monospace" font-weight="700">send_notification_email(notif_id)</text>
+  <text x="14" y="259" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">Resend API · notification kinds</text>
+  <text x="14" y="271" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">invited · graph_ready · analysis_ready etc.</text>
+
+  <!-- run_competitive_scan -->
+  <rect x="8" y="300" width="244" height="52" rx="4" fill="#0d0d00" stroke="#b45309" stroke-width="1"/>
+  <text x="14" y="315" fill="#f0883e" font-size="9" font-family="'SF Mono',monospace" font-weight="700">run_competitive_scan(project_id)</text>
+  <text x="14" y="327" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">trigger: project→'open'  ·  idempotency: project_id</text>
+  <text x="14" y="339" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">Serper 5×10 results → Claude assess → competitive_intel asset</text>
+  <text x="14" y="349" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">→ standard process_asset → Neo4j chunks + Entity nodes</text>
+
+  <!-- build_cell_views -->
+  <rect x="8" y="360" width="244" height="62" rx="4" fill="#0d0d00" stroke="#b45309" stroke-width="1"/>
+  <text x="14" y="375" fill="#f0883e" font-size="9" font-family="'SF Mono',monospace" font-weight="700">build_cell_views(cell_id)</text>
+  <text x="14" y="387" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">extract investor views per cell topic → InvestorView nodes</text>
+  <text x="14" y="399" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">check upstream cells → topological context propagation</text>
+  <text x="14" y="411" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">AdminConvTurn nodes ingested per turn (embed + NER + CITED)</text>
+  <text x="14" y="423" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">cell.output_cache = {synthesis, per_investor_views, insights}</text>
+</g>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ROW 3 MIDDLE: ASSET PIPELINE -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<g transform="translate(420, 900)">
+  <rect x="0" y="0" width="260" height="320" rx="6" fill="#071b2e" stroke="#0ea5e9" stroke-width="1.5"/>
+  <rect x="0" y="0" width="260" height="24" rx="6" fill="#0ea5e9" opacity="0.2"/>
+  <rect x="0" y="6" width="260" height="18" fill="#0ea5e9" opacity="0.2"/>
+  <text x="130" y="16" fill="#38bdf8" font-size="10" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700" letter-spacing="1">ASSET PROCESSING PIPELINE</text>
+
+  <text x="10" y="36" fill="#38bdf8" font-size="9" font-family="'SF Mono',monospace">Upload: presigned S3 PUT → confirm → enqueue</text>
+
+  <!-- file type rows -->
+  <text x="10" y="54" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Kind          Extractor</text>
+  <line x1="8" y1="58" x2="252" y2="58" stroke="#21262d" stroke-width="1"/>
+
+  <text x="10" y="72" fill="#58a6ff" font-size="8.5" font-family="'SF Mono',monospace">pdf / pptx</text>
+  <text x="120" y="72" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">pdfplumber / python-pptx</text>
+
+  <text x="10" y="86" fill="#10b981" font-size="8.5" font-family="'SF Mono',monospace">audio (mp3…)</text>
+  <text x="120" y="86" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Whisper API → transcript</text>
+
+  <text x="10" y="100" fill="#f59e0b" font-size="8.5" font-family="'SF Mono',monospace">image (jpg…)</text>
+  <text x="120" y="100" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Claude Vision → description</text>
+
+  <text x="10" y="114" fill="#8b5cf6" font-size="8.5" font-family="'SF Mono',monospace">spreadsheet</text>
+  <text x="120" y="114" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">pandas → text rows</text>
+
+  <text x="10" y="128" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">text / md</text>
+  <text x="120" y="128" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">direct chunking</text>
+
+  <text x="10" y="142" fill="#e3b341" font-size="8.5" font-family="'SF Mono',monospace">video (mp4…)</text>
+  <text x="120" y="142" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">ffmpeg → audio → Whisper</text>
+
+  <line x1="8" y1="150" x2="252" y2="150" stroke="#21262d" stroke-width="1"/>
+
+  <!-- Chunking -->
+  <text x="10" y="166" fill="#38bdf8" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Chunking Strategy</text>
+  <text x="10" y="180" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">512 tokens · 64 overlap · min 50 tokens</text>
+  <text x="10" y="194" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">preserves paragraph boundaries</text>
+  <text x="10" y="208" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">stores: page_number (PDF) · timestamp (audio)</text>
+
+  <!-- Embedding -->
+  <text x="10" y="228" fill="#38bdf8" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Embeddings</text>
+  <text x="10" y="242" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">text-embedding-3-large  (1536-dim)</text>
+  <text x="10" y="256" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">INSERT pg chunks + CREATE Neo4j Chunk node</text>
+
+  <!-- NER -->
+  <text x="10" y="276" fill="#38bdf8" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Entity Extraction (NER)</text>
+  <text x="10" y="290" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Claude Sonnet · per asset · JSON output</text>
+  <text x="10" y="304" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">people · companies · metrics · concepts</text>
+  <text x="10" y="318" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">→ Neo4j Entity nodes + MENTIONS edges</text>
+</g>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ROW 3 RIGHT-MID: NEO4J KNOWLEDGE GRAPH -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<g transform="translate(730, 450)">
+  <rect x="0" y="0" width="300" height="900" rx="6" fill="#071f1a" stroke="#059669" stroke-width="1.5"/>
+  <rect x="0" y="0" width="300" height="24" rx="6" fill="#059669" opacity="0.2"/>
+  <rect x="0" y="6" width="300" height="18" fill="#059669" opacity="0.2"/>
+  <text x="150" y="16" fill="#34d399" font-size="10" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700" letter-spacing="1">NEO4J KNOWLEDGE GRAPH</text>
+
+  <!-- Node Labels -->
+  <text x="10" y="36" fill="#34d399" font-size="9" font-family="'SF Mono',monospace" font-weight="700">NODE LABELS</text>
+
+  <rect x="8" y="42" width="284" height="32" rx="3" fill="#0a1f18" stroke="#059669" stroke-width="0.5"/>
+  <text x="14" y="56" fill="#3fb950" font-size="8.5" font-family="'SF Mono',monospace">(:Project)</text>
+  <text x="14" y="68" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">  id · name</text>
+
+  <rect x="8" y="80" width="284" height="32" rx="3" fill="#0a1f18" stroke="#059669" stroke-width="0.5"/>
+  <text x="14" y="94" fill="#3fb950" font-size="8.5" font-family="'SF Mono',monospace">(:Asset)</text>
+  <text x="14" y="106" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">  id · project_id · kind · filename · storage_key</text>
+
+  <rect x="8" y="118" width="284" height="42" rx="3" fill="#0a1f18" stroke="#059669" stroke-width="0.5"/>
+  <text x="14" y="132" fill="#3fb950" font-size="8.5" font-family="'SF Mono',monospace">(:Chunk)</text>
+  <text x="14" y="144" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">  id · asset_id · project_id · text · chunk_index</text>
+  <text x="14" y="156" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">  page_number? · timestamp_start? · embedding[1536]</text>
+
+  <rect x="8" y="166" width="284" height="32" rx="3" fill="#0a1f18" stroke="#059669" stroke-width="0.5"/>
+  <text x="14" y="180" fill="#3fb950" font-size="8.5" font-family="'SF Mono',monospace">(:Entity)</text>
+  <text x="14" y="192" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">  id · name · kind(person|company|location|metric|concept)</text>
+
+  <!-- Relationships -->
+  <text x="10" y="216" fill="#34d399" font-size="9" font-family="'SF Mono',monospace" font-weight="700">RELATIONSHIPS</text>
+  <text x="10" y="230" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Asset   -[:BELONGS_TO]→  Project</text>
+  <text x="10" y="244" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Chunk   -[:PART_OF]→     Asset</text>
+  <text x="10" y="258" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Chunk   -[:NEXT]→        Chunk   (sequential)</text>
+  <text x="10" y="272" fill="#0ea5e9" font-size="8.5" font-family="'SF Mono',monospace">Chunk   -[:SIMILAR_TO {score}]→ Chunk (cos&gt;0.82)</text>
+  <text x="10" y="286" fill="#f59e0b" font-size="8.5" font-family="'SF Mono',monospace">Chunk   -[:MENTIONS]→   Entity</text>
+  <text x="10" y="300" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Entity  -[:RELATED_TO {via}]→ Entity</text>
+
+  <!-- Vector Index -->
+  <text x="10" y="322" fill="#34d399" font-size="9" font-family="'SF Mono',monospace" font-weight="700">VECTOR INDEX (ANN)</text>
+  <text x="10" y="336" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">chunk_embeddings ON Chunk.embedding</text>
+  <text x="10" y="350" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">1536 dims · cosine similarity function</text>
+
+  <!-- GraphRAG Algorithm -->
+  <text x="10" y="372" fill="#34d399" font-size="9" font-family="'SF Mono',monospace" font-weight="700">GRAPHRAG TRAVERSAL</text>
+
+  <rect x="8" y="378" width="284" height="130" rx="3" fill="#0a1f18" stroke="#059669" stroke-width="0.5"/>
+  <text x="14" y="394" fill="#38bdf8" font-size="8.5" font-family="'SF Mono',monospace">Step 1 — ANN seed lookup</text>
+  <text x="14" y="406" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">  embed(query) → K=5 nearest Chunk nodes</text>
+  <text x="14" y="420" fill="#38bdf8" font-size="8.5" font-family="'SF Mono',monospace">Step 2 — BFS expansion</text>
+  <text x="14" y="432" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">  max_depth=3 · max_nodes=40</text>
+  <text x="14" y="444" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">  score = cosine_sim × 0.85^hop_distance</text>
+  <text x="14" y="456" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">  NEXT | SIMILAR_TO | MENTIONS traversal</text>
+  <text x="14" y="470" fill="#38bdf8" font-size="8.5" font-family="'SF Mono',monospace">Steps 3-6 — Stream → LLM → Return</text>
+  <text x="14" y="482" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">  SSE node_visited · top 12 → Claude context</text>
+  <text x="14" y="494" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">  threshold: relevance &gt; 0.45 to include</text>
+  <text x="14" y="506" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">  Claude Opus 4.6 → stream answer tokens</text>
+
+  <!-- D3 Node Colors -->
+  <text x="10" y="528" fill="#34d399" font-size="9" font-family="'SF Mono',monospace" font-weight="700">D3 NODE COLORS (frontend)</text>
+  <circle cx="18" cy="540" r="5" fill="#3B82F6"/>
+  <text x="28" y="544" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">pdf chunk</text>
+  <circle cx="100" cy="540" r="5" fill="#10B981"/>
+  <text x="110" y="544" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">audio chunk</text>
+  <circle cx="185" cy="540" r="5" fill="#F59E0B"/>
+  <text x="195" y="544" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">image</text>
+  <circle cx="245" cy="540" r="5" fill="#8B5CF6"/>
+  <text x="255" y="544" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">xls</text>
+
+  <circle cx="18" cy="558" r="5" fill="#EF4444"/>
+  <text x="28" y="562" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">entity:person</text>
+  <circle cx="120" cy="558" r="5" fill="#F97316"/>
+  <text x="130" y="562" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">entity:company</text>
+  <circle cx="240" cy="558" r="5" fill="#06B6D4"/>
+  <text x="250" y="562" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">metric</text>
+
+  <!-- Animation details -->
+  <text x="10" y="582" fill="#34d399" font-size="9" font-family="'SF Mono',monospace" font-weight="700">TRAVERSAL ANIMATION  ← CORE "THINKING" UX</text>
+  <text x="10" y="596" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Default: ALL nodes dim (opacity 0.15, grey)</text>
+  <text x="10" y="610" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">On question sent: nodes light up 1-by-1 (300ms each)</text>
+  <text x="10" y="624" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Pulse keyframe: scale 1→1.4→1 · full color · stays lit</text>
+  <text x="10" y="638" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Chat shows "Traversing knowledge graph…" while active</text>
+  <text x="10" y="650" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">SIMILAR_TO=cyan · NEXT=grey · MENTIONS=amber edges</text>
+  <text x="10" y="664" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">After answer: cited nodes stay bright · others re-dim</text>
+
+  <line x1="8" y1="664" x2="292" y2="664" stroke="#30363d" stroke-width="1"/>
+  <text x="10" y="678" fill="#34d399" font-size="9" font-family="'SF Mono',monospace" font-weight="700">NEW NODE LABELS (Flow Canvas)</text>
+
+  <rect x="8" y="684" width="284" height="44" rx="3" fill="#0a1f18" stroke="#059669" stroke-width="0.5"/>
+  <text x="14" y="699" fill="#3fb950" font-size="8.5" font-family="'SF Mono',monospace">(:InvestorView)</text>
+  <text x="14" y="711" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">  id · project_id · cell_id · investor_id · investor_name</text>
+  <text x="14" y="723" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">  summary · sentiment · embedding[1536]</text>
+
+  <rect x="8" y="734" width="284" height="44" rx="3" fill="#0a1f18" stroke="#059669" stroke-width="0.5"/>
+  <text x="14" y="749" fill="#3fb950" font-size="8.5" font-family="'SF Mono',monospace">(:AdminConversationTurn)</text>
+  <text x="14" y="761" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">  id · project_id · cell_id · role(admin|system)</text>
+  <text x="14" y="773" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">  text · turn_index · embedding[1536]</text>
+
+  <text x="10" y="793" fill="#34d399" font-size="9" font-family="'SF Mono',monospace" font-weight="700">NEW RELATIONSHIPS</text>
+  <text x="10" y="807" fill="#f472b6" font-size="8.5" font-family="'SF Mono',monospace">InvestorView     -[:VIEW_OF]→  FlowCell (cell_id prop)</text>
+  <text x="10" y="821" fill="#f472b6" font-size="8.5" font-family="'SF Mono',monospace">Chunk            -[:SUPPORTS|CONTRADICTS]→ InvestorView</text>
+  <text x="10" y="835" fill="#0ea5e9" font-size="8.5" font-family="'SF Mono',monospace">AdminConvTurn(admin) -[:ANSWERED_BY]→ AdminConvTurn(system)</text>
+  <text x="10" y="849" fill="#6366f1" font-size="8.5" font-family="'SF Mono',monospace">AdminConvTurn(system)-[:CITED]→ Chunk   (answer sources)</text>
+  <text x="10" y="863" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">AdminConvTurn    -[:MENTIONS]→ Entity</text>
+  <text x="10" y="877" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">AdminConvTurn    -[:SIMILAR_TO {score}]→ Chunk  (&gt;0.78)</text>
+
+  <text x="10" y="895" fill="#34d399" font-size="9" font-family="'SF Mono',monospace" font-weight="700">NEW D3 SHAPES</text>
+  <polygon points="18,909 24,903 30,909 24,915" fill="#F472B6"/>
+  <text x="36" y="913" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">InvestorView (diamond #F472B6)</text>
+  <rect x="14" y="922" width="8" height="8" fill="#0EA5E9"/>
+  <text x="28" y="930" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">AdminConvTurn:admin (#0EA5E9)</text>
+  <rect x="14" y="938" width="8" height="8" fill="#6366F1"/>
+  <text x="28" y="946" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">AdminConvTurn:system (#6366F1)</text>
+</g>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ROW 3 RIGHT: CONVERSATION ENGINE + SSE -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<g transform="translate(1080, 450)">
+  <rect x="0" y="0" width="280" height="420" rx="6" fill="#1a0d2e" stroke="#7c3aed" stroke-width="1.5"/>
+  <rect x="0" y="0" width="280" height="24" rx="6" fill="#7c3aed" opacity="0.2"/>
+  <rect x="0" y="6" width="280" height="18" fill="#7c3aed" opacity="0.2"/>
+  <text x="140" y="16" fill="#a371f7" font-size="10" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700" letter-spacing="1">CONVERSATION ENGINE</text>
+
+  <text x="10" y="36" fill="#a371f7" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Session Model</text>
+  <text x="10" y="50" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">1 session per investor × project</text>
+  <text x="10" y="64" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">status: active | submitted</text>
+  <text x="10" y="78" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">UNIQUE(project_id, user_id)</text>
+
+  <text x="10" y="98" fill="#a371f7" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Text Input Flow</text>
+  <text x="10" y="112" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">POST /conversation/{id}/message</text>
+  <text x="10" y="126" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">→ save user msg → open SSE stream</text>
+  <text x="10" y="140" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">→ GraphRAG traversal → stream events</text>
+  <text x="10" y="154" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">→ save assistant msg + traversal_summary</text>
+
+  <text x="10" y="174" fill="#a371f7" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Voice Input Flow</text>
+  <text x="10" y="188" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">POST /conversation/{id}/voice</text>
+  <text x="10" y="202" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">MediaRecorder (webm blob) → Whisper API</text>
+  <text x="10" y="216" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">→ transcript → same as text input</text>
+  <text x="10" y="230" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">→ return {transcript} to frontend</text>
+
+  <text x="10" y="250" fill="#a371f7" font-size="9" font-family="'SF Mono',monospace" font-weight="700">SSE Stream Events</text>
+  <rect x="8" y="256" width="264" height="120" rx="3" fill="#12091f" stroke="#7c3aed" stroke-width="0.5"/>
+  <text x="14" y="270" fill="#3fb950" font-size="8.5" font-family="'SF Mono',monospace">traversal_start</text>
+  <text x="14" y="282" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">  {query, seed_count}</text>
+  <text x="14" y="296" fill="#3fb950" font-size="8.5" font-family="'SF Mono',monospace">node_visited  ← one per node</text>
+  <text x="14" y="308" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">  {node_id, text_preview, score, edge_type,</text>
+  <text x="14" y="320" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">   asset_kind, parent_node_id}</text>
+  <text x="14" y="334" fill="#3fb950" font-size="8.5" font-family="'SF Mono',monospace">answer_token  ← streaming LLM</text>
+  <text x="14" y="346" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">  {token}</text>
+  <text x="14" y="360" fill="#3fb950" font-size="8.5" font-family="'SF Mono',monospace">answer_done</text>
+  <text x="14" y="372" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">  {sources: [asset_id,...]}</text>
+
+  <text x="10" y="396" fill="#a371f7" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Collection Close Logic</text>
+  <text x="10" y="410" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">submitted_count ≥ invited_count</text>
+  <text x="10" y="424" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">→ status=consensus → enqueue group_consensus</text>
+</g>
+
+<!-- Frontend 2-panel layout box -->
+<g transform="translate(1080, 900)">
+  <rect x="0" y="0" width="280" height="272" rx="6" fill="#0d1929" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="0" y="0" width="280" height="24" rx="6" fill="#1f6feb" opacity="0.2"/>
+  <rect x="0" y="6" width="280" height="18" fill="#1f6feb" opacity="0.2"/>
+  <text x="140" y="16" fill="#58a6ff" font-size="10" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700" letter-spacing="1">CONVERSATION UI (2-PANEL)</text>
+
+  <text x="10" y="36" fill="#58a6ff" font-size="9" font-family="'SF Mono',monospace">Left 40% — D3 Knowledge Graph Canvas</text>
+  <text x="10" y="50" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">  force simulation · real-time traversal animation</text>
+  <text x="10" y="64" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">  node click → source drawer</text>
+
+  <text x="10" y="82" fill="#58a6ff" font-size="9" font-family="'SF Mono',monospace">Right 60% — Chat + Input</text>
+  <text x="10" y="96" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">  scrollable chat history</text>
+  <text x="10" y="110" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">  text input + 🎤 voice button + Send</text>
+  <text x="10" y="124" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">  traversal sidebar (live node feed)</text>
+
+  <text x="10" y="142" fill="#58a6ff" font-size="9" font-family="'SF Mono',monospace">Voice Button</text>
+  <text x="10" y="156" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">  tap → MediaRecorder starts (red pulse)</text>
+  <text x="10" y="170" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">  tap again → blob POSTed → transcript</text>
+  <text x="10" y="184" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">  → auto-send to conversation endpoint</text>
+
+  <text x="10" y="200" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">  NO submit button — conversation IS the review</text>
+
+  <text x="10" y="218" fill="#58a6ff" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Assets Panel (amber button, topbar)</text>
+  <text x="10" y="232" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">  Files mode: asset status cards + upload zone</text>
+  <text x="10" y="246" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">  Graph mode: SVG asset nodes + entity nodes</text>
+  <text x="10" y="260" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">  Hover → dynamic tooltip (name, kind, chunks)</text>
+</g>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ROW 3 FAR-RIGHT: AI PIPELINE -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<g transform="translate(1410, 450)">
+  <rect x="0" y="0" width="280" height="580" rx="6" fill="#1f0929" stroke="#db61a2" stroke-width="1.5"/>
+  <rect x="0" y="0" width="280" height="24" rx="6" fill="#db61a2" opacity="0.2"/>
+  <rect x="0" y="6" width="280" height="18" fill="#db61a2" opacity="0.2"/>
+  <text x="140" y="16" fill="#f778ba" font-size="10" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700" letter-spacing="1">AI PIPELINE (5 STAGES)</text>
+
+  <!-- Stage 1 -->
+  <rect x="8" y="28" width="264" height="60" rx="4" fill="#12051a" stroke="#db61a2" stroke-width="1"/>
+  <text x="14" y="44" fill="#f778ba" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Stage 1 — Asset Processing</text>
+  <text x="14" y="58" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Auto-triggered: enqueue process_asset</text>
+  <text x="14" y="70" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">extract → chunk → embed → Neo4j</text>
+  <text x="14" y="82" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">NER → Entity nodes + MENTIONS edges</text>
+
+  <!-- Stage 2 -->
+  <rect x="8" y="96" width="264" height="70" rx="4" fill="#12051a" stroke="#db61a2" stroke-width="1"/>
+  <text x="14" y="112" fill="#f778ba" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Stage 2 — Investor Flow Canvas Exploration</text>
+  <text x="14" y="126" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Investors land on predefined flow canvas (read-only)</text>
+  <text x="14" y="140" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Click cell → 40/60 KG + chat page per topic</text>
+  <text x="14" y="154" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Cell conversations → AdminConvTurn nodes in Neo4j</text>
+  <text x="14" y="166" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">NO forms — conversation IS the input</text>
+
+  <!-- Gate 1 -->
+  <text x="140" y="182" fill="#e3b341" font-size="9" font-family="'SF Mono',monospace" text-anchor="middle">▼ admin triggers → run_group_consensus</text>
+
+  <!-- Stage 3 -->
+  <rect x="8" y="190" width="264" height="80" rx="4" fill="#12051a" stroke="#db61a2" stroke-width="1"/>
+  <text x="14" y="206" fill="#f778ba" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Stage 3 — Group Consensus</text>
+  <text x="14" y="220" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Model: Claude Opus 4.6</text>
+  <text x="14" y="234" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Input: ALL cell conversation turns per investor</text>
+  <text x="14" y="248" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">       + InvestorView nodes per cell</text>
+  <text x="14" y="262" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Output: group analysis (agreements, concerns)</text>
+
+  <!-- Gate 2 -->
+  <text x="140" y="286" fill="#e3b341" font-size="9" font-family="'SF Mono',monospace" text-anchor="middle">▼ consensus complete → triggers Final</text>
+
+  <!-- Stage 4 (was Stage 5) -->
+  <rect x="8" y="294" width="264" height="80" rx="4" fill="#12051a" stroke="#db61a2" stroke-width="1"/>
+  <text x="14" y="310" fill="#f778ba" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Stage 4 — Final Consensus</text>
+  <text x="14" y="324" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Model: Claude Opus 4.6</text>
+  <text x="14" y="338" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Input: group analysis + all cell syntheses</text>
+  <text x="14" y="352" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Output: final investment decision report</text>
+  <text x="14" y="366" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">status=final → visible to all members</text>
+
+  <!-- Prompt Registry -->
+  <text x="10" y="492" fill="#f778ba" font-size="9" font-family="'SF Mono',monospace" font-weight="700">PROMPT REGISTRY</text>
+  <rect x="8" y="498" width="264" height="72" rx="3" fill="#12051a" stroke="#db61a2" stroke-width="0.5"/>
+  <text x="14" y="514" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">stage_key: cell_conversation · group_consensus</text>
+  <text x="14" y="528" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">  final_consensus · ner_extraction</text>
+  <text x="14" y="542" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">  competitive_scan · cell_analysis</text>
+  <text x="14" y="556" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">status: draft → test → published → archived</text>
+  <text x="14" y="570" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">UNIQUE INDEX WHERE status='live'</text>
+</g>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- FAR RIGHT: EXTERNAL SERVICES -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<g transform="translate(1740, 450)">
+  <rect x="0" y="0" width="240" height="490" rx="6" fill="#1a1400" stroke="#e3b341" stroke-width="1.5"/>
+  <rect x="0" y="0" width="240" height="24" rx="6" fill="#e3b341" opacity="0.2"/>
+  <rect x="0" y="6" width="240" height="18" fill="#e3b341" opacity="0.2"/>
+  <text x="120" y="16" fill="#e3b341" font-size="10" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700" letter-spacing="1">EXTERNAL APIS</text>
+
+  <!-- Claude API -->
+  <rect x="8" y="30" width="224" height="80" rx="4" fill="#100e00" stroke="#e3b341" stroke-width="1"/>
+  <text x="14" y="46" fill="#e3b341" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Claude API (Anthropic)</text>
+  <text x="14" y="60" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Opus 4.6: conversation answers</text>
+  <text x="14" y="74" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">         group + final consensus</text>
+  <text x="14" y="88" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">         image vision description</text>
+  <text x="14" y="102" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Sonnet 4.6: NER · rebuttal gen</text>
+
+  <!-- Whisper -->
+  <rect x="8" y="118" width="224" height="56" rx="4" fill="#100e00" stroke="#e3b341" stroke-width="1"/>
+  <text x="14" y="134" fill="#e3b341" font-size="9" font-family="'SF Mono',monospace" font-weight="700">OpenAI Whisper API</text>
+  <text x="14" y="148" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">model: whisper-1</text>
+  <text x="14" y="162" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">audio→text: voice input + audio assets</text>
+
+  <!-- S3 -->
+  <rect x="8" y="182" width="224" height="56" rx="4" fill="#100e00" stroke="#e3b341" stroke-width="1"/>
+  <text x="14" y="198" fill="#e3b341" font-size="9" font-family="'SF Mono',monospace" font-weight="700">S3-compatible Storage</text>
+  <text x="14" y="212" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">all raw asset files</text>
+  <text x="14" y="226" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">presigned PUT URLs (browser direct)</text>
+
+  <!-- Resend -->
+  <rect x="8" y="246" width="224" height="56" rx="4" fill="#100e00" stroke="#e3b341" stroke-width="1"/>
+  <text x="14" y="262" fill="#e3b341" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Resend (Email)</text>
+  <text x="14" y="276" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">transactional email via send_notification</text>
+  <text x="14" y="290" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">6 kinds: invite · graph_ready · etc.</text>
+
+  <!-- OpenAI Embeddings -->
+  <rect x="8" y="310" width="224" height="56" rx="4" fill="#100e00" stroke="#e3b341" stroke-width="1"/>
+  <text x="14" y="326" fill="#e3b341" font-size="9" font-family="'SF Mono',monospace" font-weight="700">OpenAI Embeddings</text>
+  <text x="14" y="340" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">text-embedding-3-large (1536-dim)</text>
+  <text x="14" y="354" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">all Chunk nodes + query embedding</text>
+  <text x="14" y="368" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">ANN seed search via Neo4j vector idx</text>
+
+  <!-- Serper -->
+  <rect x="8" y="380" width="224" height="72" rx="4" fill="#100e00" stroke="#e3b341" stroke-width="1"/>
+  <text x="14" y="396" fill="#e3b341" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Serper API (Google Search)</text>
+  <text x="14" y="410" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">google.serper.dev/search · REST POST</text>
+  <text x="14" y="424" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">5 queries × 10 results per competitive scan</text>
+  <text x="14" y="438" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">organic[] {title, link, snippet} → Claude assess</text>
+  <text x="14" y="452" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">no new package (httpx) · env: SERPER_API_KEY</text>
+</g>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- CONNECTOR ARROWS -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<!-- Auth Entry → FastAPI -->
+<path d="M160,240 L160,280" stroke="#238636" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-green)"/>
+
+<!-- Next.js → FastAPI -->
+<path d="M430,240 L430,280" stroke="#1f6feb" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-blue)"/>
+
+<!-- Developer → FastAPI -->
+<path d="M700,240 L700,280" stroke="#1f6feb" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-blue)"/>
+
+<!-- Roles → FastAPI -->
+<path d="M950,240 L950,280" stroke="#238636" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-green)"/>
+
+<!-- FastAPI → Supabase Postgres (left) -->
+<path d="M160,410 L160,450" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arr-purple)"/>
+
+<!-- FastAPI → Redis/Workers (mid) -->
+<path d="M550,410 L550,450" stroke="#b45309" stroke-width="1.5" marker-end="url(#arr-orange)"/>
+
+<!-- FastAPI → Neo4j -->
+<path d="M810,410 L810,450" stroke="#059669" stroke-width="1.5" marker-end="url(#arr-green)"/>
+
+<!-- FastAPI → Conversation (right) -->
+<path d="M950,410 L1140,450" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-purple)"/>
+
+<!-- FastAPI → AI Pipeline -->
+<path d="M980,380 L1480,450" stroke="#db61a2" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-pink)"/>
+
+<!-- Workers → Asset Pipeline (down) -->
+<path d="M550,878 L550,898" stroke="#b45309" stroke-width="1.5" marker-end="url(#arr-orange)"/>
+
+<!-- Asset Pipeline → Neo4j -->
+<path d="M680,1000 L730,900" stroke="#059669" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-green)"/>
+
+<!-- Neo4j → Conversation (arrow right) -->
+<path d="M1030,780 L1080,780" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-purple)"/>
+
+<!-- Conversation → AI Pipeline -->
+<path d="M1360,680 L1410,680" stroke="#db61a2" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-pink)"/>
+
+<!-- AI Pipeline → External APIs -->
+<path d="M1690,700 L1740,700" stroke="#e3b341" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-yellow)"/>
+
+<!-- Workers → External APIs -->
+<path d="M1700,600 L1740,600" stroke="#e3b341" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-yellow)"/>
+
+<!-- FastAPI → External APIs (S3) -->
+<path d="M1050,380 C1400,200 1700,350 1860,450" stroke="#e3b341" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arr-yellow)"/>
+
+<!-- Next.js → KG Visualization (SSE) -->
+<path d="M430,240 C600,350 750,350 880,500" stroke="#1f6feb" stroke-width="1" stroke-dasharray="3,4" opacity="0.5" marker-end="url(#arr-blue)"/>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ROW 4: NEW FEATURES — ANALYSIS FLOW + COMPETITIVE INTEL -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<!-- Analysis Flow Canvas -->
+<g transform="translate(60, 1430)">
+  <rect x="0" y="0" width="440" height="320" rx="6" fill="#0d1929" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="0" y="0" width="440" height="24" rx="6" fill="#1f6feb" opacity="0.2"/>
+  <rect x="0" y="6" width="440" height="18" fill="#1f6feb" opacity="0.2"/>
+  <text x="220" y="16" fill="#58a6ff" font-size="10" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700" letter-spacing="1">ANALYSIS FLOW CANVAS  (admin-only)</text>
+
+  <text x="10" y="36" fill="#58a6ff" font-size="9" font-family="'SF Mono',monospace" font-weight="700">React Flow canvas — drag &amp; drop task cells</text>
+  <text x="10" y="50" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Sidebar: preset cells (Team · Market · Risks · Traction · Competition · Product · +Custom)</text>
+
+  <rect x="8" y="58" width="424" height="88" rx="4" fill="#0a1628" stroke="#1f6feb" stroke-width="0.5"/>
+  <text x="14" y="73" fill="#58a6ff" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Task Cell Anatomy</text>
+  <text x="14" y="87" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Input node (top-left):  company docs pinned to cell + admin context text</text>
+  <text x="14" y="101" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Main cell (rectangle):  topic label · click → Cell Deep Dive page</text>
+  <text x="14" y="115" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Output node (top-right): synthesis preview (from output_cache)</text>
+  <text x="14" y="129" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Edges between cells: output of A becomes input context of B</text>
+  <text x="14" y="141" fill="#58a6ff" font-size="8.5" font-family="'SF Mono',monospace">React Flow nodeTypes: taskCell · inputNode · outputNode · flowEdge</text>
+
+  <text x="10" y="163" fill="#58a6ff" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Flow Context Propagation</text>
+  <text x="10" y="177" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Downstream cell prompt = topic_prompt</text>
+  <text x="10" y="191" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">  + upstream cell synthesis (output_cache)</text>
+  <text x="10" y="205" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">  + upstream conversation summary (AdminConvTurn → summarised)</text>
+  <text x="10" y="219" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">  + GraphRAG chunks scoped to this cell topic</text>
+  <text x="10" y="233" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">  + admin_context + this cell's own AdminConvTurn history</text>
+  <text x="10" y="247" fill="#e3b341" font-size="8.5" font-family="'SF Mono',monospace">  Guard: all upstream cells must have output_cache before run</text>
+
+  <text x="10" y="267" fill="#58a6ff" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Storage</text>
+  <text x="10" y="281" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">flow_cells + flow_edges tables (Postgres)</text>
+  <text x="10" y="295" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">positions persisted on drag-end (PATCH /flow/cells/{id}, debounced 500ms)</text>
+  <text x="10" y="309" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">route: (app)/projects/[id]/flow/page.tsx</text>
+</g>
+
+<!-- Cell Deep Dive -->
+<g transform="translate(520, 1430)">
+  <rect x="0" y="0" width="440" height="320" rx="6" fill="#071f1a" stroke="#059669" stroke-width="1.5"/>
+  <rect x="0" y="0" width="440" height="24" rx="6" fill="#059669" opacity="0.2"/>
+  <rect x="0" y="6" width="440" height="18" fill="#059669" opacity="0.2"/>
+  <text x="220" y="16" fill="#34d399" font-size="10" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700" letter-spacing="1">CELL DEEP DIVE  (topic graph + analysis + convo)</text>
+
+  <text x="10" y="36" fill="#34d399" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Layout: 2-column</text>
+  <text x="10" y="50" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Left: D3 knowledge graph scoped to cell topic (Chunk + Entity + InvestorView + AdminConvTurn)</text>
+  <text x="10" y="64" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Right-top: per-investor analysis cards  ·  Right-bottom: admin conversation panel</text>
+
+  <rect x="8" y="72" width="424" height="80" rx="4" fill="#0a1f18" stroke="#059669" stroke-width="0.5"/>
+  <text x="14" y="87" fill="#34d399" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Admin Conversation → Knowledge Graph</text>
+  <text x="14" y="101" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Every turn immediately written to Neo4j as AdminConversationTurn nodes</text>
+  <text x="14" y="115" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">admin turn: embedded + NER + SIMILAR_TO edges to Chunks (&gt;0.78)</text>
+  <text x="14" y="129" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">system turn: embedded + CITED edges to chunks used in answer + NER</text>
+  <text x="14" y="143" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">admin→system: ANSWERED_BY edge · nodes join all future traversals in project</text>
+
+  <rect x="8" y="160" width="424" height="80" rx="4" fill="#0a1f18" stroke="#059669" stroke-width="0.5"/>
+  <text x="14" y="175" fill="#34d399" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Investor View Nodes (build_cell_views worker)</text>
+  <text x="14" y="189" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Extracts each investor's view on cell topic from their conversations</text>
+  <text x="14" y="203" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Creates InvestorView nodes ◆ #F472B6  ·  embeds + NER + SUPPORTS/CONTRADICTS edges</text>
+  <text x="14" y="217" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">InvestorView joins traversal as first-class node · pink diamond in D3 graph</text>
+  <text x="14" y="231" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">cell.output_cache = {synthesis, per_investor_views, key_insights, open_questions}</text>
+
+  <text x="10" y="259" fill="#34d399" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Cell-Scoped GraphRAG Traversal</text>
+  <text x="10" y="273" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Same BFS algorithm · topic filter added to Cypher WHERE clauses</text>
+  <text x="10" y="287" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">InvestorView + AdminConvTurn join traversal · SSE node_visited extended with node_label</text>
+  <text x="10" y="301" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">route: (app)/projects/[id]/flow/[cellId]/page.tsx</text>
+  <text x="10" y="315" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">endpoint: GET /flow/cells/{cellId}/conversation/stream (SSE)</text>
+</g>
+
+<!-- Competitive Intelligence -->
+<g transform="translate(980, 1430)">
+  <rect x="0" y="0" width="320" height="320" rx="6" fill="#1a1400" stroke="#e3b341" stroke-width="1.5"/>
+  <rect x="0" y="0" width="320" height="24" rx="6" fill="#e3b341" opacity="0.2"/>
+  <rect x="0" y="6" width="320" height="18" fill="#e3b341" opacity="0.2"/>
+  <text x="160" y="16" fill="#e3b341" font-size="10" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700" letter-spacing="1">COMPETITIVE INTEL SCAN</text>
+
+  <text x="10" y="36" fill="#e3b341" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Auto-trigger: project status → 'open'</text>
+  <text x="10" y="50" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Worker: run_competitive_scan(project_id)</text>
+  <text x="10" y="64" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Re-run: POST /projects/{id}/assets/competitive-scan</text>
+
+  <rect x="8" y="72" width="304" height="176" rx="4" fill="#100e00" stroke="#e3b341" stroke-width="0.5"/>
+  <text x="14" y="88" fill="#e3b341" font-size="8.5" font-family="'SF Mono',monospace" font-weight="700">Step 1</text>
+  <text x="14" y="100" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">PDF/PPTX chunks → Claude Sonnet</text>
+  <text x="14" y="112" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">{one_liner, market_category, search_queries[5]}</text>
+  <text x="14" y="128" fill="#e3b341" font-size="8.5" font-family="'SF Mono',monospace" font-weight="700">Step 2</text>
+  <text x="14" y="140" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">Serper API: 5 queries × 10 results each</text>
+  <text x="14" y="152" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">deduplicate by domain → 8-15 candidates</text>
+  <text x="14" y="168" fill="#e3b341" font-size="8.5" font-family="'SF Mono',monospace" font-weight="700">Step 3</text>
+  <text x="14" y="180" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">Claude Sonnet assesses each snippet</text>
+  <text x="14" y="192" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">{name, url, overlap: direct|adjacent|indirect}</text>
+  <text x="14" y="208" fill="#e3b341" font-size="8.5" font-family="'SF Mono',monospace" font-weight="700">Step 4</text>
+  <text x="14" y="220" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">Compose structured markdown → upload S3</text>
+  <text x="14" y="232" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">INSERT asset (kind='competitive_intel')</text>
+  <text x="14" y="244" fill="#8b949e" font-size="8" font-family="'SF Mono',monospace">→ process_asset pipeline (standard)</text>
+
+  <text x="10" y="268" fill="#e3b341" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Graph Impact</text>
+  <text x="10" y="282" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Chunks embed into same vector space as pitch deck</text>
+  <text x="10" y="296" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">SIMILAR_TO edges link to pitch deck chunks (same market)</text>
+  <text x="10" y="310" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">NER → Entity nodes per competitor · no special traversal code</text>
+</g>
+
+<!-- My Investments (Frontend) -->
+<g transform="translate(1320, 1430)">
+  <rect x="0" y="0" width="280" height="220" rx="6" fill="#0d1929" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="0" y="0" width="280" height="24" rx="6" fill="#1f6feb" opacity="0.2"/>
+  <rect x="0" y="6" width="280" height="18" fill="#1f6feb" opacity="0.2"/>
+  <text x="140" y="16" fill="#58a6ff" font-size="10" font-family="'SF Mono',monospace" text-anchor="middle" font-weight="700" letter-spacing="1">MY INVESTMENTS  (investor view)</text>
+
+  <text x="10" y="36" fill="#58a6ff" font-size="9" font-family="'SF Mono',monospace">route: (app)/investments/page.tsx</text>
+  <text x="10" y="50" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Shows all projects where user is project_member</text>
+  <text x="10" y="64" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">Server component · GET /investments endpoint</text>
+
+  <rect x="8" y="72" width="264" height="96" rx="4" fill="#0a1628" stroke="#1f6feb" stroke-width="0.5"/>
+  <text x="14" y="88" fill="#58a6ff" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Per-project card shows:</text>
+  <text x="14" y="102" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">project name · status badge · date added</text>
+  <text x="14" y="116" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">conversation_submitted: bool</text>
+  <text x="14" y="130" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">form_submitted: bool</text>
+  <text x="14" y="144" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">final_available: bool → [View Analysis →]</text>
+  <text x="14" y="158" fill="#58a6ff" font-size="8.5" font-family="'SF Mono',monospace">CTA: [Continue →] or [View Analysis →]</text>
+
+  <text x="10" y="184" fill="#58a6ff" font-size="9" font-family="'SF Mono',monospace" font-weight="700">Dashboard header (all users):</text>
+  <text x="10" y="198" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">[+ New Project] visible to super_admin only</text>
+  <text x="10" y="212" fill="#8b949e" font-size="8.5" font-family="'SF Mono',monospace">[My Investments →] visible to all roles</text>
+</g>
+
+<!-- Row 4 connector arrows -->
+<!-- Next.js → Analysis Flow Canvas -->
+<path d="M430,292 L430,1430" stroke="#1f6feb" stroke-width="1" stroke-dasharray="4,4" opacity="0.4" marker-end="url(#arr-blue)"/>
+<!-- Workers → Competitive Intel -->
+<path d="M550,880 C700,1100 900,1200 980,1590" stroke="#b45309" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-orange)"/>
+<!-- Workers → Cell Deep Dive -->
+<path d="M600,880 C700,1150 750,1300 740,1430" stroke="#b45309" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-orange)"/>
+<!-- Neo4j → Cell Deep Dive -->
+<path d="M880,1350 C800,1380 740,1400 740,1430" stroke="#059669" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-green)"/>
+<!-- Analysis Flow Canvas → Cell Deep Dive (navigation) -->
+<path d="M500,1590 L520,1590" stroke="#1f6feb" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+<!-- External APIs → Competitive Intel -->
+<path d="M1860,850 C1800,1100 1300,1400 1300,1590" stroke="#e3b341" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arr-yellow)"/>
+
+</g><!-- end viewport -->
+</svg>
+
+<script>
+const svg = document.getElementById('canvas');
+const vp  = document.getElementById('viewport');
+let tx=0, ty=0, scale=0.7, dragging=false, startX, startY;
+
+// Fix layering: move all top-level connector paths behind box groups
+const bgRect = vp.querySelector(':scope > rect');
+[...vp.querySelectorAll(':scope > path')].forEach(p => vp.insertBefore(p, bgRect.nextSibling));
+
+// Clip each box group to its outer rect to prevent text horizontal overflow
+const defs = document.querySelector('defs');
+[...vp.querySelectorAll(':scope > g')].forEach((g, i) => {
+  const r = g.querySelector(':scope > rect');
+  if (!r || !r.getAttribute('width')) return;
+  const id = `clip-g${i}`;
+  const cp = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
+  cp.id = id;
+  const cr = r.cloneNode(false);
+  cp.appendChild(cr);
+  defs.appendChild(cp);
+  g.setAttribute('clip-path', `url(#${id})`);
+});
+
+function applyTransform() {
+  vp.setAttribute('transform', `translate(${tx},${ty}) scale(${scale})`);
+}
+applyTransform();
+
+const boxes = [...vp.querySelectorAll(':scope > g')];
+const lines = [...vp.querySelectorAll(':scope > path')];
+
+// Returns box bounds in viewport coordinate space
+function boxBounds(g) {
+  const t = (g.getAttribute('transform') || '').match(/translate\(([-\d.]+)[,\s]+([-\d.]+)\)/);
+  const ox = t ? parseFloat(t[1]) : 0, oy = t ? parseFloat(t[2]) : 0;
+  const b = g.getBBox();
+  return { x: ox + b.x, y: oy + b.y, w: b.width, h: b.height };
+}
+
+// Returns start + end coords of a path's d attribute
+function pathEndpoints(path) {
+  const pairs = [...path.getAttribute('d').matchAll(/([-\d.]+),([-\d.]+)/g)];
+  if (pairs.length < 1) return null;
+  return {
+    s: { x: +pairs[0][1],                  y: +pairs[0][2] },
+    e: { x: +pairs[pairs.length-1][1],     y: +pairs[pairs.length-1][2] }
+  };
+}
+
+function near(pt, b, pad) {
+  pad = pad || 18;
+  return pt.x >= b.x-pad && pt.x <= b.x+b.w+pad && pt.y >= b.y-pad && pt.y <= b.y+b.h+pad;
+}
+
+function resetAll() {
+  boxes.forEach(b => b.style.opacity = '');
+  lines.forEach(l => l.style.opacity = '');
+}
+
+boxes.forEach(box => {
+  box.addEventListener('mouseenter', () => {
+    if (dragging) return;
+    const bb = boxBounds(box);
+
+    // Lines whose start or end touches this box
+    const hotLines = lines.filter(l => {
+      const ep = pathEndpoints(l);
+      return ep && (near(ep.s, bb) || near(ep.e, bb));
+    });
+
+    // Boxes at the other end of those lines
+    const lit = new Set([box]);
+    hotLines.forEach(l => {
+      const ep = pathEndpoints(l);
+      boxes.forEach(b => {
+        if (b === box) return;
+        const ob = boxBounds(b);
+        if (near(ep.s, ob) || near(ep.e, ob)) lit.add(b);
+      });
+    });
+
+    boxes.forEach(b => b.style.opacity = lit.has(b) ? '1' : '0.1');
+    lines.forEach(l => l.style.opacity = hotLines.includes(l) ? '0.9' : '0.05');
+  });
+  box.addEventListener('mouseleave', resetAll);
+});
+
+svg.addEventListener('mousedown', e => {
+  dragging=true; startX=e.clientX-tx; startY=e.clientY-ty;
+  svg.classList.add('grabbing');
+});
+window.addEventListener('mousemove', e => {
+  if(!dragging) return;
+  tx=e.clientX-startX; ty=e.clientY-startY; applyTransform();
+});
+window.addEventListener('mouseup', () => { dragging=false; svg.classList.remove('grabbing'); resetAll(); });
+
+svg.addEventListener('wheel', e => {
+  e.preventDefault();
+  const delta = e.deltaY > 0 ? 0.9 : 1.1;
+  const r = svg.getBoundingClientRect();
+  const mx = e.clientX-r.left, my = e.clientY-r.top;
+  tx = mx-(mx-tx)*delta; ty = my-(my-ty)*delta; scale*=delta; applyTransform();
+}, { passive: false });
+
+let lastDist=0;
+svg.addEventListener('touchstart', e => {
+  if(e.touches.length===1){ dragging=true; startX=e.touches[0].clientX-tx; startY=e.touches[0].clientY-ty; }
+  if(e.touches.length===2){ lastDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); }
+},{passive:true});
+svg.addEventListener('touchmove', e => {
+  if(e.touches.length===1&&dragging){ tx=e.touches[0].clientX-startX; ty=e.touches[0].clientY-startY; applyTransform(); }
+  if(e.touches.length===2){
+    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    scale*=d/lastDist; lastDist=d; applyTransform();
+  }
+},{passive:true});
+svg.addEventListener('touchend',()=>{ dragging=false; });
+
+document.getElementById('zoomIn').onclick   = ()=>{ scale*=1.2; applyTransform(); };
+document.getElementById('zoomOut').onclick  = ()=>{ scale*=0.85; applyTransform(); };
+document.getElementById('zoomReset').onclick= ()=>{ tx=0; ty=0; scale=0.7; applyTransform(); };
+</script>
+</body>
+</html>

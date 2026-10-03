@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Syndicate Platform — 8-Day Build Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #FFFFFF;
+  --surface:   #F9FAFB;
+  --surface-2: #F3F4F6;
+  --surface-3: #E5E7EB;
+  --border:    rgba(0,0,0,0.10);
+  --border-h:  rgba(0,0,0,0.18);
+  --text:      #111827;
+  --muted:     #6B7280;
+  --dim:       #9CA3AF;
+  --accent:    #111827;
+  --amber:     #B45309;
+  --amber-bg:  rgba(180,83,9,0.06);
+  --amber-bdr: rgba(180,83,9,0.20);
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+.page {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 64px 32px 100px;
+}
+
+/* ── Header ── */
+.header {
+  margin-bottom: 52px;
+}
+.header-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+.header-title {
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+
+/* ── Section label ── */
+.section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ══════════════════════════════════
+   TIMELINE TABLE
+══════════════════════════════════ */
+.timeline-table-wrap {
+  margin-bottom: 72px;
+  overflow-x: auto;
+}
+
+.timeline-table {
+  width: 100%;
+  min-width: 1400px;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.timeline-table thead th {
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border-h);
+  white-space: nowrap;
+}
+
+.timeline-table thead th:first-child {
+  width: 72px;
+}
+
+.timeline-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.12s;
+}
+.timeline-table tbody tr:hover { background: var(--surface-2); }
+.timeline-table tbody tr:last-child { border-bottom: none; }
+
+.timeline-table tbody td {
+  padding: 13px 14px;
+  vertical-align: top;
+}
+
+/* Day pill */
+.day-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.day-pill.w1 { background: var(--surface-2); color: var(--text); border: 1.5px solid var(--border-h); }
+.day-pill.w2 { background: var(--surface-2); color: var(--text); border: 1.5px solid var(--border-h); }
+
+/* focus label */
+.focus-label {
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 3px;
+  color: var(--text);
+}
+.focus-sub {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* track pills in table */
+.track-pills { display: flex; flex-wrap: wrap; gap: 5px; }
+.tp {
+  font-size: 10.5px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.tp-be { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+.tp-fe { background: var(--surface-3); color: var(--text); border: 1px solid var(--border); }
+.tp-both { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+
+/* deliverable badge */
+.del-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border-h);
+  border-radius: 6px;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+.del-badge-amber {
+  color: var(--text);
+  background: var(--surface-2);
+  border-color: var(--border-h);
+}
+
+
+/* ══════════════════════════════════
+   DEVELOPMENT BREAKDOWN
+══════════════════════════════════ */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 72px;
+}
+
+.day-card {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+}
+
+.day-spine {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 22px;
+}
+.day-dot {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  z-index: 1;
+}
+.day-dot.w1 { background: var(--surface-2); border: 2px solid var(--border-h); color: var(--text); }
+.day-dot.w2 { background: var(--surface-2); border: 2px solid var(--border-h); color: var(--text); }
+.day-dot.last { background: var(--text); border: 2px solid var(--text); color: #fff; }
+.day-line {
+  width: 2px;
+  flex: 1;
+  background: var(--border);
+  margin: 6px 0;
+  min-height: 20px;
+}
+.day-card:last-child .day-line { display: none; }
+
+.day-content {
+  padding: 18px 0 36px 22px;
+}
+.day-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 5px;
+  flex-wrap: wrap;
+}
+.day-label { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+.day-theme { font-size: 13px; color: var(--muted); font-weight: 500; }
+.day-del {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border-h);
+  border-radius: 6px;
+  padding: 3px 10px;
+}
+.day-del.amber { color: var(--text); background: var(--surface-2); border-color: var(--border-h); }
+
+.day-note {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+.day-tracks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.day-tracks.single { grid-template-columns: 1fr; }
+
+.track {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.track-head {
+  padding: 9px 14px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.track-head.be   { background: var(--surface-2); color: var(--muted); }
+.track-head.fe   { background: var(--surface-3); color: var(--muted); }
+.track-head.both { background: var(--surface-2); color: var(--muted); }
+.hdot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+.track-body {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.ti {
+  display: flex;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.5;
+  align-items: flex-start;
+}
+.ti::before { content: '›'; color: var(--dim); flex-shrink: 0; margin-top: 1px; }
+.ti.s { color: var(--muted); padding-left: 14px; font-size: 11px; }
+.ti.s::before { content: '·'; }
+
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.mono.am { color: var(--muted); }
+.mono.gr { color: var(--muted); }
+.mono.pu { color: var(--muted); }
+
+.eod {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.eod strong { color: var(--text); }
+.eod-dot {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--surface-3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+.eod-dot.am { background: var(--surface-3); }
+
+/* ══════════════════════════════════
+   SERVICES TABLE
+══════════════════════════════════ */
+.svc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-bottom: 0;
+}
+.svc-table th {
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-h);
+}
+.svc-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.svc-table tr:last-child td { border-bottom: none; }
+.svc-table tr:hover td { background: var(--surface-2); }
+.svc-name { font-weight: 600; font-size: 13px; }
+.svc-desc { font-size: 11.5px; color: var(--muted); line-height: 1.55; }
+
+.badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.b-free { background: var(--surface-3); color: var(--muted); border: 1px solid var(--border); }
+.b-pay  { background: var(--surface-3); color: var(--muted); border: 1px solid var(--border); }
+
+.cost-note {
+  min-width: 1400px;
+  margin-top: 12px;
+  padding: 16px 20px;
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-bdr);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+  white-space: nowrap;
+}
+.cost-note strong { color: var(--amber); }
+.svc-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 56px;
+}
+
+/* ── Stack table ── */
+.stack-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 64px;
+}
+.stack-table th {
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-h);
+}
+.stack-table td {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.stack-table tr:last-child td { border-bottom: none; }
+.stack-table tr:hover td { background: var(--surface-2); }
+.stack-layer { font-weight: 600; color: var(--text); }
+.stack-choice { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); }
+.stack-why { font-size: 11.5px; color: var(--muted); }
+
+/* footer */
+.footer {
+  border-top: 1px solid var(--border);
+  padding-top: 28px;
+  font-size: 11px;
+  color: var(--dim);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .page { padding: 36px 16px 80px; }
+  .day-tracks { grid-template-columns: 1fr; }
+  .header-title { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-eyebrow">Build Plan · 10 Working Days</div>
+    <div class="header-title">Syndicate Platform<br>Development Breakdown</div>
+  </div>
+
+  <!-- ══ TIMELINE TABLE ══ -->
+  <div class="section-label">10-Day Timeline Overview</div>
+  <div class="timeline-table-wrap">
+    <table class="timeline-table">
+      <thead>
+        <tr>
+          <th>Day</th>
+          <th>Focus</th>
+          <th>Backend</th>
+          <th>Frontend</th>
+          <th>End-of-Day Deliverable</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="day-pill w1">1</div></td>
+          <td><div class="focus-label">Foundation</div><div class="focus-sub">Schema, auth, project skeleton</div></td>
+          <td><div class="track-pills">
+            <span class="tp tp-be">DB schema (22 tables)</span>
+            <span class="tp tp-be">WorkOS JWT middleware</span>
+            <span class="tp tp-be">FastAPI skeleton</span>
+            <span class="tp tp-be">WorkOS webhook</span>
+          </div></td>
+          <td><div class="track-pills">
+            <span class="tp tp-fe">Next.js setup</span>
+            <span class="tp tp-fe">All routes (mock)</span>
+            <span class="tp tp-fe">WorkOS AuthKit (3 files)</span>
+            <span class="tp tp-fe">Sidebar + nav</span>
+          </div></td>
+          <td><span class="del-badge">↳ DB live · All routes render · Auth validates</span></td>
+        </tr>
+
+        <tr>
+          <td><div class="day-pill w1">2</div></td>
+          <td><div class="focus-label">Asset Pipeline</div><div class="focus-sub">File extractors + embedding</div></td>
+          <td><div class="track-pills">
+            <span class="tp tp-be">R2 storage</span>
+            <span class="tp tp-be">Arq worker setup</span>
+            <span class="tp tp-be">PDF / Audio / Image / Sheet extractors</span>
+            <span class="tp tp-be">OpenAI embedding</span>
+            <span class="tp tp-be">pgvector chunk storage</span>
+          </div></td>
+          <td><div class="track-pills">
+            <span class="tp tp-fe">All screens on mock data</span>
+            <span class="tp tp-fe">Asset upload page</span>
+            <span class="tp tp-fe">Per-asset analysis panel</span>
+            <span class="tp tp-fe">Dashboard · Investments · Hub · Report</span>
+          </div></td>
+          <td><span class="del-badge">↳ Real file upload + processing works · Every UI screen exists</span></td>
+        </tr>
+
+        <tr>
+          <td><div class="day-pill w1">3</div></td>
+          <td><div class="focus-label">Knowledge Graph</div><div class="focus-sub">Edges, NER, SIMILAR_TO</div></td>
+          <td><div class="track-pills">
+            <span class="tp tp-be">NEXT edges (sequential)</span>
+            <span class="tp tp-be">Claude Sonnet NER → entities</span>
+            <span class="tp tp-be">SIMILAR_TO edges (pgvector, score &gt; 0.82)</span>
+            <span class="tp tp-be">Per-asset analysis worker</span>
+          </div></td>
+          <td><div class="track-pills">
+            <span class="tp tp-fe">Wire asset upload → real backend</span>
+            <span class="tp tp-fe">Real status polling (3s)</span>
+            <span class="tp tp-fe">Real analysis_cache display</span>
+            <span class="tp tp-fe">API client layer (typed fetch)</span>
+          </div></td>
+          <td><span class="del-badge">↳ Graph builds after upload · NER entities extracted · Analysis panels show real data</span></td>
+        </tr>
+
+        <tr>
+          <td><div class="day-pill w1">4</div></td>
+          <td><div class="focus-label">GraphRAG Engine</div><div class="focus-sub">BFS traversal + SSE stream</div></td>
+          <td><div class="track-pills">
+            <span class="tp tp-be">BFS traversal (pgvector ANN seed)</span>
+            <span class="tp tp-be">Relevance decay (0.85/hop)</span>
+            <span class="tp tp-be">SSE stream endpoint</span>
+            <span class="tp tp-be">Redis cell_ctx + cell_analysis</span>
+            <span class="tp tp-be">Upstream context injection</span>
+          </div></td>
+          <td><div class="track-pills">
+            <span class="tp tp-fe">CellChat component</span>
+            <span class="tp tp-fe">EventSource SSE consumer</span>
+            <span class="tp tp-fe">Thinking dots animation</span>
+            <span class="tp tp-fe">Typewriter + source pills</span>
+          </div></td>
+          <td><span class="del-badge">↳ Investor can have a real AI conversation with the knowledge base</span></td>
+        </tr>
+
+        <tr>
+          <td><div class="day-pill w1">5</div></td>
+          <td><div class="focus-label">Flow Canvas</div><div class="focus-sub">React Flow + versioned template</div></td>
+          <td><div class="track-pills">
+            <span class="tp tp-be">Flow template versioning endpoints</span>
+            <span class="tp tp-be">Per-project flow cell CRUD</span>
+            <span class="tp tp-be">Project open → copy live template</span>
+            <span class="tp tp-be">build_cell_views worker</span>
+          </div></td>
+          <td><div class="track-pills">
+            <span class="tp tp-fe">React Flow + custom node types</span>
+            <span class="tp tp-fe">Admin canvas (drag, connect)</span>
+            <span class="tp tp-fe">Investor canvas (read-only)</span>
+            <span class="tp tp-fe">Admin settings editor</span>
+          </div></td>
+          <td><span class="del-badge">↳ Flow canvas works · Admin edits template · Investors click into cells</span></td>
+        </tr>
+
+        <tr>
+          <td><div class="day-pill w2">6</div></td>
+          <td><div class="focus-label">Cell Deep Dive + Analysis Pipeline</div><div class="focus-sub">Investor views + group consensus</div></td>
+          <td><div class="track-pills">
+            <span class="tp tp-be">Conversation session handler</span>
+            <span class="tp tp-be">maybe_close_collection</span>
+            <span class="tp tp-be">LLM wrapper (run_stage, retry)</span>
+            <span class="tp tp-be">Group consensus worker</span>
+            <span class="tp tp-be">Final consensus worker</span>
+          </div></td>
+          <td><div class="track-pills">
+            <span class="tp tp-fe">Cell deep-dive page (admin + investor view)</span>
+            <span class="tp tp-fe">Investor view cards (sentiment badges)</span>
+            <span class="tp tp-fe">Wire cell chat → real SSE</span>
+            <span class="tp tp-fe">Final report → real analyses</span>
+          </div></td>
+          <td><span class="del-badge">↳ Full loop: chat → submit → analysis → final report</span></td>
+        </tr>
+
+        <tr>
+          <td><div class="day-pill w2">7</div></td>
+          <td><div class="focus-label">Notifications + Competitive Scan</div><div class="focus-sub">Alerts + web intelligence</div></td>
+          <td><div class="track-pills">
+            <span class="tp tp-be">Notifications (in-app + Resend email)</span>
+            <span class="tp tp-be">Competitive scan (Serper + Claude Sonnet)</span>
+            <span class="tp tp-be">Ingest as competitive_intel asset</span>
+            <span class="tp tp-be">GET /investments endpoint</span>
+          </div></td>
+          <td><div class="track-pills">
+            <span class="tp tp-fe">Notification bell + dropdown</span>
+            <span class="tp tp-fe">Wire My Investments page</span>
+            <span class="tp tp-fe">Wire project hub status (real polling)</span>
+            <span class="tp tp-fe">Project creation flow (end-to-end)</span>
+          </div></td>
+          <td><span class="del-badge">↳ Notifications live · Competitive scan runs on project open · Investments page real</span></td>
+        </tr>
+
+        <tr>
+          <td><div class="day-pill w2">8</div></td>
+          <td><div class="focus-label">Voice + Wire + Deploy</div><div class="focus-sub">Voice input · zero mocks · production</div></td>
+          <td><div class="track-pills">
+            <span class="tp tp-be">Whisper API endpoint (POST /voice)</span>
+            <span class="tp tp-be">Admin invite (WorkOS sendInvitation)</span>
+            <span class="tp tp-be">E2E test · access control audit · bug fixes</span>
+            <span class="tp tp-be">Vercel + Railway + Upstash + R2 deploy</span>
+          </div></td>
+          <td><div class="track-pills">
+            <span class="tp tp-fe">Voice button (MediaRecorder)</span>
+            <span class="tp tp-fe">Invite modal + pending/joined state</span>
+            <span class="tp tp-fe">Wire all remaining mock data → real APIs</span>
+            <span class="tp tp-fe">Error states · Skeletons · Empty states · Role guards</span>
+          </div></td>
+          <td><span class="del-badge del-badge-amber">↳ Voice works · Zero mocks · Live on production URL · Done</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="cost-note">
+      <strong>Claude API</strong> — Opus 4.6 for group consensus, final analysis, cell chat answers ($15/MTok in · $75/MTok out). Sonnet 4.6 for NER extraction, competitive assessment, cell synthesis, image vision, per-asset analysis ($3/MTok in · $15/MTok out).<br>
+      <strong>OpenAI</strong> — text-embedding-3-large for all chunk embeddings stored in pgvector ($0.13/MTok). Whisper API for voice-to-text transcription in cell chat ($0.006/min audio).
+    </div>
+  </div>
+
+  <!-- ══ DETAILED BREAKDOWN ══ -->
+  <div class="section-label">Detailed Development Breakdown</div>
+  <div class="timeline">
+
+    <!-- DAY 1 -->
+    <div class="day-card">
+      <div class="day-spine"><div class="day-dot w1">1</div><div class="day-line"></div></div>
+      <div class="day-content">
+        <div class="day-header">
+          <div class="day-label">Day 1</div>
+          <div class="day-theme">Foundation</div>
+          <div class="day-del">↳ DB live · Auth validates · All routes render</div>
+        </div>
+        <div class="day-note">Full database schema in a single migration. WorkOS AuthKit wired in 3 files. FastAPI skeleton with JWT validation. All Next.js routes created with mock data so frontend is never blocked.</div>
+        <div class="day-tracks">
+          <div class="track">
+            <div class="track-head be"><div class="hdot"></div> Backend</div>
+            <div class="track-body">
+              <div class="ti">All 22 Postgres tables in one migration <span class="mono">SQL</span></div>
+              <div class="ti s">users, invites, projects, project_members</div>
+              <div class="ti s">assets, chunks (vector 1536), entities, chunk_mentions, chunk_edges</div>
+              <div class="ti s">cell_conversation_turns (vector 1536), flow_template_versions</div>
+              <div class="ti s">flow_template_cells, flow_cells, flow_edges</div>
+              <div class="ti s">conversation_sessions, analyses, notifications</div>
+              <div class="ti s">prompts, prompt_versions, llm_runs, audit_log, pending_invites</div>
+              <div class="ti">pgvector HNSW index on chunks.embedding + cell_conversation_turns.embedding</div>
+              <div class="ti">FastAPI project structure <span class="mono">main.py</span></div>
+              <div class="ti s">CORS, router registration, asyncpg pool lifespan</div>
+              <div class="ti s">routers/ — projects, assets, conversation, flow, analyses, notifications (stubs)</div>
+              <div class="ti">WorkOS JWT validation middleware <span class="mono">auth.py</span></div>
+              <div class="ti s">Decode WorkOS JWT → extract user_id → lookup platform_role in users table</div>
+              <div class="ti">WorkOS webhook handler <span class="mono">POST /webhooks/workos</span></div>
+              <div class="ti s">user.created → INSERT users → move pending_invite → project_members</div>
+              <div class="ti">Docker Compose — Redis only for local dev</div>
+              <div class="ti">Basic project CRUD live (GET /projects, POST /projects)</div>
+            </div>
+          </div>
+          <div class="track">
+            <div class="track-head fe"><div class="hdot"></div> Frontend</div>
+            <div class="track-body">
+              <div class="ti">Next.js 14 App Router setup <span class="mono gr">TypeScript</span></div>
+              <div class="ti s">Tailwind CSS + shadcn/ui component library</div>
+              <div class="ti s">Inter font, CSS custom properties (dark theme)</div>
+              <div class="ti">WorkOS AuthKit — 3 files total <span class="mono gr">@workos-inc/authkit-nextjs</span></div>
+              <div class="ti s">middleware.ts — authkitMiddleware()</div>
+              <div class="ti s">app/callback/route.ts — handleAuth()</div>
+              <div class="ti s">app/(app)/layout.tsx — getUser({ ensureSignedIn: true })</div>
+              <div class="ti">All route files created (mock data only)</div>
+              <div class="ti s">/dashboard · /investments · /projects/new</div>
+              <div class="ti s">/projects/[id] · /projects/[id]/assets</div>
+              <div class="ti s">/projects/[id]/flow · /projects/[id]/flow/[cellId]</div>
+              <div class="ti s">/admin/settings/flow-template</div>
+              <div class="ti">Mock data layer <span class="mono gr">lib/mock.ts</span> — typed responses for every endpoint</div>
+              <div class="ti">Shared layout: Sidebar, NotificationBell, StatusBadge, ProjectCard</div>
+            </div>
+          </div>
+        </div>
+        <div class="eod"><div class="eod-dot">✓</div><div>End of Day 1: <strong>DB schema exists. All frontend routes render on mock data. WorkOS validates tokens in 3 files.</strong></div></div>
+      </div>
+    </div>
+
+    <!-- DAY 2 -->
+    <div class="day-card">
+      <div class="day-spine"><div class="day-dot w1">2</div><div class="day-line"></div></div>
+      <div class="day-content">
+        <div class="day-header">
+          <div class="day-label">Day 2</div>
+          <div class="day-theme">Asset Pipeline + All Frontend Screens</div>
+          <div class="day-del">↳ Real file upload works · Every UI screen exists</div>
+        </div>
+        <div class="day-note">Full file processing pipeline across 4 file types. OpenAI embedding for every chunk. All frontend screens built simultaneously on mock data so Day 3+ only needs wiring.</div>
+        <div class="day-tracks">
+          <div class="track">
+            <div class="track-head be"><div class="hdot"></div> Backend</div>
+            <div class="track-body">
+              <div class="ti">Cloudflare R2 integration <span class="mono">services/storage.py</span></div>
+              <div class="ti s">Presigned upload URL → direct browser-to-R2 upload</div>
+              <div class="ti s">Presigned download URL for worker access</div>
+              <div class="ti">Arq worker foundation <span class="mono">worker.py</span></div>
+              <div class="ti s">WorkerSettings — 10 max jobs, 180s timeout, 3 retries</div>
+              <div class="ti s">Redis pool via Upstash connection string</div>
+              <div class="ti">process_asset worker <span class="mono">workers/process_asset.py</span></div>
+              <div class="ti s">PDF → pdfplumber → 500-char chunks, 50-char overlap</div>
+              <div class="ti s">Audio → OpenAI Whisper API → transcript → sentence chunks</div>
+              <div class="ti s">Image → Claude Sonnet (Vision) → description → single chunk</div>
+              <div class="ti s">Spreadsheet → pandas → row text chunks</div>
+              <div class="ti s">All chunks → OpenAI text-embedding-3-large → vector(1536)</div>
+              <div class="ti s">Batch INSERT chunks into pgvector</div>
+              <div class="ti s">Status updates: pending → processing → embedding → ready</div>
+              <div class="ti">Asset upload endpoints live</div>
+              <div class="ti s">POST /projects/{id}/assets → R2 presigned URL + INSERT asset</div>
+              <div class="ti s">POST /projects/{id}/assets/{id}/confirm → enqueue process_asset</div>
+              <div class="ti s">GET /projects/{id}/assets → status + analysis_cache</div>
+            </div>
+          </div>
+          <div class="track">
+            <div class="track-head fe"><div class="hdot"></div> Frontend — All Screens Built</div>
+            <div class="track-body">
+              <div class="ti">Asset upload page <span class="mono gr">components/AssetUpload.tsx</span></div>
+              <div class="ti s">Drag-drop zone, any file type accepted</div>
+              <div class="ti s">Per-asset card: filename · kind badge · size · status chip</div>
+              <div class="ti s">Ready state → expands to analysis panel below</div>
+              <div class="ti s">Analysis panel: KEY ENTITIES · SUMMARY · TOPICS COVERED</div>
+              <div class="ti">Project hub — all 5 status variants</div>
+              <div class="ti s">draft / building_graph / open / consensus / final</div>
+              <div class="ti">Dashboard — project list cards (name, status, date, members)</div>
+              <div class="ti">My Investments page — cards with status CTAs</div>
+              <div class="ti s">"Continue →" for open · "View Analysis →" for final</div>
+              <div class="ti">Final report page — per-topic sections, investor count</div>
+              <div class="ti">Notification bell + dropdown panel</div>
+            </div>
+          </div>
+        </div>
+        <div class="eod"><div class="eod-dot">✓</div><div>End of Day 2: <strong>Real file upload + processing works. Every frontend screen exists on mock data.</strong></div></div>
+      </div>
+    </div>
+
+    <!-- DAY 3 -->
+    <div class="day-card">
+      <div class="day-spine"><div class="day-dot w1">3</div><div class="day-line"></div></div>
+      <div class="day-content">
+        <div class="day-header">
+          <div class="day-label">Day 3</div>
+          <div class="day-theme">Knowledge Graph — Edges, NER, Per-Asset Analysis</div>
+          <div class="day-del">↳ Graph builds after upload · Analysis panels show real data</div>
+        </div>
+        <div class="day-note">Complete the graph construction layer. Wire asset upload frontend to the real backend so the full upload-to-analysis loop works from the browser.</div>
+        <div class="day-tracks">
+          <div class="track">
+            <div class="track-head be"><div class="hdot"></div> Backend</div>
+            <div class="track-body">
+              <div class="ti">NEXT edges — sequential chunk pairs within each asset</div>
+              <div class="ti">SIMILAR_TO edges via pgvector <span class="mono">workers/process_asset.py</span></div>
+              <div class="ti s">Per-chunk: SELECT chunks WHERE 1-(embedding &lt;=&gt; $vec) &gt; 0.82</div>
+              <div class="ti s">INSERT chunk_edges (cap 20 neighbors per chunk)</div>
+              <div class="ti">NER extraction <span class="mono">Claude Sonnet</span></div>
+              <div class="ti s">Extract: persons, companies, locations, metrics, concepts</div>
+              <div class="ti s">INSERT entities (project_id, name, kind) — UPSERT on conflict</div>
+              <div class="ti s">INSERT chunk_mentions (chunk_id, entity_id)</div>
+              <div class="ti">run_asset_analysis worker <span class="mono">workers/asset_analysis.py</span></div>
+              <div class="ti s">Claude Sonnet → key entities, 2-sentence summary, topic list</div>
+              <div class="ti s">UPDATE assets SET analysis_cache = {entities, summary, topics}</div>
+              <div class="ti">build_graph_edges worker completes → UPDATE projects status='open' ready</div>
+            </div>
+          </div>
+          <div class="track">
+            <div class="track-head fe"><div class="hdot"></div> Frontend — Wire Asset Upload</div>
+            <div class="track-body">
+              <div class="ti">API client layer <span class="mono gr">lib/api.ts</span></div>
+              <div class="ti s">Typed fetch wrappers for every endpoint</div>
+              <div class="ti s">Attach WorkOS access token to Authorization header</div>
+              <div class="ti">Wire asset upload to real backend</div>
+              <div class="ti s">Fetch presigned URL → direct upload to R2 → POST confirm</div>
+              <div class="ti s">Poll GET /assets every 3s until status='ready'</div>
+              <div class="ti s">On ready: show real analysis_cache in analysis panel</div>
+              <div class="ti">Wire project hub status to real project.status</div>
+              <div class="ti s">Poll every 5s while status = 'building_graph'</div>
+              <div class="ti">Dashboard wired to real GET /projects list</div>
+            </div>
+          </div>
+        </div>
+        <div class="eod"><div class="eod-dot">✓</div><div>End of Day 3: <strong>Graph builds automatically after upload. NER entities extracted. Analysis panels show real Claude-generated data.</strong></div></div>
+      </div>
+    </div>
+
+    <!-- DAY 4 -->
+    <div class="day-card">
+      <div class="day-spine"><div class="day-dot w1">4</div><div class="day-line"></div></div>
+      <div class="day-content">
+        <div class="day-header">
+          <div class="day-label">Day 4</div>
+          <div class="day-theme">GraphRAG Engine + Conversation</div>
+          <div class="day-del">↳ Investor can have a real AI conversation</div>
+        </div>
+        <div class="day-note">The core AI: BFS traversal over pgvector, SSE streaming to the browser, Redis context store for upstream cell injection. CellChat component wired to real backend.</div>
+        <div class="day-tracks">
+          <div class="track">
+            <div class="track-head be"><div class="hdot"></div> Backend</div>
+            <div class="track-body">
+              <div class="ti">GraphRAG BFS traversal <span class="mono">services/traversal.py</span></div>
+              <div class="ti s">Step 1: pgvector ANN seed search (top-5 chunks by cosine sim)</div>
+              <div class="ti s">Step 2: BFS expand via chunk_edges NEXT/SIMILAR_TO + chunk_mentions</div>
+              <div class="ti s">Step 3: Relevance = cosine_sim × 0.85^depth — threshold 0.45, cap 40 nodes</div>
+              <div class="ti s">Step 4: Inject upstream cell_analysis from Redis (if downstream cell)</div>
+              <div class="ti s">Step 5: Claude Opus streams answer over top-12 chunks as context</div>
+              <div class="ti">SSE stream endpoint <span class="mono">GET /conversation/{id}/stream</span></div>
+              <div class="ti s">Events: answer_token {token} → answer_done {sources: [asset_ids]}</div>
+              <div class="ti s">No node_visited events exposed to frontend</div>
+              <div class="ti">Redis cell context store <span class="mono">services/cell_context.py</span></div>
+              <div class="ti s">RPUSH cell_ctx:{pid}:{cid}:{uid} per turn — TTL 30 days</div>
+              <div class="ti s">GET cell_analysis:{pid}:{cid} → inject into downstream prompts</div>
+              <div class="ti">Conversation endpoints</div>
+              <div class="ti s">POST /projects/{id}/sessions/{cellId} — create/get session</div>
+              <div class="ti s">POST /conversation/{id}/message — save + run traversal</div>
+              <div class="ti s">POST /conversation/{id}/submit — mark submitted + maybe_close</div>
+            </div>
+          </div>
+          <div class="track">
+            <div class="track-head fe"><div class="hdot"></div> Frontend</div>
+            <div class="track-body">
+              <div class="ti">CellChat component <span class="mono gr">components/CellChat.tsx</span></div>
+              <div class="ti s">POST message → open EventSource stream</div>
+              <div class="ti s">Show thinking dots (··· animation) while waiting</div>
+              <div class="ti s">on answer_token → typewriter append to buffer</div>
+              <div class="ti s">on answer_done → show source pills (asset name + kind icon)</div>
+              <div class="ti s">Auto-reconnect on drop (3 attempts)</div>
+              <div class="ti">Cell chat page wired to real backend <span class="mono gr">/flow/[cellId]</span></div>
+              <div class="ti s">Full-width layout — no graph panel</div>
+              <div class="ti s">Source pills: 📄 Slide 7 · 🎤 Founder audio 03:41</div>
+              <div class="ti">Session submit button → POST /submit</div>
+            </div>
+          </div>
+        </div>
+        <div class="eod"><div class="eod-dot">✓</div><div>End of Day 4: <strong>Investor asks a question → BFS traversal → Claude streams answer → source pills appear. The core AI loop is live.</strong></div></div>
+      </div>
+    </div>
+
+    <!-- DAY 5 -->
+    <div class="day-card">
+      <div class="day-spine"><div class="day-dot w1">5</div><div class="day-line"></div></div>
+      <div class="day-content">
+        <div class="day-header">
+          <div class="day-label">Day 5</div>
+          <div class="day-theme">Flow Canvas System</div>
+          <div class="day-del">↳ Canvas works · Admin edits template · Investors click into cells</div>
+        </div>
+        <div class="day-note">Versioned global flow template, per-project canvas, React Flow with custom cell + satellite nodes, admin settings flow editor, cell analysis synthesis worker.</div>
+        <div class="day-tracks">
+          <div class="track">
+            <div class="track-head be"><div class="hdot"></div> Backend</div>
+            <div class="track-body">
+              <div class="ti">Flow template versioning <span class="mono">routers/flow.py</span></div>
+              <div class="ti s">GET /admin/flow-template/versions</div>
+              <div class="ti s">GET /admin/flow-template/cells/{version_id}</div>
+              <div class="ti s">POST /admin/flow-template/publish → new live version, archive old</div>
+              <div class="ti">Per-project flow cell endpoints</div>
+              <div class="ti s">GET /projects/{id}/flow/cells — nodes + edges for canvas</div>
+              <div class="ti s">POST/PUT flow cells (topic, prompt, position)</div>
+              <div class="ti s">POST/DELETE flow edges (connect/disconnect cells)</div>
+              <div class="ti">Project open → copy live template to per-project flow_cells</div>
+              <div class="ti">build_cell_views worker <span class="mono">workers/cell_views.py</span></div>
+              <div class="ti s">Read all cell_ctx:{pid}:{cid}:* keys (all investors)</div>
+              <div class="ti s">Claude Sonnet synthesis → cell_analysis Redis key</div>
+              <div class="ti s">UPDATE flow_cells SET output_cache = synthesis</div>
+              <div class="ti">POST /projects/{id}/flow/cells/{cid}/analyse → enqueue worker</div>
+            </div>
+          </div>
+          <div class="track">
+            <div class="track-head fe"><div class="hdot"></div> Frontend</div>
+            <div class="track-body">
+              <div class="ti">React Flow setup <span class="mono gr">npm install reactflow</span></div>
+              <div class="ti">Custom node types</div>
+              <div class="ti s">CellNode — topic label, status badge, progress bar, Analyse button</div>
+              <div class="ti s">SatelliteNode — INPUT (indigo) / OUTPUT (green) small circles</div>
+              <div class="ti s">Custom edge — directional arrow + label</div>
+              <div class="ti">FlowCanvas <span class="mono gr">components/flow/FlowCanvas.tsx</span></div>
+              <div class="ti s">Admin: draggable nodes, connectable, editable</div>
+              <div class="ti s">Investor: pan + zoom only, click cell → /flow/[cellId]</div>
+              <div class="ti s">Role-aware — same component, different props</div>
+              <div class="ti">Admin Settings — flow template editor <span class="mono gr">/admin/settings/flow-template</span></div>
+              <div class="ti s">Cells list (drag-to-reorder with @dnd-kit/sortable)</div>
+              <div class="ti s">Inline prompt editor per cell + Save Draft / Publish vN</div>
+              <div class="ti s">Version history table (live / archived)</div>
+            </div>
+          </div>
+        </div>
+        <div class="eod"><div class="eod-dot">✓</div><div>End of Day 5: <strong>Admin can build and edit the flow. Investors navigate the canvas and chat in cells. Core product is end-to-end.</strong></div></div>
+      </div>
+    </div>
+
+    <!-- DAY 6 -->
+    <div class="day-card">
+      <div class="day-spine"><div class="day-dot w2">6</div><div class="day-line"></div></div>
+      <div class="day-content">
+        <div class="day-header">
+          <div class="day-label">Day 6</div>
+          <div class="day-theme">Cell Deep Dive + Analysis Pipeline</div>
+          <div class="day-del">↳ Full loop: chat → submit → analysis → final report</div>
+        </div>
+        <div class="day-note">Admin cell deep-dive with investor view cards. Group consensus and final analysis workers. Full data flow from investor conversations through to the final report.</div>
+        <div class="day-tracks">
+          <div class="track">
+            <div class="track-head be"><div class="hdot"></div> Backend</div>
+            <div class="track-body">
+              <div class="ti">maybe_close_collection logic</div>
+              <div class="ti s">After each session submit: check if all invited investors submitted</div>
+              <div class="ti s">If all done: status='consensus', enqueue run_group_consensus</div>
+              <div class="ti">LLM wrapper <span class="mono">services/llm.py</span></div>
+              <div class="ti s">run_stage(stage_key, inputs) — fetch live prompt, Jinja2 render</div>
+              <div class="ti s">Claude API call → Pydantic validate output</div>
+              <div class="ti s">Retry once on validation fail → store raw + flag on second fail</div>
+              <div class="ti s">INSERT analyses row + INSERT llm_runs (tokens, cost, latency)</div>
+              <div class="ti">Group consensus worker <span class="mono">workers/pipeline.py</span></div>
+              <div class="ti s">Read all cell_ctx keys (all investors, all cells)</div>
+              <div class="ti s">Read all cell_analysis summaries from Redis</div>
+              <div class="ti s">Claude Opus → aggregate sentiment, per-topic summary, key concerns</div>
+              <div class="ti s">INSERT analyses(stage='group'), enqueue run_final_consensus</div>
+              <div class="ti">Final consensus worker</div>
+              <div class="ti s">Group analysis → Claude Opus → final report JSON</div>
+              <div class="ti s">INSERT analyses(stage='final') → UPDATE projects status='final'</div>
+            </div>
+          </div>
+          <div class="track">
+            <div class="track-head fe"><div class="hdot"></div> Frontend</div>
+            <div class="track-body">
+              <div class="ti">Cell deep-dive page — admin view <span class="mono gr">/flow/[cellId]</span></div>
+              <div class="ti s">Investor view cards row (name, quote, sentiment badge)</div>
+              <div class="ti s">Cards pulled from cell_analysis synthesis data</div>
+              <div class="ti s">Sentiment badges: ✓ Positive · ⚡ Mixed · ⚠ Caution</div>
+              <div class="ti s">Full-width CellChat below the cards (admin asking follow-ups)</div>
+              <div class="ti">Wire cell chat → real SSE (remove mock delays)</div>
+              <div class="ti">Wire final report → real analyses data</div>
+              <div class="ti s">Per-topic breakdown cards</div>
+              <div class="ti s">Investor participation count + aggregate view</div>
+              <div class="ti">Project hub status='consensus' → polling until final</div>
+            </div>
+          </div>
+        </div>
+        <div class="eod"><div class="eod-dot">✓</div><div>End of Day 6: <strong>Full product loop works — upload → graph → open → investors chat → submit → analysis → final report visible to all.</strong></div></div>
+      </div>
+    </div>
+
+    <!-- DAY 7 -->
+    <div class="day-card">
+      <div class="day-spine"><div class="day-dot w2">7</div><div class="day-line"></div></div>
+      <div class="day-content">
+        <div class="day-header">
+          <div class="day-label">Day 7</div>
+          <div class="day-theme">Notifications + Competitive Scan</div>
+          <div class="day-del">↳ Alerts live · Competitive intel runs on project open</div>
+        </div>
+        <div class="day-note">In-app and email notifications, competitive intelligence scan using Serper web search, My Investments page wired, project creation end-to-end flow.</div>
+        <div class="day-tracks">
+          <div class="track">
+            <div class="track-head be"><div class="hdot"></div> Backend</div>
+            <div class="track-body">
+              <div class="ti">Notifications service <span class="mono">services/notifications.py</span></div>
+              <div class="ti s">notify(db, user_id, project_id, kind) → INSERT notifications</div>
+              <div class="ti s">Notification kinds: added_to_project, graph_ready, final_ready</div>
+              <div class="ti">Email worker <span class="mono">workers/notifications.py</span></div>
+              <div class="ti s">send_notification_email → Resend API call with template</div>
+              <div class="ti s">Retry 3× exponential backoff — non-critical path</div>
+              <div class="ti">Notification endpoints</div>
+              <div class="ti s">GET /notifications — unread for current user</div>
+              <div class="ti s">POST /notifications/{id}/read — mark read</div>
+              <div class="ti">Competitive scan worker <span class="mono">workers/competitive_scan.py</span></div>
+              <div class="ti s">Claude Sonnet: extract startup name + sector from chunks</div>
+              <div class="ti s">Generate 5 targeted search queries</div>
+              <div class="ti s">Serper API: 5 queries × 10 results (google.serper.dev/search)</div>
+              <div class="ti s">Claude Sonnet: assess each result → {name, url, overlap}</div>
+              <div class="ti s">Build competitive intel markdown report</div>
+              <div class="ti s">INSERT asset(kind='competitive_intel') → enqueue process_asset</div>
+              <div class="ti">Enqueue run_competitive_scan on project → 'open'</div>
+              <div class="ti">GET /investments — project_members joined to completion state</div>
+            </div>
+          </div>
+          <div class="track">
+            <div class="track-head fe"><div class="hdot"></div> Frontend</div>
+            <div class="track-body">
+              <div class="ti">Wire notification bell → real GET /notifications</div>
+              <div class="ti s">Unread count badge, mark-read on click</div>
+              <div class="ti s">Poll every 30s for new notifications</div>
+              <div class="ti">Wire My Investments → real GET /investments</div>
+              <div class="ti s">Real status per investment (conversation pending / submitted / final)</div>
+              <div class="ti s">CTA buttons route to correct project pages</div>
+              <div class="ti">Project creation end-to-end</div>
+              <div class="ti s">POST /projects → upload assets → POST /open → canvas ready</div>
+              <div class="ti">Wire dashboard → real project list</div>
+              <div class="ti">Competitive intel asset appears in assets list automatically</div>
+            </div>
+          </div>
+        </div>
+        <div class="eod"><div class="eod-dot">✓</div><div>End of Day 7: <strong>Notifications fire correctly. Competitive scan runs automatically. My Investments shows real data. Project creation is fully wired.</strong></div></div>
+      </div>
+    </div>
+
+    <!-- DAY 8 -->
+    <div class="day-card">
+      <div class="day-spine"><div class="day-dot last">8</div><div class="day-line"></div></div>
+      <div class="day-content">
+        <div class="day-header">
+          <div class="day-label">Day 8</div>
+          <div class="day-theme">Voice + Wire + Deploy</div>
+          <div class="day-del amber">↳ Voice works · Zero mocks · Live on production · Done</div>
+        </div>
+        <div class="day-note">Morning: voice input + admin invite + wire all remaining mocks to real APIs. Afternoon: E2E test, access control audit, fix bugs, full production deploy across all services. Prompt editor, audit log UI, and admin user management UI are deferred — not user-facing for v1.</div>
+        <div class="day-tracks">
+          <div class="track">
+            <div class="track-head be"><div class="hdot"></div> Backend</div>
+            <div class="track-body">
+              <div class="ti">Voice endpoint <span class="mono">POST /conversation/{id}/voice</span></div>
+              <div class="ti s">Audio blob (webm/mp3) → R2 temp key → Whisper API → transcript</div>
+              <div class="ti s">Pass transcript to standard message handler → SSE stream</div>
+              <div class="ti s">Return {transcript} before SSE answer starts</div>
+              <div class="ti">Admin invite <span class="mono">POST /admin/invite</span></div>
+              <div class="ti s">workos_client.user_management.send_invitation(email, org_id)</div>
+              <div class="ti s">INSERT pending_invites → WorkOS sends email → webhook moves to project_members</div>
+              <div class="ti">Full E2E test with real data — upload, graph, chat, submit, consensus</div>
+              <div class="ti">Access control audit — all role combinations</div>
+              <div class="ti">Fix integration bugs (budget ~3hrs)</div>
+            </div>
+          </div>
+          <div class="track">
+            <div class="track-head fe"><div class="hdot"></div> Frontend + Deploy</div>
+            <div class="track-body">
+              <div class="ti">Voice button in CellChat <span class="mono gr">MediaRecorder API</span></div>
+              <div class="ti s">Tap 🎤 → red pulse → stop → auto-send transcript</div>
+              <div class="ti">Invite modal — email + role → POST /admin/invite → success toast</div>
+              <div class="ti s">Members list: pending vs. joined state</div>
+              <div class="ti">Wire all remaining mock screens → real APIs</div>
+              <div class="ti">Error states · Loading skeletons · Empty states · Toast notifications</div>
+              <div class="ti">Role guards: investors blocked from /admin routes</div>
+              <div class="ti">Vercel (Next.js) + Railway (FastAPI + Arq worker) + Upstash + R2 deploy</div>
+              <div class="ti s">All env vars set · WorkOS callback URL → production domain</div>
+              <div class="ti">Production smoke test — full flow on live URL</div>
+              <div class="ti">UI polish pass — spacing, micro-interactions</div>
+            </div>
+          </div>
+        </div>
+        <div class="eod" style="background:rgba(180,83,9,0.04);border-color:rgba(180,83,9,0.18);">
+          <div class="eod-dot am">🚀</div>
+          <div>End of Day 8: <strong>Voice input live. Zero mock data. Deployed and working on production URL. Full platform ships.</strong></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /timeline -->
+
+  <!-- SERVICES -->
+  <div class="section-label">External Services</div>
+  <div class="svc-wrap">
+    <table class="svc-table">
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Purpose</th>
+          <th>Cost</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="svc-name">WorkOS <span class="badge b-free">Free</span></div></td>
+          <td><div class="svc-desc">Auth — login, MFA, invite emails, session management. Replaces Supabase Auth entirely. Reduces auth code to 3 files.</div></td>
+          <td><div class="svc-desc">Free up to 1M MAU</div></td>
+        </tr>
+        <tr>
+          <td><div class="svc-name">Supabase <span class="badge b-free">Free</span></div></td>
+          <td><div class="svc-desc">Postgres + pgvector. Replaces Neo4j. HNSW index for ANN search and GraphRAG BFS traversal. Project isolation via FK.</div></td>
+          <td><div class="svc-desc">Free tier · $25/mo Pro</div></td>
+        </tr>
+        <tr>
+          <td><div class="svc-name">Claude API <span class="badge b-pay">Pay per token</span></div></td>
+          <td><div class="svc-desc">Opus 4.6 — group consensus, final analysis, cell chat answers. Sonnet 4.6 — NER extraction, competitive assessment, cell synthesis, image vision, per-asset analysis.</div></td>
+          <td><div class="svc-desc">Opus: $15/MTok in · $75/MTok out<br>Sonnet: $3/MTok in · $15/MTok out</div></td>
+        </tr>
+        <tr>
+          <td><div class="svc-name">OpenAI <span class="badge b-pay">Pay per token</span></div></td>
+          <td><div class="svc-desc">text-embedding-3-large for all chunk embeddings stored in pgvector. Whisper API for voice-to-text transcription in cell chat.</div></td>
+          <td><div class="svc-desc">Embeddings: $0.13/MTok<br>Whisper: $0.006/min audio</div></td>
+        </tr>
+        <tr>
+          <td><div class="svc-name">Upstash Redis <span class="badge b-free">Free</span></div></td>
+          <td><div class="svc-desc">Arq background job queue + Redis cell context store (cell_ctx and cell_analysis keys with TTL). Serverless, pay-per-request above free tier.</div></td>
+          <td><div class="svc-desc">Free tier (10k cmds/day)</div></td>
+        </tr>
+        <tr>
+          <td><div class="svc-name">Cloudflare R2 <span class="badge b-free">~Free</span></div></td>
+          <td><div class="svc-desc">Raw asset file storage — PDFs, audio, images, spreadsheets. S3-compatible API with presigned URLs. Zero egress fees unlike AWS S3.</div></td>
+          <td><div class="svc-desc">Free: 10GB stored, 1M writes/mo</div></td>
+        </tr>
+        <tr>
+          <td><div class="svc-name">Resend <span class="badge b-free">Free</span></div></td>
+          <td><div class="svc-desc">Transactional emails — analysis-ready and final report notifications. Invite emails handled by WorkOS, not Resend.</div></td>
+          <td><div class="svc-desc">Free: 3,000 emails/mo</div></td>
+        </tr>
+        <tr>
+          <td><div class="svc-name">Serper <span class="badge b-free">Free</span></div></td>
+          <td><div class="svc-desc">Competitive intelligence scan — 5 Google search queries per project via google.serper.dev/search. Uses httpx, no new package needed.</div></td>
+          <td><div class="svc-desc">Free tier available</div></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="cost-note">
+      <strong>Note on AI API costs during build:</strong> The two variable cost services are <strong>Claude API</strong> (used for NLP — conversation answers, group consensus, NER extraction, per-asset analysis, competitive assessment) and <strong>OpenAI</strong> (used for text-embedding-3-large to generate chunk embeddings, and Whisper for voice transcription). During the 10-day build period with test data, total API spend is estimated at <strong>$20–60</strong> depending on how many test files are processed and how many conversations are run. In production, cost scales with the number of projects and investor conversations — typically $2–8 per project for a standard due diligence run.
+    </div>
+  </div>
+
+  <!-- TECH STACK -->
+  <div class="section-label">Tech Stack</div>
+  <table class="stack-table">
+    <thead>
+      <tr>
+        <th style="width:130px;">Layer</th>
+        <th style="width:260px;">Choice</th>
+        <th>Why</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="stack-layer">Frontend</span></td>
+        <td><span class="stack-choice">Next.js 14 App Router + Tailwind + shadcn/ui</span></td>
+        <td><span class="stack-why">Server components for data fetching, nested layouts for auth guards, App Router for parallel route loading</span></td>
+      </tr>
+      <tr>
+        <td><span class="stack-layer">Auth</span></td>
+        <td><span class="stack-choice">WorkOS AuthKit</span></td>
+        <td><span class="stack-why">Hosted auth UI, MFA, invite emails — eliminates auth code entirely (3 files). Free up to 1M MAU.</span></td>
+      </tr>
+      <tr>
+        <td><span class="stack-layer">Backend API</span></td>
+        <td><span class="stack-choice">FastAPI + Pydantic + asyncpg</span></td>
+        <td><span class="stack-why">Async-first, native SSE support, Pydantic validates every LLM JSON output, asyncpg for non-blocking DB queries</span></td>
+      </tr>
+      <tr>
+        <td><span class="stack-layer">Database</span></td>
+        <td><span class="stack-choice">Supabase Postgres + pgvector (HNSW)</span></td>
+        <td><span class="stack-why">pgvector replaces Neo4j — same GraphRAG algorithm, zero extra service, project isolation enforced by FK at the schema level</span></td>
+      </tr>
+      <tr>
+        <td><span class="stack-layer">Job Queue</span></td>
+        <td><span class="stack-choice">Arq + Upstash Redis</span></td>
+        <td><span class="stack-why">Async-native Python worker queue, idempotent job keys, progress reporting via Redis TTL keys, 180s timeout for LLM calls</span></td>
+      </tr>
+      <tr>
+        <td><span class="stack-layer">LLM</span></td>
+        <td><span class="stack-choice">Claude API — Opus 4.6 / Sonnet 4.6</span></td>
+        <td><span class="stack-why">Opus for deep analysis (consensus, final report, chat). Sonnet for extraction tasks (NER, competitive assessment, cell synthesis, vision).</span></td>
+      </tr>
+      <tr>
+        <td><span class="stack-layer">Embeddings</span></td>
+        <td><span class="stack-choice">OpenAI text-embedding-3-large</span></td>
+        <td><span class="stack-why">1536-dim vectors, best semantic similarity for financial/startup content. Works natively with pgvector HNSW cosine index.</span></td>
+      </tr>
+      <tr>
+        <td><span class="stack-layer">Flow Canvas</span></td>
+        <td><span class="stack-choice">React Flow</span></td>
+        <td><span class="stack-why">Custom cell + satellite nodes, admin drag-connect, investor read-only pan/zoom — all in one library with a stable API</span></td>
+      </tr>
+      <tr>
+        <td><span class="stack-layer">Storage</span></td>
+        <td><span class="stack-choice">Cloudflare R2</span></td>
+        <td><span class="stack-why">Zero egress cost (unlike S3), S3-compatible presigned URL API, handles all raw asset files. Free for MVP-scale volume.</span></td>
+      </tr>
+      <tr>
+        <td><span class="stack-layer">Email</span></td>
+        <td><span class="stack-choice">Resend</span></td>
+        <td><span class="stack-why">Simple REST API, React Email template support. Only used for analysis-ready notifications — invites are handled by WorkOS.</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="footer">
+    <span>Syndicate Platform · 8-Day Build Plan</span>
+    <span>pgvector replaces Neo4j · WorkOS replaces Supabase Auth · Backend + Frontend built in parallel</span>
+  </div>
+
+</div>
+</body>
+</html>
