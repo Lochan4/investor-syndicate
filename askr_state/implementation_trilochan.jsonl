@@ -746,3 +746,140 @@
 {"ts": "2026-10-05T14:02:27Z", "session_id": "071ab67e-be26-430a-bb49-6de2c550c17d", "type": "command", "detail": "git log --oneline -5"}
 {"ts": "2026-10-05T14:02:35Z", "session_id": "071ab67e-be26-430a-bb49-6de2c550c17d", "type": "command", "detail": "git show 800eded --stat 2>/dev/null | head -40"}
 {"ts": "2026-10-05T14:13:00Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "grep -r \"platform_role\\|/me\\|get_current_user\\|CurrentUser\" /Users/saitrilochan/"}
+{"ts": "2026-10-05T14:16:32Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "cat /Users/saitrilochan/Documents/investors/backend/app/main.py"}
+{"ts": "2026-10-05T14:17:32Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "ls /Users/saitrilochan/Documents/investors/backend/migrations/ && head -5 /Users"}
+{"ts": "2026-10-05T14:17:33Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "cat /Users/saitrilochan/Documents/investors/frontend/app/\\(app\\)/admin/settings/"}
+{"ts": "2026-10-05T14:17:53Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "head -50 /Users/saitrilochan/Documents/investors/backend/app/services/llm.py"}
+{"ts": "2026-10-05T14:17:55Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "grep -n \"async def\\|def \" /Users/saitrilochan/Documents/investors/backend/app/se"}
+{"ts": "2026-10-05T14:18:01Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/migrations/002_admin_role_characteristics.sql"}
+{"ts": "2026-10-05T14:18:04Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/app/dependencies.py"}
+{"ts": "2026-10-05T14:18:14Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/app/routers/admin.py"}
+{"ts": "2026-10-05T14:18:38Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/app/routers/flow.py"}
+{"ts": "2026-10-05T14:18:44Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/lib/api.ts"}
+{"ts": "2026-10-05T14:18:49Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/lib/api.ts"}
+{"ts": "2026-10-05T14:18:55Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/(app)/layout.tsx"}
+{"ts": "2026-10-05T14:19:01Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/Sidebar.tsx"}
+{"ts": "2026-10-05T14:19:03Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "ls /Users/saitrilochan/Documents/investors/frontend/app/\\(app\\)/settings/ 2>/dev"}
+{"ts": "2026-10-05T14:19:05Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "mkdir -p /Users/saitrilochan/Documents/investors/frontend/app/\\(app\\)/settings"}
+{"ts": "2026-10-05T14:19:09Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/(app)/settings/page.tsx"}
+{"ts": "2026-10-05T14:19:46Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/SettingsClient.tsx"}
+{"ts": "2026-10-05T14:20:12Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/flow/TemplateEditor.tsx"}
+{"ts": "2026-10-05T14:20:17Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "cd /Users/saitrilochan/Documents/investors/frontend && npx tsc --noEmit 2>&1 | h"}
+{"ts": "2026-10-05T14:40:35Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "grep -n \"ANTHROPIC_API_KEY\\|get_async_client\\|AsyncAnthropic\" /Users/saitrilocha"}
+{"ts": "2026-10-05T14:40:45Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "pkill -f \"uvicorn app.main:app\" 2>/dev/null; sleep 1; echo \"old process stopped\""}
+{"ts": "2026-10-05T14:40:53Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "set -a && source .env && set +a && .venv/bin/uvicorn app.main:app --host 0.0.0.0"}
+{"ts": "2026-10-05T14:40:58Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": ".venv/bin/python3 -c \"\nfrom app.services.llm import _get_oauth_token, get_async_"}
+{"ts": "2026-10-05T14:46:23Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "cat /Users/saitrilochan/Documents/investors/backend/app/services/storage.py && g"}
+{"ts": "2026-10-05T14:46:25Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "grep -n \"upload.url\\|presign\\|get_upload\" /Users/saitrilochan/Documents/investor"}
+{"ts": "2026-10-05T14:46:27Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "cat /Users/saitrilochan/Documents/investors/backend/app/services/extractors/pdf."}
+{"ts": "2026-10-05T14:46:28Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "grep -n \"get_object\\|download\\|read_object\" /Users/saitrilochan/Documents/invest"}
+{"ts": "2026-10-05T14:46:30Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "grep -n \"boto3\\|_client\\|get_object\\|download\" /Users/saitrilochan/Documents/inv"}
+{"ts": "2026-10-05T14:46:44Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/migrations/002_admin_role_characteristics.sql"}
+{"ts": "2026-10-05T14:46:49Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/app/services/storage.py"}
+{"ts": "2026-10-05T14:47:19Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/app/routers/flow.py"}
+{"ts": "2026-10-05T14:47:24Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/lib/api.ts"}
+{"ts": "2026-10-05T14:47:28Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/lib/api.ts"}
+{"ts": "2026-10-05T14:47:31Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/lib/api.ts"}
+{"ts": "2026-10-05T14:48:10Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/flow/TemplateEditor.tsx"}
+{"ts": "2026-10-05T14:48:14Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "npx tsc --noEmit 2>&1 | head -30"}
+{"ts": "2026-10-05T14:48:29Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "curl -s http://localhost:8000/health 2>&1"}
+{"ts": "2026-10-05T14:48:34Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "find /Users/saitrilochan/Documents/investors/frontend/lib -type f | grep -v node"}
+{"ts": "2026-10-05T14:48:37Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "head -30 /Users/saitrilochan/Documents/investors/frontend/lib/api.ts"}
+{"ts": "2026-10-05T14:48:44Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "curl -s http://localhost:8000/api/v1/projects -H \"Authorization: Bearer test\" 2>"}
+{"ts": "2026-10-05T14:49:09Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/app/dependencies.py"}
+{"ts": "2026-10-05T14:50:22Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "cat /Users/saitrilochan/Documents/investors/backend/.env 2>/dev/null || echo \"NO"}
+{"ts": "2026-10-05T14:50:26Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "ls /Users/saitrilochan/Documents/investors/backend/ && cat /Users/saitrilochan/D"}
+{"ts": "2026-10-05T14:50:28Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "ls /Users/saitrilochan/Documents/investors/backend/migrations/ | sort"}
+{"ts": "2026-10-05T14:50:31Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "# Check if postgres is running\npg_isready -h localhost -p 5432 2>&1 && echo \"PG "}
+{"ts": "2026-10-05T14:50:35Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "# Check if syndicate DB exists\npsql -h localhost -U saitrilochan -lqt 2>/dev/nul"}
+{"ts": "2026-10-05T14:50:37Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "# Create DB and run migrations\ncreatedb -h localhost -U saitrilochan syndicate 2"}
+{"ts": "2026-10-05T14:50:40Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "# Check what tables exist\npsql -h localhost -U saitrilochan syndicate -c \"\\dt\" 2"}
+{"ts": "2026-10-05T14:50:43Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "# Check if pgvector extension exists\npsql -h localhost -U saitrilochan syndicate"}
+{"ts": "2026-10-05T14:50:47Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "# Check if venv or pip packages exist\nls /Users/saitrilochan/Documents/investors"}
+{"ts": "2026-10-05T14:50:52Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "# Check ANTHROPIC_API_KEY - it's FILL_ME which means the backend will crash\n# Tr"}
+{"ts": "2026-10-05T14:51:15Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "cat /Users/saitrilochan/Documents/investors/frontend/components/Sidebar.tsx"}
+{"ts": "2026-10-05T14:51:33Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/Sidebar.tsx"}
+{"ts": "2026-10-05T14:57:59Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T14:58:08Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T14:58:13Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T14:58:17Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T14:58:20Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T14:58:23Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T14:58:25Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T14:58:37Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T14:58:41Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "npx tsc --noEmit 2>&1 | head -20"}
+{"ts": "2026-10-05T14:59:05Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "curl -s -X POST http://localhost:8000/api/v1/projects \\\n  -H \"Content-Type: appl"}
+{"ts": "2026-10-05T14:59:12Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "export PATH=\"/opt/homebrew/opt/postgresql@17/bin:$PATH\" && psql -d syndicate -c "}
+{"ts": "2026-10-05T14:59:16Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "export PATH=\"/opt/homebrew/opt/postgresql@17/bin:$PATH\" && psql -d syndicate -c "}
+{"ts": "2026-10-05T14:59:56Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/migrations/001_initial.sql"}
+{"ts": "2026-10-05T14:59:59Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/migrations/001_initial.sql"}
+{"ts": "2026-10-05T15:00:03Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/migrations/001_initial.sql"}
+{"ts": "2026-10-05T15:00:07Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/migrations/001_initial.sql"}
+{"ts": "2026-10-05T15:00:11Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/migrations/001_initial.sql"}
+{"ts": "2026-10-05T15:00:14Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/migrations/001_initial.sql"}
+{"ts": "2026-10-05T15:00:18Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/migrations/001_initial.sql"}
+{"ts": "2026-10-05T15:00:20Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "curl -s http://localhost:8000/health 2>&1"}
+{"ts": "2026-10-05T15:00:21Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/migrations/001_initial.sql"}
+{"ts": "2026-10-05T15:00:23Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "curl -s http://localhost:8000/api/v1/projects -H \"Authorization: Bearer test\" 2>"}
+{"ts": "2026-10-05T15:00:24Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/migrations/001_initial.sql"}
+{"ts": "2026-10-05T15:00:27Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "cat /Users/saitrilochan/Documents/investors/backend/app/dependencies.py"}
+{"ts": "2026-10-05T15:00:28Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/migrations/001_initial.sql"}
+{"ts": "2026-10-05T15:00:31Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "export PATH=\"/opt/homebrew/opt/postgresql@17/bin:$PATH\" && psql -d syndicate -c "}
+{"ts": "2026-10-05T15:00:44Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "cat /Users/saitrilochan/Documents/investors/backend/app/services/users.py 2>/dev"}
+{"ts": "2026-10-05T15:00:47Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "psql -h localhost -U saitrilochan syndicate -c \"SELECT id, email, platform_role "}
+{"ts": "2026-10-05T15:00:50Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "psql -h localhost -U saitrilochan syndicate -c \"SELECT id, startup_name, status "}
+{"ts": "2026-10-05T15:00:58Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "curl -s -X POST http://localhost:8000/api/v1/projects \\\n  -H \"Content-Type: appl"}
+{"ts": "2026-10-05T15:01:07Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "export PATH=\"/opt/homebrew/opt/postgresql@17/bin:$PATH\" && psql -d syndicate -c "}
+{"ts": "2026-10-05T15:01:10Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "export PATH=\"/opt/homebrew/opt/postgresql@17/bin:$PATH\" && psql -d syndicate -c "}
+{"ts": "2026-10-05T19:03:28Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "cat /Users/saitrilochan/Documents/investors/backend/app/workers/competitive_scan"}
+{"ts": "2026-10-05T19:03:33Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "grep -rn \"competitive_scan\\|run_competitive_scan\\|competitive\" /Users/saitriloch"}
+{"ts": "2026-10-05T19:03:41Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "cat /Users/saitrilochan/Documents/investors/backend/app/routers/projects.py"}
+{"ts": "2026-10-05T19:03:45Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/app/routers/projects.py"}
+{"ts": "2026-10-05T19:03:52Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/app/routers/projects.py"}
+{"ts": "2026-10-05T19:04:03Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/lib/api.ts"}
+{"ts": "2026-10-05T19:04:09Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "cat /Users/saitrilochan/Documents/investors/frontend/app/\\(app\\)/projects/\\[id\\]"}
+{"ts": "2026-10-05T19:04:17Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/CompetitiveScanButton.tsx"}
+{"ts": "2026-10-05T19:04:28Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/(app)/projects/[id]/page.tsx"}
+{"ts": "2026-10-05T19:04:33Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "cd /Users/saitrilochan/Documents/investors/frontend && npx tsc --noEmit 2>&1"}
+{"ts": "2026-10-05T19:07:05Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/PillNav.tsx"}
+{"ts": "2026-10-05T19:07:13Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/(app)/layout.tsx"}
+{"ts": "2026-10-05T19:07:17Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "npx tsc --noEmit 2>&1 | head -20"}
+{"ts": "2026-10-05T19:12:54Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "cat /Users/saitrilochan/Documents/investors/frontend/app/layout.tsx && ls /Users"}
+{"ts": "2026-10-05T19:12:55Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "cat /Users/saitrilochan/Documents/investors/oliver-3-cufonfonts-webfont/style.cs"}
+{"ts": "2026-10-05T19:12:58Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "ls /Users/saitrilochan/Documents/investors/frontend/public/ 2>/dev/null || echo "}
+{"ts": "2026-10-05T19:13:02Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "mkdir -p /Users/saitrilochan/Documents/investors/frontend/public/fonts && cp /Us"}
+{"ts": "2026-10-05T19:13:08Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-05T19:13:24Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/BackButton.tsx"}
+{"ts": "2026-10-05T19:13:29Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/(app)/layout.tsx"}
+{"ts": "2026-10-05T19:13:34Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/(app)/layout.tsx"}
+{"ts": "2026-10-05T19:13:40Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T19:13:46Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T19:13:49Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "export PATH=\"/opt/homebrew/opt/postgresql@17/bin:$PATH\" && psql -d syndicate -c "}
+{"ts": "2026-10-05T19:13:53Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T19:13:57Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "npx tsc --noEmit 2>&1 | head -20"}
+{"ts": "2026-10-05T19:16:46Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "curl -s http://localhost:8000/health"}
+{"ts": "2026-10-05T19:17:12Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "pkill -f \"uvicorn app.main:app\" 2>/dev/null && echo \"killed\""}
+{"ts": "2026-10-05T19:18:44Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "brew services list 2>/dev/null | grep -E \"postgresql|redis\""}
+{"ts": "2026-10-05T19:18:47Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "export PATH=\"/opt/homebrew/opt/postgresql@17/bin:$PATH\" && psql -d syndicate -c "}
+{"ts": "2026-10-05T19:19:38Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "cat /Users/saitrilochan/Documents/investors/backend/.env"}
+{"ts": "2026-10-05T19:19:48Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/.env"}
+{"ts": "2026-10-05T19:19:52Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/.env"}
+{"ts": "2026-10-05T19:44:33Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "ls /Users/saitrilochan/Documents/investors/frontend/public/fonts/ 2>/dev/null"}
+{"ts": "2026-10-05T19:44:36Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "grep -rn \"Oliver\\|oliver\" /Users/saitrilochan/Documents/investors/frontend/app/ "}
+{"ts": "2026-10-05T19:44:48Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/Sidebar.tsx"}
+{"ts": "2026-10-05T19:45:13Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "curl -s -X POST http://localhost:8000/api/v1/projects/477ec34f-cb47-4be3-87da-40"}
+{"ts": "2026-10-05T19:58:12Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "cat /Users/saitrilochan/Documents/investors/backend/.env | grep R2"}
+{"ts": "2026-10-05T19:58:17Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/.env"}
+{"ts": "2026-10-05T19:58:20Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "grep \"R2_BUCKET\" /Users/saitrilochan/Documents/investors/backend/app/services/st"}
+{"ts": "2026-10-05T20:02:26Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "pkill -f \"uvicorn app.main:app\" 2>/dev/null; sleep 1; echo \"stopped\""}
+{"ts": "2026-10-05T20:02:39Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "pkill -f \"uvicorn app.main:app\" 2>/dev/null; sleep 1\nset -a && source /Users/sai"}
+{"ts": "2026-10-05T20:04:45Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "curl -s http://localhost:8000/health"}
+{"ts": "2026-10-05T20:05:31Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/middleware.ts"}
+{"ts": "2026-10-05T20:05:33Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/api/auth/signout/route.ts"}
+{"ts": "2026-10-05T20:06:01Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "find /Users/saitrilochan/Documents/investors/frontend/app -type f | grep -v node"}
+{"ts": "2026-10-05T20:07:40Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "export PATH=\"/opt/homebrew/opt/postgresql@17/bin:$PATH\" && psql -d syndicate -c "}
+{"ts": "2026-10-05T20:07:48Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "export PATH=\"/opt/homebrew/opt/postgresql@17/bin:$PATH\" && psql -d syndicate -c "}
+{"ts": "2026-10-05T20:07:51Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "export PATH=\"/opt/homebrew/opt/postgresql@17/bin:$PATH\" && psql -d syndicate -c "}
+{"ts": "2026-10-05T20:08:34Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "grep -n \"Syndicate\\|Oliver\\|fontFamily\" /Users/saitrilochan/Documents/investors/"}
+{"ts": "2026-10-05T20:08:37Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "sed -n '318,330p' /Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T20:08:42Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "sed -n '388,402p' /Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
