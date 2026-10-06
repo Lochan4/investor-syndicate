@@ -883,3 +883,100 @@
 {"ts": "2026-10-05T20:08:34Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "grep -n \"Syndicate\\|Oliver\\|fontFamily\" /Users/saitrilochan/Documents/investors/"}
 {"ts": "2026-10-05T20:08:37Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "sed -n '318,330p' /Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
 {"ts": "2026-10-05T20:08:42Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "sed -n '388,402p' /Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T20:08:54Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-05T20:10:42Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "\\\necho \"=== Font files ===\" && \\\nls -lh public/fonts/ && \\\necho \"=== @font-face "}
+{"ts": "2026-10-05T20:10:48Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "\\\npython3 -c \"\nimport struct, sys\n\nwith open('public/fonts/Oliver-6R9zx.woff', '"}
+{"ts": "2026-10-05T20:10:54Z", "session_id": "5b45f69f-e4e1-4764-ae5e-94d4cf200d26", "type": "command", "detail": "\\\npython3 -c \"\nimport struct, zlib\n\nwith open('public/fonts/Oliver-6R9zx.woff', "}
+{"ts": "2026-10-05T20:11:00Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "find /Users/saitrilochan/Documents/investors/frontend -name \"layout.tsx\" 2>/dev/"}
+{"ts": "2026-10-05T20:11:01Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "find /Users/saitrilochan/Documents/investors/frontend -name \"*sidebar*\" -o -name"}
+{"ts": "2026-10-05T20:11:10Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "find /Users/saitrilochan/Documents/investors/frontend/app -path \"*/settings*\" -n"}
+{"ts": "2026-10-05T20:11:15Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "find /Users/saitrilochan/Documents/investors/frontend/components -name \"Settings"}
+{"ts": "2026-10-05T20:11:58Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T20:12:07Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T20:12:28Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T20:14:09Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T20:14:14Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "npx tsc --noEmit 2>&1 | head -20"}
+{"ts": "2026-10-05T20:19:56Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/flow/TemplateEditor.tsx"}
+{"ts": "2026-10-05T20:20:03Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/flow/TemplateEditor.tsx"}
+{"ts": "2026-10-05T20:20:11Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/flow/TemplateEditor.tsx"}
+{"ts": "2026-10-05T20:20:56Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "find /Users/saitrilochan/Documents/investors/backend -type f \\( -name \"*.py\" \\) "}
+{"ts": "2026-10-05T20:20:58Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "find /Users/saitrilochan/Documents/investors/backend -type f -name \"policy_docs."}
+{"ts": "2026-10-05T20:20:59Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "grep -r \"boto3\\|botocore\\|presigned\" /Users/saitrilochan/Documents/investors/bac"}
+{"ts": "2026-10-05T20:38:16Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T20:38:46Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "psql -l 2>/dev/null | grep -i \"invest\\|syndic\" && echo \"---\" && cat /Users/saitr"}
+{"ts": "2026-10-05T20:38:48Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "psql -l 2>/dev/null | head -20"}
+{"ts": "2026-10-05T20:38:50Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "cat /Users/saitrilochan/Documents/investors/backend/.env 2>/dev/null || find /Us"}
+{"ts": "2026-10-05T20:38:53Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "psql postgresql://saitrilochan@localhost:5432/syndicate -c \"SELECT id, email, pl"}
+{"ts": "2026-10-05T20:43:07Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "grep -n \"upload_url\\|upload-url\\|Content-Type\\|content-type\\|PUT\\|fetch(\" /Users"}
+{"ts": "2026-10-05T20:43:10Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "grep -n \"upload_url\\|PUT\\|Content-Type\\|uploadFile\\|upload-url\" /Users/saitriloc"}
+{"ts": "2026-10-05T20:43:13Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "grep -n \"upload\\|PUT\\|fetch(\" /Users/saitrilochan/Documents/investors/frontend/c"}
+{"ts": "2026-10-05T20:43:27Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "grep -n \"UploadUrl\\|content_type\" /Users/saitrilochan/Documents/investors/backen"}
+{"ts": "2026-10-05T20:43:29Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "sed -n '69,80p' /Users/saitrilochan/Documents/investors/backend/app/schemas.py"}
+{"ts": "2026-10-05T20:43:34Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/app/services/storage.py"}
+{"ts": "2026-10-05T20:43:37Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/app/schemas.py"}
+{"ts": "2026-10-05T20:43:43Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/app/routers/assets.py"}
+{"ts": "2026-10-05T20:43:50Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "grep -n \"canvas-policy\" /Users/saitrilochan/Documents/investors/backend/app/rout"}
+{"ts": "2026-10-05T20:43:58Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/app/routers/flow.py"}
+{"ts": "2026-10-05T20:44:10Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/lib/api.ts"}
+{"ts": "2026-10-05T20:44:14Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/lib/api.ts"}
+{"ts": "2026-10-05T20:44:21Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/flow/TemplateEditor.tsx"}
+{"ts": "2026-10-05T20:44:27Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/AssetManager.tsx"}
+{"ts": "2026-10-05T20:46:50Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "psql postgresql://saitrilochan@localhost:5432/syndicate -c \"UPDATE users SET pla"}
+{"ts": "2026-10-05T20:47:59Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "ls /Users/saitrilochan/Documents/investors/backend/"}
+{"ts": "2026-10-05T20:51:14Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T20:51:48Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T20:52:27Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T20:53:13Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T20:53:30Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T20:57:42Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "python3 -c \"\nimport boto3\nfrom botocore.config import Config\nimport os\n\n# Load c"}
+{"ts": "2026-10-05T20:57:47Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-05T20:57:52Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "npx tsc --noEmit 2>&1 | head -20"}
+{"ts": "2026-10-05T21:25:28Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "grep \"R2_\" /Users/saitrilochan/Documents/investors/backend/.env"}
+{"ts": "2026-10-05T21:25:31Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "cat /Users/saitrilochan/Documents/investors/backend/.env | grep R2"}
+{"ts": "2026-10-05T21:27:11Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "cat /Users/saitrilochan/Documents/investors/backend/.env"}
+{"ts": "2026-10-05T21:27:20Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "python3 -c \"\nimport boto3\nfrom botocore.config import Config\n\nclient = boto3.cli"}
+{"ts": "2026-10-05T21:27:31Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "find /Users/saitrilochan/Documents/investors/backend -name \"*.py\" | head -40"}
+{"ts": "2026-10-05T21:28:39Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "cat /Users/saitrilochan/Documents/investors/backend/app/services/traversal.py 2>"}
+{"ts": "2026-10-05T21:29:02Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "python3 -c \"\nimport sys, os\n# Load env\nfor line in open('.env'):\n    line = line"}
+{"ts": "2026-10-05T21:29:21Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "python3 -c \"\nimport asyncio, sys, os, json\nfor line in open('.env'):\n    line = "}
+{"ts": "2026-10-05T21:29:31Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/.env"}
+{"ts": "2026-10-05T21:29:40Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/app/services/llm.py"}
+{"ts": "2026-10-05T21:29:44Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/app/services/llm.py"}
+{"ts": "2026-10-05T21:30:19Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "python3 -c \"\nimport asyncio, sys, os, json\nfor line in open('.env'):\n    line = "}
+{"ts": "2026-10-05T21:30:28Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/app/services/llm.py"}
+{"ts": "2026-10-05T21:30:55Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "python3 -c \"\nimport asyncio, sys, os, json\nfor line in open('.env'):\n    line = "}
+{"ts": "2026-10-05T21:34:48Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "git log --oneline -5"}
+{"ts": "2026-10-05T21:36:05Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/app/services/chunker.py"}
+{"ts": "2026-10-05T21:36:11Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/app/services/llm.py"}
+{"ts": "2026-10-05T21:36:16Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "git add app/services/chunker.py app/services/llm.py && git commit -m \"$(cat <<'E"}
+{"ts": "2026-10-05T21:36:43Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/app/workers/process_asset.py"}
+{"ts": "2026-10-05T21:36:50Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "cd /Users/saitrilochan/Documents/investors && git add backend/app/workers/proces"}
+{"ts": "2026-10-05T21:36:59Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/app/workers/cell_views.py"}
+{"ts": "2026-10-05T21:37:02Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/app/workers/competitive_scan.py"}
+{"ts": "2026-10-05T21:37:07Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "git add backend/app/workers/cell_views.py backend/app/workers/competitive_scan.p"}
+{"ts": "2026-10-05T21:37:12Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "git push origin main 2>&1"}
+{"ts": "2026-10-06T09:25:23Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "lsof -i :8000 -sTCP:LISTEN 2>/dev/null | head -5"}
+{"ts": "2026-10-06T09:25:34Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "lsof -i :3000 -sTCP:LISTEN 2>/dev/null | head -5"}
+{"ts": "2026-10-06T09:28:22Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "python3 -c \"\nimport os, sys\nfor line in open('/Users/saitrilochan/Documents/inve"}
+{"ts": "2026-10-06T09:29:08Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "python3 -c \"\nimport os, sys\nfor line in open('/Users/saitrilochan/Documents/inve"}
+{"ts": "2026-10-06T09:29:36Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "python3 -c \"\nimport os, sys, urllib.request, urllib.error\nfor line in open('/Use"}
+{"ts": "2026-10-06T09:30:18Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "# Check what the live backend actually has loaded\ncurl -s http://localhost:8000/"}
+{"ts": "2026-10-06T09:30:23Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "# Test the live upload-url endpoint directly to see what it actually returns\n# F"}
+{"ts": "2026-10-06T09:30:33Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "grep \"ContentType\\|content_type\" /Users/saitrilochan/Documents/investors/backend"}
+{"ts": "2026-10-06T09:30:37Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "# Check if the frontend has the updated AssetManager and api.ts\ngrep \"content_ty"}
+{"ts": "2026-10-06T09:30:53Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "python3 -c \"\nimport os, sys, urllib.request, urllib.error\nfor line in open('/Use"}
+{"ts": "2026-10-06T09:31:02Z", "session_id": "1dec3984-2113-47f6-bd5a-63cfd1632a04", "type": "command", "detail": "python3 -c \"\nimport boto3, urllib.request, urllib.error\nfrom botocore.config imp"}
+{"ts": "2026-10-06T11:20:42Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "psql postgresql://saitrilochan@localhost:5432/syndicate -c \"\nSELECT pm.project_i"}
+{"ts": "2026-10-06T11:20:45Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "psql postgresql://saitrilochan@localhost:5432/syndicate -c \"\nSELECT id, startup_"}
+{"ts": "2026-10-06T11:21:06Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "cd /Users/saitrilochan/Documents/investors/backend && python3 -c \"\nimport asynci"}
+{"ts": "2026-10-06T11:21:47Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "python3 -c \"\nfrom jose import jwt\nimport os\n# Decode without verification to ins"}
+{"ts": "2026-10-06T11:22:41Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "pip show workos 2>/dev/null | grep -E \"Name|Version\" && python3 -c \"import worko"}
+{"ts": "2026-10-06T11:22:55Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "source .venv/bin/activate 2>/dev/null || true && pip show workos 2>/dev/null && "}
+{"ts": "2026-10-06T11:23:00Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "python3 -c \"\n# Check what JWKS URL WorkOS AuthKit tokens actually need\n# Try to "}
+{"ts": "2026-10-06T11:23:06Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "find /Users/saitrilochan/Documents/investors/backend/.venv -name \"*.py\" -path \"*"}
+{"ts": "2026-10-06T11:23:09Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "cat /Users/saitrilochan/Documents/investors/backend/.venv/lib/python3.11/site-pa"}
+{"ts": "2026-10-06T11:23:12Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "grep -n \"jwks_uri\\|JWKS\\|jwks_url\\|PyJWKClient\\|jwks\" /Users/saitrilochan/Docume"}
+{"ts": "2026-10-06T11:23:47Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "grep -E \"jose|jwt|pyjwt\" /Users/saitrilochan/Documents/investors/backend/require"}
+{"ts": "2026-10-06T11:24:13Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "cat /Users/saitrilochan/Documents/investors/frontend/package.json | grep workos "}
+{"ts": "2026-10-06T11:24:19Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "# Check what the access token looks like (header only, no signature) by decoding"}
+{"ts": "2026-10-06T11:24:26Z", "session_id": "7b179096-4c50-49a2-8add-53150db9d254", "type": "command", "detail": "node -e \"\nconst WorkOS = require('/Users/saitrilochan/Documents/investors/fronte"}
