@@ -12,7 +12,18 @@ export function AssistantPanel({ projectId, cellId, token }: {
   useEffect(() => {
     const stop = streamActivityFeed(projectId, cellId, token, (e) => {
       setActive(true)
-      setEvents(prev => [...prev, e])
+      setEvents(prev => {
+        // screenshot events replace the previous screenshot — no accumulating large base64 blobs
+        if (e.type === 'screenshot') {
+          const idx = prev.findLastIndex(ev => ev.type === 'screenshot')
+          if (idx >= 0) {
+            const next = [...prev]
+            next[idx] = e
+            return next
+          }
+        }
+        return [...prev, e]
+      })
     })
     return stop
   }, [projectId, cellId, token])

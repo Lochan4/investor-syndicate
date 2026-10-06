@@ -69,7 +69,7 @@ function ScreenshotCard({ data }: { data: any }) {
       </div>
       <button onClick={() => setExpanded(e => !e)} className="w-full text-left">
         <img
-          src={`data:image/png;base64,${data.image}`}
+          src={`data:image/jpeg;base64,${data.image}`}
           alt="Page screenshot"
           className={`w-full rounded-lg border border-stroke object-cover transition-all duration-200 ${expanded ? '' : 'max-h-36'}`}
         />
