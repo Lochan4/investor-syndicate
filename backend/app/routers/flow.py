@@ -107,13 +107,15 @@ async def open_flow(
         str(version["id"]),
     )
 
-    for tc in template_cells:
+    for i, tc in enumerate(template_cells):
+        pos_x = float(tc["position_x"]) if tc["position_x"] else (i % 3) * 320.0 + 60.0
+        pos_y = float(tc["position_y"]) if tc["position_y"] else (i // 3) * 220.0 + 60.0
         await db.execute(
             """INSERT INTO flow_cells(project_id, template_cell_id, topic, prompt, position_x, position_y, characteristics, policy_doc_ids)
                VALUES($1,$2,$3,$4,$5,$6,$7,$8)
                ON CONFLICT DO NOTHING""",
             project_id, str(tc["id"]), tc["topic"], tc["prompt"],
-            tc["position_x"], tc["position_y"],
+            pos_x, pos_y,
             json.dumps(tc["characteristics"] or []),
             list(tc["policy_doc_ids"] or []),
         )
@@ -222,6 +224,26 @@ async def publish_template(
                     cell.position_x, cell.position_y, cell.cell_order, chars, doc_ids,
                 )
     return {"version_id": version_id, "version_num": new_version["version_num"]}
+
+
+@router.post("/admin/flow-template/versions/{version_id}/promote")
+async def promote_version(
+    version_id: str,
+    user: CurrentUser = Depends(require_canvas_editor),
+    db: asyncpg.Pool = Depends(get_db),
+):
+    """Archive the current live version and set the selected version as live."""
+    async with db.acquire() as conn:
+        async with conn.transaction():
+            await conn.execute(
+                "UPDATE flow_template_versions SET status='archived' WHERE status='live'"
+            )
+            result = await conn.execute(
+                "UPDATE flow_template_versions SET status='live' WHERE id=$1", version_id
+            )
+    if result == "UPDATE 0":
+        raise HTTPException(404, "Version not found")
+    return {"ok": True}
 
 
 # ── Canvas policy docs ────────────────────────────────────

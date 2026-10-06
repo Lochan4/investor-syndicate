@@ -21,6 +21,8 @@ export type ActivityEventType =
   | 'kg_start' | 'kg_done'
   | 'error'
 export interface ActivityEvent { type: ActivityEventType; data: Record<string, any> }
+export type KgEventType = 'kg_snapshot' | 'kg_nodes' | 'kg_edges' | 'kg_done'
+export interface KgEvent { type: KgEventType; data: Record<string, any> }
 
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -123,6 +125,8 @@ export const api = {
     }),
   publishTemplate: (token: string, cells: TemplateCellInput[]) =>
     apiFetch('/admin/flow-template/publish', token, { method: 'POST', body: JSON.stringify({ cells }) }),
+  promoteVersion: (token: string, versionId: string) =>
+    apiFetch(`/admin/flow-template/versions/${versionId}/promote`, token, { method: 'POST' }),
   extractCharacteristics: (token: string, prompt: string, policy_doc_ids: string[] = []) =>
     apiFetch<{ topic: string; characteristics: Characteristic[] }>('/admin/flow-template/extract-characteristics', token, {
       method: 'POST', body: JSON.stringify({ prompt, policy_doc_ids }),
@@ -139,6 +143,10 @@ export const api = {
       method: 'POST', body: JSON.stringify({ filename, storage_key }),
     }),
 
+  // Invites
+  inviteUser: (token: string, email: string, project_id: string, role: string) =>
+    apiFetch('/admin/invite', token, { method: 'POST', body: JSON.stringify({ email, project_id, role }) }),
+
   // User / admin control
   getMe: (token: string) => apiFetch<UserProfile>('/me', token),
   listUsers: (token: string) => apiFetch<PlatformUser[]>('/admin/users', token),
@@ -153,6 +161,31 @@ export function streamActivityFeed(
   onEvent: (e: ActivityEvent) => void,
 ): () => void {
   const url = `${BASE}/projects/${projectId}/conversation/${cellId}/activity`
+  const ctrl = new AbortController()
+  fetch(url, { headers: { Authorization: `Bearer ${token}` }, signal: ctrl.signal })
+    .then(async (res) => {
+      const reader = res.body!.getReader()
+      const dec = new TextDecoder()
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        const lines = dec.decode(value).split('\n')
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue
+          try { onEvent(JSON.parse(line.slice(6))) } catch {}
+        }
+      }
+    })
+    .catch(() => {})
+  return () => ctrl.abort()
+}
+
+export function streamKgFeed(
+  projectId: string,
+  token: string,
+  onEvent: (e: KgEvent) => void,
+): () => void {
+  const url = `${BASE}/projects/${projectId}/assets/graph/stream`
   const ctrl = new AbortController()
   fetch(url, { headers: { Authorization: `Bearer ${token}` }, signal: ctrl.signal })
     .then(async (res) => {

@@ -43,11 +43,22 @@ const emptyCell = (order: number): CellState => ({
   _mode: 'prompt', _extracting: false,
 })
 
-const toCell = (c: TemplateCellInput): CellState => ({
-  ...c,
-  _mode: c.characteristics.length > 0 ? 'characteristics' : 'prompt',
-  _extracting: false,
-})
+const toChars = (v: any): Characteristic[] => {
+  if (Array.isArray(v)) return v
+  if (typeof v === 'string') { try { return JSON.parse(v) } catch {} }
+  return []
+}
+
+const toCell = (c: TemplateCellInput): CellState => {
+  const characteristics = toChars(c.characteristics)
+  return {
+    ...c,
+    characteristics,
+    policy_doc_ids: Array.isArray(c.policy_doc_ids) ? c.policy_doc_ids : [],
+    _mode: characteristics.length > 0 ? 'characteristics' : 'prompt',
+    _extracting: false,
+  }
+}
 
 // ── Policy Doc Modal ────────────────────────────────────────────────────────
 function PolicyDocModal({
@@ -239,6 +250,17 @@ export function TemplateEditor({ token, versions: initialVersions, initialCells 
       setError(e.message || 'Failed to load version')
     } finally {
       setLoadingVersion(null)
+    }
+  }
+
+  const promoteVersion = async (versionId: string) => {
+    setError('')
+    try {
+      await api.promoteVersion(token, versionId)
+      const updated = await api.listTemplateVersions(token)
+      setVersions(updated)
+    } catch (e: any) {
+      setError(e.message || 'Failed to promote version')
     }
   }
 
@@ -436,7 +458,7 @@ export function TemplateEditor({ token, versions: initialVersions, initialCells 
                 <div>
                   <label className="block text-xs font-medium text-[#825E34] mb-2">Characteristics</label>
                   <div className="space-y-3">
-                    {cell.characteristics.map((ch, j) => (
+                    {(cell.characteristics ?? []).map((ch, j) => (
                       <div key={j} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                         <span className="text-sm text-[#825E34]" style={{ minWidth: 200 }}>{ch.name}</span>
                         <StepSlider value={ch.strength} onChange={v => updateStrength(i, j, v)} />
@@ -491,7 +513,13 @@ export function TemplateEditor({ token, versions: initialVersions, initialCells 
                   <span className="text-xs text-[#8D5A2B]">{new Date(v.published_at).toLocaleDateString()}</span>
                 )}
                 {v.published_by_email && (
-                  <span className="text-xs text-[#8D5A2B]/60 ml-auto">by {v.published_by_email}</span>
+                  <span className="text-xs text-[#8D5A2B]/60">by {v.published_by_email}</span>
+                )}
+                {v.status === 'archived' && (
+                  <button onClick={() => promoteVersion(v.id)}
+                    className="ml-auto text-xs px-3 py-1 border border-[#8D5A2B]/40 text-[#825E34] rounded-lg hover:bg-[#8D5A2B]/10 transition-all duration-150">
+                    Set as Live
+                  </button>
                 )}
               </div>
             ))}
