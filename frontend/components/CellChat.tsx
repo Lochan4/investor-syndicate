@@ -14,8 +14,11 @@ export function ConversationPanel({ projectId, cellId, cellTopic, token }: {
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
   const [sessionError, setSessionError] = useState(false)
+  const [recording, setRecording] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const mediaRef = useRef<MediaRecorder | null>(null)
+  const chunksRef = useRef<Blob[]>([])
 
   useEffect(() => {
     api.getOrCreateSession(token, projectId, cellId)
@@ -71,6 +74,32 @@ export function ConversationPanel({ projectId, cellId, cellTopic, token }: {
       setSubmitted(true)
     } catch {}
   }
+
+  const toggleMic = useCallback(async () => {
+    if (recording) {
+      mediaRef.current?.stop()
+      return
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const recorder = new MediaRecorder(stream)
+      chunksRef.current = []
+      recorder.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
+      recorder.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop())
+        setRecording(false)
+        if (!sessionId || !chunksRef.current.length) return
+        const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
+        try {
+          const transcript = await api.sendVoice(token, projectId, sessionId, blob)
+          if (transcript) send(transcript)
+        } catch {}
+      }
+      mediaRef.current = recorder
+      recorder.start()
+      setRecording(true)
+    } catch {}
+  }, [recording, sessionId, token, projectId, send])
 
   if (sessionError) return (
     <div className="flex items-center justify-center h-full text-muted text-sm">
@@ -141,11 +170,19 @@ export function ConversationPanel({ projectId, cellId, cellTopic, token }: {
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), send())}
-              placeholder="Ask about this topic…"
-              disabled={thinking}
+              placeholder={recording ? 'Recording…' : 'Ask about this topic…'}
+              disabled={thinking || recording}
               className="input flex-1"
             />
-            <button onClick={() => send()} disabled={!input.trim() || thinking}
+            <button onClick={toggleMic} disabled={thinking}
+              className={`w-10 flex items-center justify-center rounded-lg transition-all duration-150 ${
+                recording
+                  ? 'bg-red-500 text-white animate-pulse'
+                  : 'btn-ghost border border-stroke'
+              }`}>
+              <Icons.Mic />
+            </button>
+            <button onClick={() => send()} disabled={!input.trim() || thinking || recording}
               className="btn-primary w-10 flex items-center justify-center">
               <Icons.Send />
             </button>

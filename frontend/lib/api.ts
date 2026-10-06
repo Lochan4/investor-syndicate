@@ -77,6 +77,15 @@ export const api = {
     }),
   submitSession: (token: string, projectId: string, sessionId: string) =>
     apiFetch(`/projects/${projectId}/conversation/${sessionId}/submit`, token, { method: 'POST' }),
+  sendVoice: async (token: string, projectId: string, sessionId: string, blob: Blob): Promise<string> => {
+    const form = new FormData()
+    form.append('audio', blob, 'voice.webm')
+    const res = await fetch(`${BASE}/projects/${projectId}/conversation/${sessionId}/voice`, {
+      method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form,
+    })
+    if (!res.ok) throw new Error(`Voice API ${res.status}`)
+    return (await res.json()).transcript as string
+  },
 
   // Flow
   getFlowCells: (token: string, projectId: string) =>
