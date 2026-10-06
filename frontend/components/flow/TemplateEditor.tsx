@@ -350,13 +350,21 @@ export function TemplateEditor({ token, versions: initialVersions, initialCells 
           <p className="text-xs text-[#8D5A2B]/60 mt-1 mb-3">Load an existing canvas to edit its cells and prompt.</p>
           <div className="flex flex-wrap gap-2">
             {versions.map(v => (
-              <button key={v.id} onClick={() => loadVersion(v.id)} disabled={loadingVersion === v.id}
-                className="flex items-center gap-2 px-3 py-1.5 border border-[#8D5A2B]/40 rounded-lg text-xs text-[#825E34] hover:bg-[#8D5A2B]/10 transition-all duration-150 disabled:opacity-50">
-                {loadingVersion === v.id ? 'Loading…' : `v${v.version_num}`}
-                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                  v.status === 'live' ? 'bg-green-100 text-green-700' : 'bg-[#8D5A2B]/15 text-[#8D5A2B]'
-                }`}>{v.status}</span>
-              </button>
+              <div key={v.id} className="flex items-center gap-1 border border-[#8D5A2B]/40 rounded-lg overflow-hidden">
+                <button onClick={() => loadVersion(v.id)} disabled={loadingVersion === v.id}
+                  className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#825E34] hover:bg-[#8D5A2B]/10 transition-all duration-150 disabled:opacity-50">
+                  {loadingVersion === v.id ? 'Loading…' : `v${v.version_num}`}
+                </button>
+                {v.status === 'live' ? (
+                  <span className="px-1.5 py-0.5 mr-1.5 rounded text-[10px] font-medium bg-green-100 text-green-700">live</span>
+                ) : (
+                  <button onClick={() => promoteVersion(v.id)}
+                    className="px-1.5 py-0.5 mr-1.5 rounded text-[10px] font-medium bg-[#8D5A2B]/15 text-[#8D5A2B] hover:bg-[#D47E30] hover:text-white transition-all duration-150"
+                    title="Set as live">
+                    archived
+                  </button>
+                )}
+              </div>
             ))}
           </div>
         </div>
