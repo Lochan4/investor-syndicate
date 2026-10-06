@@ -19,6 +19,9 @@ export function ConversationPanel({ projectId, cellId, cellTopic, token }: {
   const inputRef = useRef<HTMLInputElement>(null)
   const mediaRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
+  const recordingRef = useRef(false)
+  const lastSpaceRef = useRef(0)
+  const toggleMicRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
     api.getOrCreateSession(token, projectId, cellId)
@@ -29,6 +32,31 @@ export function ConversationPanel({ projectId, cellId, cellTopic, token }: {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages.length, thinking])
+
+  // keep refs in sync so spacebar handler never has a stale closure
+  useEffect(() => { recordingRef.current = recording }, [recording])
+  useEffect(() => { toggleMicRef.current = toggleMic }, [toggleMic])
+
+  // spacebar: single press → start mic, double press within 300ms → stop mic
+  // skips if the text input is focused (user is typing)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code !== 'Space') return
+      if (document.activeElement === inputRef.current) return
+      e.preventDefault()
+      const now = Date.now()
+      if (!recordingRef.current) {
+        lastSpaceRef.current = now
+        toggleMicRef.current?.()
+      } else if (now - lastSpaceRef.current < 300) {
+        toggleMicRef.current?.()
+      } else {
+        lastSpaceRef.current = now
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [])
 
   const send = useCallback(async (text?: string) => {
     const msg = (text || input).trim()
