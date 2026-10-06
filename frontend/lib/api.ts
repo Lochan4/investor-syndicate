@@ -11,7 +11,7 @@ export interface Analysis { id: string; stage: string; content: any; created_at:
 export interface Notification { id: string; project_id: string; kind: string; created_at: string }
 export interface TemplateVersion { id: string; version_num: number; status: string; published_at?: string; published_by_email?: string }
 export interface Characteristic { name: string; strength: number }
-export interface TemplateCellInput { topic: string; prompt: string; position_x: number; position_y: number; cell_order: number; characteristics: Characteristic[]; policy_doc_ids: string[] }
+export interface TemplateCellInput { id?: string; topic: string; prompt: string; position_x: number; position_y: number; cell_order: number; characteristics: Characteristic[]; policy_doc_ids: string[] }
 export interface UserProfile { id: string; email: string; platform_role: string; can_edit_canvas: boolean }
 export interface PlatformUser { id: string; email: string; platform_role: string; status: string; created_at: string }
 export interface PolicyDoc { id: string; filename: string; storage_key: string; created_at: string }
@@ -108,6 +108,10 @@ export const api = {
     apiFetch<TemplateVersion[]>('/admin/flow-template/versions', token),
   getTemplateCells: (token: string, versionId: string) =>
     apiFetch<TemplateCellInput[]>(`/admin/flow-template/cells/${versionId}`, token),
+  updateCellPolicyDocs: (token: string, cellId: string, policy_doc_ids: string[]) =>
+    apiFetch(`/admin/flow-template/cells/${cellId}/policy-docs`, token, {
+      method: 'PATCH', body: JSON.stringify({ policy_doc_ids }),
+    }),
   publishTemplate: (token: string, cells: TemplateCellInput[]) =>
     apiFetch('/admin/flow-template/publish', token, { method: 'POST', body: JSON.stringify({ cells }) }),
   extractCharacteristics: (token: string, prompt: string, policy_doc_ids: string[] = []) =>
