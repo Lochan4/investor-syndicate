@@ -254,13 +254,15 @@ export function TemplateEditor({ token, versions: initialVersions, initialCells 
   }
 
   const promoteVersion = async (versionId: string) => {
+    const v = versions.find(v => v.id === versionId)
+    if (v?.status === 'live') return  // already live, just load
     setError('')
     try {
       await api.promoteVersion(token, versionId)
       const updated = await api.listTemplateVersions(token)
       setVersions(updated)
     } catch (e: any) {
-      setError(e.message || 'Failed to promote version')
+      setError(e.message || 'Failed to set version as live')
     }
   }
 
@@ -350,21 +352,19 @@ export function TemplateEditor({ token, versions: initialVersions, initialCells 
           <p className="text-xs text-[#8D5A2B]/60 mt-1 mb-3">Load an existing canvas to edit its cells and prompt.</p>
           <div className="flex flex-wrap gap-2">
             {versions.map(v => (
-              <div key={v.id} className="flex items-center gap-1 border border-[#8D5A2B]/40 rounded-lg overflow-hidden">
-                <button onClick={() => loadVersion(v.id)} disabled={loadingVersion === v.id}
-                  className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#825E34] hover:bg-[#8D5A2B]/10 transition-all duration-150 disabled:opacity-50">
-                  {loadingVersion === v.id ? 'Loading…' : `v${v.version_num}`}
-                </button>
-                {v.status === 'live' ? (
-                  <span className="px-1.5 py-0.5 mr-1.5 rounded text-[10px] font-medium bg-green-100 text-green-700">live</span>
-                ) : (
-                  <button onClick={() => promoteVersion(v.id)}
-                    className="px-1.5 py-0.5 mr-1.5 rounded text-[10px] font-medium bg-[#8D5A2B]/15 text-[#8D5A2B] hover:bg-[#D47E30] hover:text-white transition-all duration-150"
-                    title="Set as live">
-                    archived
-                  </button>
-                )}
-              </div>
+              <button key={v.id}
+                onClick={async () => { await promoteVersion(v.id); loadVersion(v.id) }}
+                disabled={loadingVersion === v.id}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 disabled:opacity-50 ${
+                  v.status === 'live'
+                    ? 'border-2 border-green-500 text-[#825E34] bg-green-50'
+                    : 'border border-[#8D5A2B]/40 text-[#825E34] hover:bg-[#8D5A2B]/10'
+                }`}>
+                {loadingVersion === v.id ? 'Loading…' : `v${v.version_num}`}
+                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                  v.status === 'live' ? 'bg-green-100 text-green-700' : 'bg-[#8D5A2B]/15 text-[#8D5A2B]'
+                }`}>{v.status}</span>
+              </button>
             ))}
           </div>
         </div>
