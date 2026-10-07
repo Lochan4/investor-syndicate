@@ -2,17 +2,15 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { EntityGraphData } from '@/lib/api'
 
-// Asset nodes — large, colored by file type
 const ASSET_COLOR: Record<string, string> = {
-  pdf:         '#3B82F6',  // blue
-  audio:       '#F97316',  // orange
-  image:       '#22C55E',  // green
-  spreadsheet: '#8B5CF6',  // purple
+  pdf:         '#3B82F6',
+  audio:       '#F97316',
+  image:       '#22C55E',
+  spreadsheet: '#8B5CF6',
 }
-// Concept child nodes
 const CONCEPT_COLOR: Record<string, string> = {
-  topic:  '#D97706',  // amber
-  entity: '#14B8A6',  // teal
+  topic:  '#D97706',
+  entity: '#14B8A6',
 }
 const DEFAULT_COLOR = '#94A3B8'
 
@@ -20,16 +18,15 @@ function nodeColor(n: any): string {
   if (n.node_type === 'asset') return ASSET_COLOR[n.kind] ?? DEFAULT_COLOR
   return CONCEPT_COLOR[n.kind] ?? DEFAULT_COLOR
 }
-
 function nodeRadius(n: any): number {
-  return n.node_type === 'asset' ? 14 : 7
+  return n.node_type === 'asset' ? 16 : 8
 }
 
 interface Props { data: EntityGraphData }
 
 export function EntityGraph({ data }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fgRef = useRef<any>(null)
   const rootRef = useRef<any>(null)
   const [mounted, setMounted] = useState(false)
 
@@ -56,22 +53,41 @@ export function EntityGraph({ data }: Props) {
     const root = createRoot(el)
     rootRef.current = root
 
+    const w = container.clientWidth || 900
+    const h = container.clientHeight || 600
+
     root.render(
       <ForceGraph2D
+        ref={fgRef}
         graphData={graphData}
-        width={container.clientWidth || 900}
-        height={container.clientHeight || 600}
+        width={w}
+        height={h}
         nodeLabel="name"
         nodeRelSize={1}
+        // Strong repulsion + long link distance = spread out graph
+        d3AlphaDecay={0.01}
+        d3VelocityDecay={0.2}
+        cooldownTicks={300}
+        warmupTicks={50}
+        onEngineStop={() => {
+          // Tune forces after engine initialises — this is the key fix
+          if (fgRef.current) {
+            fgRef.current.d3Force('charge')?.strength(-600)
+            fgRef.current.d3Force('link')?.distance(180)
+            fgRef.current.d3Force('center')?.strength(0.03)
+            // Restart sim with new forces
+            fgRef.current.d3ReheatSimulation()
+          }
+        }}
         nodeCanvasObject={(node, ctx, globalScale) => {
           const n = node as any
-          const r = n.r ?? 7
+          const r = n.r ?? 8
 
-          // Glow for asset nodes
+          // Glow ring for asset nodes
           if (n.node_type === 'asset') {
             ctx.beginPath()
-            ctx.arc(n.x, n.y, r + 4, 0, 2 * Math.PI)
-            ctx.fillStyle = n.color + '33'
+            ctx.arc(n.x, n.y, r + 5, 0, 2 * Math.PI)
+            ctx.fillStyle = n.color + '30'
             ctx.fill()
           }
 
@@ -81,36 +97,37 @@ export function EntityGraph({ data }: Props) {
           ctx.fillStyle = n.color
           ctx.fill()
           ctx.strokeStyle = 'rgba(255,255,255,0.9)'
-          ctx.lineWidth = n.node_type === 'asset' ? 2.5 / globalScale : 1.5 / globalScale
+          ctx.lineWidth = (n.node_type === 'asset' ? 2.5 : 1.5) / globalScale
           ctx.stroke()
 
-          // Label — always visible for asset nodes, zoom-gated for concepts
-          const showLabel = n.node_type === 'asset' || globalScale >= 0.7
-          if (showLabel) {
-            const maxLen = n.node_type === 'asset' ? 22 : 18
+          // Labels — always on for assets, zoom-gated for concepts
+          if (n.node_type === 'asset' || globalScale >= 0.5) {
+            const maxLen = n.node_type === 'asset' ? 22 : 20
             const raw = n.name as string
             const label = raw.length > maxLen ? raw.slice(0, maxLen - 1) + '…' : raw
             const fontSize = n.node_type === 'asset'
-              ? Math.max(11, 13 / globalScale)
-              : Math.max(9, 11 / globalScale)
+              ? Math.max(12, 14 / globalScale)
+              : Math.max(10, 12 / globalScale)
+
             ctx.font = `${n.node_type === 'asset' ? '600 ' : ''}${fontSize}px Inter,sans-serif`
             ctx.textAlign = 'center'
             ctx.textBaseline = 'top'
 
-            // White background pill for readability
             const tw = ctx.measureText(label).width
             const pad = 3 / globalScale
-            ctx.fillStyle = 'rgba(255,255,255,0.85)'
-            ctx.beginPath()
             const lx = n.x - tw / 2 - pad
-            const ly = n.y + r + 3 / globalScale
+            const ly = n.y + r + 4 / globalScale
             const lw = tw + pad * 2
             const lh = fontSize + pad * 2
-            ctx.roundRect(lx, ly, lw, lh, 2 / globalScale)
+
+            // White pill background
+            ctx.fillStyle = 'rgba(255,255,255,0.88)'
+            ctx.beginPath()
+            ctx.roundRect(lx, ly, lw, lh, 3 / globalScale)
             ctx.fill()
 
             ctx.fillStyle = '#1E293B'
-            ctx.fillText(label, n.x, n.y + r + 3 / globalScale + pad)
+            ctx.fillText(label, n.x, ly + pad)
           }
         }}
         nodeCanvasObjectMode={() => 'replace'}
@@ -118,18 +135,12 @@ export function EntityGraph({ data }: Props) {
           const n = node as any
           ctx.fillStyle = color
           ctx.beginPath()
-          ctx.arc(n.x, n.y, (n.r ?? 7) + 6, 0, 2 * Math.PI)
+          ctx.arc(n.x, n.y, (n.r ?? 8) + 8, 0, 2 * Math.PI)
           ctx.fill()
         }}
-        linkColor={() => 'rgba(148,163,184,0.5)'}
-        linkWidth={1}
-        linkDirectionalParticles={0}
+        linkColor={() => 'rgba(148,163,184,0.4)'}
+        linkWidth={1.5}
         backgroundColor="#F8FAFC"
-        cooldownTicks={150}
-        d3AlphaDecay={0.015}
-        d3VelocityDecay={0.25}
-        // Asset nodes repel more — creates natural hub-and-spoke clustering
-        onEngineStop={() => {}}
       />
     )
   }, [data, mounted])
@@ -163,10 +174,9 @@ export function EntityGraph({ data }: Props) {
 
   return (
     <div className="relative w-full h-full">
-      {/* Legend */}
       <div className="absolute top-3 left-3 z-10 bg-white/95 backdrop-blur-sm border border-slate-200 rounded-xl px-3 py-2.5 text-xs shadow-sm">
         <div className="font-semibold text-slate-700 mb-2">
-          {assetCount} asset{assetCount !== 1 ? 's' : ''} · {conceptCount} concepts
+          {assetCount} asset{assetCount !== 1 ? 's' : ''} · {conceptCount} concept{conceptCount !== 1 ? 's' : ''}
         </div>
         <div className="space-y-1.5">
           <div className="text-slate-400 uppercase tracking-wide text-[10px] font-semibold mb-1">Assets</div>
