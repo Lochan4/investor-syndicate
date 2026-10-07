@@ -54,7 +54,7 @@ async def get_project(
     return dict(row)
 
 
-@router.delete("/{project_id}", status_code=204)
+@router.delete("/{project_id}")
 async def delete_project(
     project_id: str,
     user: CurrentUser = Depends(require_canvas_editor),
@@ -65,6 +65,7 @@ async def delete_project(
     result = await db.execute("DELETE FROM projects WHERE id=$1", project_id)
     if result == "DELETE 0":
         raise HTTPException(404, "Project not found")
+    return {"ok": True}
 
 
 @router.post("/{project_id}/competitive-scan")

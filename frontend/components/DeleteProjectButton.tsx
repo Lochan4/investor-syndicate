@@ -23,6 +23,12 @@ export function DeleteProjectButton({ token, projectId, projectName }: Props) {
       router.push('/projects')
       router.refresh()
     } catch (e: any) {
+      // 404 means project is already gone — treat as success
+      if (e?.message?.includes('404')) {
+        router.push('/projects')
+        router.refresh()
+        return
+      }
       setError(e?.message ?? 'Failed to delete')
       setLoading(false)
     }
