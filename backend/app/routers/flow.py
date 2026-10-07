@@ -107,9 +107,10 @@ async def open_flow(
         str(version["id"]),
     )
 
+    COLS, COL_GAP, ROW_GAP, PAD = 3, 560.0, 300.0, 80.0
     for i, tc in enumerate(template_cells):
-        pos_x = float(tc["position_x"]) if tc["position_x"] else (i % 3) * 320.0 + 60.0
-        pos_y = float(tc["position_y"]) if tc["position_y"] else (i // 3) * 220.0 + 60.0
+        pos_x = PAD + (i % COLS) * COL_GAP
+        pos_y = PAD + (i // COLS) * ROW_GAP
         await db.execute(
             """INSERT INTO flow_cells(project_id, template_cell_id, topic, prompt, position_x, position_y, characteristics, policy_doc_ids)
                VALUES($1,$2,$3,$4,$5,$6,$7,$8)
@@ -123,6 +124,27 @@ async def open_flow(
     await db.execute("UPDATE projects SET status='open' WHERE id=$1", project_id)
     await notif_svc.notify_all_members(db, project_id, "graph_ready")
     return {"ok": True}
+
+
+@router.post("/projects/{project_id}/flow/relayout")
+async def relayout_flow(
+    project_id: str,
+    user: CurrentUser = Depends(get_current_user),
+    db: asyncpg.Pool = Depends(get_db),
+):
+    """Recompute positions for all flow cells in a project using a clean grid layout."""
+    rows = await db.fetch(
+        "SELECT id FROM flow_cells WHERE project_id=$1 ORDER BY created_at", project_id
+    )
+    COLS, COL_GAP, ROW_GAP, PAD = 3, 560.0, 300.0, 80.0
+    for i, row in enumerate(rows):
+        await db.execute(
+            "UPDATE flow_cells SET position_x=$1, position_y=$2 WHERE id=$3",
+            PAD + (i % COLS) * COL_GAP,
+            PAD + (i // COLS) * ROW_GAP,
+            row["id"],
+        )
+    return {"ok": True, "count": len(rows)}
 
 
 # ── Admin flow-template ───────────────────────────────────
