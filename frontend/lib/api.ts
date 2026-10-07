@@ -60,6 +60,8 @@ export const api = {
   createProject: (token: string, body: { startup_name: string; sector?: string; stage?: string }) =>
     apiFetch<Project>('/projects', token, { method: 'POST', body: JSON.stringify(body) }),
   listInvestments: (token: string) => apiFetch<Investment[]>('/investments', token),
+  deleteProject: (token: string, id: string) =>
+    apiFetch(`/projects/${id}`, token, { method: 'DELETE' }),
 
   // Assets
   listAssets: (token: string, projectId: string) => apiFetch<Asset[]>(`/projects/${projectId}/assets`, token),

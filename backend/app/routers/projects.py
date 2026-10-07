@@ -1,7 +1,7 @@
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.dependencies import CurrentUser, get_current_user, get_arq, get_db
+from app.dependencies import CurrentUser, get_current_user, get_arq, get_db, require_canvas_editor
 from app.schemas import ProjectCreate, ProjectResponse
 from app.services import projects as svc
 
@@ -52,6 +52,19 @@ async def get_project(
     if not row:
         raise HTTPException(404, "Project not found")
     return dict(row)
+
+
+@router.delete("/{project_id}", status_code=204)
+async def delete_project(
+    project_id: str,
+    user: CurrentUser = Depends(require_canvas_editor),
+    db: asyncpg.Pool = Depends(get_db),
+):
+    """Delete a project and all its data (assets, chunks, KG, flow cells, analyses).
+    CASCADE handles all child tables automatically."""
+    result = await db.execute("DELETE FROM projects WHERE id=$1", project_id)
+    if result == "DELETE 0":
+        raise HTTPException(404, "Project not found")
 
 
 @router.post("/{project_id}/competitive-scan")
