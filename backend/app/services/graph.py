@@ -86,5 +86,31 @@ async def update_project_if_ready(db: asyncpg.Pool, project_id: str) -> bool:
     )
     if row["total"] > 0 and row["unfinished"] == 0:
         await db.execute("UPDATE projects SET status='open' WHERE id=$1", project_id)
+        # Seed flow cells from live template if none exist yet
+        existing = await db.fetchval(
+            "SELECT COUNT(*) FROM flow_cells WHERE project_id=$1", project_id
+        )
+        if existing == 0:
+            version = await db.fetchrow(
+                "SELECT id FROM flow_template_versions WHERE status='live' ORDER BY version_num DESC LIMIT 1"
+            )
+            if version:
+                template_cells = await db.fetch(
+                    "SELECT * FROM flow_template_cells WHERE version_id=$1 ORDER BY cell_order",
+                    str(version["id"]),
+                )
+                import json as _json
+                COLS, COL_GAP, ROW_GAP, PAD = 3, 560.0, 300.0, 80.0
+                for i, tc in enumerate(template_cells):
+                    await db.execute(
+                        """INSERT INTO flow_cells(project_id, template_cell_id, topic, prompt,
+                               position_x, position_y, characteristics, policy_doc_ids)
+                           VALUES($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT DO NOTHING""",
+                        project_id, str(tc["id"]), tc["topic"], tc["prompt"],
+                        PAD + (i % COLS) * COL_GAP,
+                        PAD + (i // COLS) * ROW_GAP,
+                        _json.dumps(tc["characteristics"] or []),
+                        list(tc["policy_doc_ids"] or []),
+                    )
         return True
     return False
