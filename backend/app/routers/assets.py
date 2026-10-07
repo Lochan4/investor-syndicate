@@ -47,6 +47,27 @@ async def confirm_asset(
     return {"queued": True}
 
 
+@router.post("/{asset_id}/reanalyse")
+async def reanalyse_asset(
+    project_id: str,
+    asset_id: str,
+    user: CurrentUser = Depends(get_current_user),
+    db: asyncpg.Pool = Depends(get_db),
+):
+    """Re-run LLM analysis on existing chunks and update analysis_cache. No re-chunking."""
+    from app.services import llm, asset_analysis as aa
+    rows = await db.fetch(
+        "SELECT text FROM chunks WHERE asset_id=$1 ORDER BY chunk_index", asset_id
+    )
+    if not rows:
+        from fastapi import HTTPException
+        raise HTTPException(404, "No chunks found — re-upload the asset")
+    full_text = "\n".join(r["text"] for r in rows)
+    analysis = await llm.analyse_asset(full_text)
+    await aa.store_analysis(db, asset_id, analysis)
+    return {"ok": True, "topics": analysis.get("topics", []), "entities": analysis.get("entities", [])}
+
+
 @router.get("/graph")
 async def get_asset_graph(
     project_id: str,
