@@ -3,6 +3,10 @@ export interface GraphData {
   nodes: Array<{ id: string; asset_id: string; asset_name: string; kind: string; preview: string }>
   edges: Array<{ source: string; target: string }>
 }
+export interface EntityGraphData {
+  nodes: Array<{ id: string; name: string; kind: string }>
+  edges: Array<{ source: string; target: string; weight: number }>
+}
 export interface Investment extends Project { role: string }
 export interface Asset { id: string; filename: string; kind: string; status: string; analysis_cache?: { entities: string[]; summary: string; topics: string[] }; created_at: string }
 export interface FlowCell { id: string; topic: string; prompt?: string; position_x: number; position_y: number; output_cache?: any }
@@ -109,6 +113,8 @@ export const api = {
   // Graph
   getProjectGraph: (token: string, projectId: string) =>
     apiFetch<GraphData>(`/projects/${projectId}/assets/graph`, token),
+  getEntityGraph: (token: string, projectId: string) =>
+    apiFetch<EntityGraphData>(`/projects/${projectId}/assets/entity-graph`, token),
 
   // Competitive scan
   triggerCompetitiveScan: (token: string, projectId: string) =>

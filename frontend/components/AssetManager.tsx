@@ -1,11 +1,11 @@
 'use client'
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { api, Asset, GraphData, streamKgFeed } from '@/lib/api'
+import { api, Asset, EntityGraphData } from '@/lib/api'
 import { StatusBadge } from './StatusBadge'
 import { Icons } from './Icons'
 import { AssetSkeleton } from './Skeleton'
 import { useToast } from './Toast'
-import { KnowledgeGraph } from './KnowledgeGraph'
+import { EntityGraph } from './EntityGraph'
 
 const KIND_MAP: Record<string, string> = {
   'application/pdf': 'pdf',
@@ -33,52 +33,18 @@ export function AssetManager({ projectId, token, platformRole = 'investor' }: { 
   const [uploading, setUploading] = useState<{ name: string; progress: number }[]>([])
   const [dragging, setDragging] = useState(false)
   const [view, setView] = useState<'files' | 'graph'>('files')
-  const [graphData, setGraphData] = useState<GraphData>({ nodes: [], edges: [] })
-  const [isLiveKg, setIsLiveKg] = useState(false)
+  const [entityGraph, setEntityGraph] = useState<EntityGraphData>({ nodes: [], edges: [] })
+  const [graphLoading, setGraphLoading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
-  const kgCleanupRef = useRef<(() => void) | null>(null)
   const { toast } = useToast()
 
-  const startKgStream = useCallback(() => {
-    // cleanup any prior subscription
-    kgCleanupRef.current?.()
-    // don't wipe existing graph — snapshot will replace it atomically on arrival
-    setIsLiveKg(false)
-
-    const stop = streamKgFeed(projectId, token, (ev) => {
-      if (ev.type === 'kg_snapshot') {
-        // Full snapshot from DB — set all at once, then only go live if assets are processing
-        setGraphData({ nodes: ev.data.nodes ?? [], edges: ev.data.edges ?? [] })
-        setIsLiveKg(false)
-      } else if (ev.type === 'kg_nodes') {
-        setIsLiveKg(true)  // a worker is actively adding nodes
-        // New nodes from a processing run — stagger them 60ms apart for animation
-        const incoming: GraphData['nodes'] = ev.data.nodes ?? []
-        incoming.forEach((node, i) => {
-          setTimeout(() => {
-            setGraphData(prev => {
-              if (prev.nodes.some(n => n.id === node.id)) return prev
-              return { ...prev, nodes: [...prev.nodes, node] }
-            })
-          }, i * 60)
-        })
-      } else if (ev.type === 'kg_edges') {
-        const incoming: GraphData['edges'] = ev.data.edges ?? []
-        setGraphData(prev => {
-          const existingIds = new Set(prev.edges.map(e => `${e.source}-${e.target}`))
-          const fresh = incoming.filter(e => !existingIds.has(`${e.source}-${e.target}`))
-          return fresh.length ? { ...prev, edges: [...prev.edges, ...fresh] } : prev
-        })
-      } else if (ev.type === 'kg_done') {
-        setIsLiveKg(false)
-      }
-    })
-
-    kgCleanupRef.current = stop
+  const loadEntityGraph = useCallback(() => {
+    setGraphLoading(true)
+    api.getEntityGraph(token, projectId)
+      .then(data => setEntityGraph(data))
+      .catch(() => {})
+      .finally(() => setGraphLoading(false))
   }, [projectId, token])
-
-  // cleanup KG stream on unmount
-  useEffect(() => () => { kgCleanupRef.current?.() }, [])
 
   useEffect(() => {
     let active = true
@@ -135,7 +101,7 @@ export function AssetManager({ projectId, token, platformRole = 'investor' }: { 
             Files
           </button>
           <button
-            onClick={() => { startKgStream(); setView('graph') }}
+            onClick={() => { loadEntityGraph(); setView('graph') }}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
               view === 'graph' ? 'bg-white text-brown-dark shadow-sm' : 'text-brown-mid hover:text-brown-dark'
             }`}
@@ -147,7 +113,14 @@ export function AssetManager({ projectId, token, platformRole = 'investor' }: { 
 
       {view === 'graph' ? (
         <div style={{ height: '600px' }}>
-          <KnowledgeGraph data={graphData} isLive={isLiveKg} />
+          {graphLoading ? (
+            <div className="flex items-center justify-center h-full text-slate-400 text-sm gap-2">
+              <div className="w-4 h-4 border-2 border-amber border-t-transparent rounded-full animate-spin" />
+              Loading entity graph…
+            </div>
+          ) : (
+            <EntityGraph data={entityGraph} />
+          )}
         </div>
       ) : (
         <>
