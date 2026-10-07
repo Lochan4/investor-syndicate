@@ -93,30 +93,67 @@ async def get_entity_graph(
     user: CurrentUser = Depends(get_current_user),
     db: asyncpg.Pool = Depends(get_db),
 ):
-    """Entity-level knowledge graph: named entities as nodes, co-occurrence as edges."""
-    entity_rows = await db.fetch(
-        "SELECT id, name, kind FROM entities WHERE project_id=$1 LIMIT 400",
+    """
+    Concept-level knowledge graph built from analysis_cache.
+    Structure: asset node → topic/entity child nodes (hub-and-spoke per document).
+    """
+    asset_rows = await db.fetch(
+        """SELECT id, filename, kind, analysis_cache
+           FROM assets
+           WHERE project_id=$1 AND status='ready'
+           ORDER BY created_at""",
         project_id,
     )
-    if not entity_rows:
+    if not asset_rows:
         return {"nodes": [], "edges": []}
 
-    entity_ids = [str(r["id"]) for r in entity_rows]
-    edge_rows = await db.fetch(
-        """
-        SELECT cm1.entity_id::text AS source, cm2.entity_id::text AS target, COUNT(*) AS weight
-        FROM chunk_mentions cm1
-        JOIN chunk_mentions cm2
-          ON cm1.chunk_id = cm2.chunk_id AND cm1.entity_id < cm2.entity_id
-        WHERE cm1.entity_id = ANY($1::uuid[])
-          AND cm2.entity_id = ANY($1::uuid[])
-        GROUP BY cm1.entity_id, cm2.entity_id
-        LIMIT 1000
-        """,
-        entity_ids,
-    )
-    nodes = [{"id": str(r["id"]), "name": r["name"], "kind": r["kind"]} for r in entity_rows]
-    edges = [{"source": e["source"], "target": e["target"], "weight": e["weight"]} for e in edge_rows]
+    nodes: list[dict] = []
+    edges: list[dict] = []
+    seen_concept_ids: set[str] = set()
+
+    for asset in asset_rows:
+        asset_id = str(asset["id"])
+        asset_node_id = f"asset-{asset_id}"
+        nodes.append({
+            "id": asset_node_id,
+            "name": asset["filename"],
+            "kind": asset["kind"],          # pdf | audio | image | spreadsheet
+            "node_type": "asset",
+        })
+
+        cache = asset["analysis_cache"] or {}
+        if isinstance(cache, str):
+            try:
+                cache = json.loads(cache)
+            except Exception:
+                cache = {}
+
+        # Topic nodes — one per topic, shared across assets if identical
+        for topic in (cache.get("topics") or []):
+            concept_id = f"topic-{topic.lower().strip()}"
+            if concept_id not in seen_concept_ids:
+                seen_concept_ids.add(concept_id)
+                nodes.append({
+                    "id": concept_id,
+                    "name": topic,
+                    "kind": "topic",
+                    "node_type": "concept",
+                })
+            edges.append({"source": asset_node_id, "target": concept_id, "weight": 1})
+
+        # Entity nodes — cap at 10 per asset, shared across assets
+        for entity in (cache.get("entities") or [])[:10]:
+            concept_id = f"entity-{entity.lower().strip()}"
+            if concept_id not in seen_concept_ids:
+                seen_concept_ids.add(concept_id)
+                nodes.append({
+                    "id": concept_id,
+                    "name": entity,
+                    "kind": "entity",
+                    "node_type": "concept",
+                })
+            edges.append({"source": asset_node_id, "target": concept_id, "weight": 1})
+
     return {"nodes": nodes, "edges": edges}
 
 

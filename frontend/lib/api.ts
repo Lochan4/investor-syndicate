@@ -4,8 +4,8 @@ export interface GraphData {
   edges: Array<{ source: string; target: string }>
 }
 export interface EntityGraphData {
-  nodes: Array<{ id: string; name: string; kind: string }>
-  edges: Array<{ source: string; target: string; weight: number }>
+  nodes: Array<{ id: string; name: string; kind: string; node_type?: string }>
+  edges: Array<{ source: string; target: string; weight?: number }>
 }
 export interface Investment extends Project { role: string }
 export interface Asset { id: string; filename: string; kind: string; status: string; analysis_cache?: { entities: string[]; summary: string; topics: string[] }; created_at: string }
