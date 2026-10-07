@@ -23,19 +23,29 @@ function computeLayout(nodes: GraphData['nodes']) {
     groups[n.asset_id].push(n)
   }
   const assetIds = Object.keys(groups)
-  const bigR = Math.max(320, assetIds.length * 140)
   const positions: Record<string, { x: number; y: number }> = {}
-  assetIds.forEach((assetId, ai) => {
-    const angle = (2 * Math.PI * ai) / assetIds.length - Math.PI / 2
-    const cx = bigR * Math.cos(angle)
-    const cy = bigR * Math.sin(angle)
+
+  // Each doc gets its own column-group; chunks laid out in a grid within it
+  const COLS = 4          // chunks per row within a doc group
+  const COL_GAP = 200     // px between chunk columns
+  const ROW_GAP = 200     // px between chunk rows
+  const GROUP_GAP = 300   // extra horizontal gap between doc groups
+
+  let groupOffsetX = 0
+  assetIds.forEach((assetId) => {
     const chunks = groups[assetId]
-    const smallR = Math.max(70, chunks.length * 22)
+    const groupCols = Math.min(chunks.length, COLS)
     chunks.forEach((chunk, ci) => {
-      const ca = (2 * Math.PI * ci) / chunks.length
-      positions[chunk.id] = { x: cx + smallR * Math.cos(ca), y: cy + smallR * Math.sin(ca) }
+      const col = ci % COLS
+      const row = Math.floor(ci / COLS)
+      positions[chunk.id] = {
+        x: groupOffsetX + col * COL_GAP,
+        y: row * ROW_GAP,
+      }
     })
+    groupOffsetX += groupCols * COL_GAP + GROUP_GAP
   })
+
   return positions
 }
 
