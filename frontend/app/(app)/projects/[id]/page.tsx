@@ -6,22 +6,30 @@ import { CompetitiveScanButton } from '@/components/CompetitiveScanButton'
 import { OpenCanvasButton } from '@/components/OpenCanvasButton'
 import { InviteButton } from '@/components/InviteButton'
 import { DeleteProjectButton } from '@/components/DeleteProjectButton'
+import { DecisionPanel } from '@/components/DecisionPanel'
 import Link from 'next/link'
 
 export default async function ProjectHubPage({ params }: { params: { id: string } }) {
   const { accessToken } = await withAuth({ ensureSignedIn: true })
   let project: any = null
+  let analyses: import('@/lib/api').Analysis[] = []
   let error = false
   let canDelete = false
   let canInvite = false
+  let canDecide = false
   try {
-    const [proj, me] = await Promise.all([
+    const [proj, me, ana, myRole] = await Promise.all([
       api.getProject(accessToken!, params.id),
       api.getMe(accessToken!),
+      api.listAnalyses(accessToken!, params.id).catch(() => []),
+      api.getMyProjectRole(accessToken!, params.id).catch(() => ({ role: 'attendee' })),
     ])
     project = proj
-    canInvite = me.can_edit_canvas
-    canDelete = me.can_edit_canvas
+    analyses = ana
+    const isProjectAdmin = myRole.role === 'admin'
+    canInvite = isProjectAdmin
+    canDelete = isProjectAdmin
+    canDecide = isProjectAdmin
   } catch {
     error = true
   }
@@ -58,7 +66,7 @@ export default async function ProjectHubPage({ params }: { params: { id: string 
           )}
           <CompetitiveScanButton token={accessToken!} projectId={params.id} />
           {canDelete && (
-            <DeleteProjectButton token={accessToken!} projectId={params.id} projectName={project?.startup_name ?? 'this project'} />
+            <DeleteProjectButton token={accessToken!} projectId={params.id} projectName={project?.startup_name ?? 'this project'} workspaceId={project?.workspace_id} />
           )}
         </div>
       </div>
@@ -84,6 +92,13 @@ export default async function ProjectHubPage({ params }: { params: { id: string 
       </p>
 
       {canInvite && <InviteButton token={accessToken!} projectId={params.id} />}
+
+      <DecisionPanel
+        token={accessToken!}
+        project={project}
+        analyses={analyses}
+        canDecide={canDecide}
+      />
     </div>
   )
 }

@@ -1,9 +1,9 @@
 'use client'
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { api, streamAnswer } from '@/lib/api'
+import { api, streamAnswer, CitationSource } from '@/lib/api'
 import { Icons } from './Icons'
 
-interface Message { role: 'user' | 'assistant'; content: string; sources?: string[] }
+interface Message { role: 'user' | 'assistant'; content: string; sources?: CitationSource[] }
 
 export function ConversationPanel({ projectId, cellId, cellTopic, token }: {
   projectId: string; cellId: string; cellTopic?: string; token: string
@@ -12,9 +12,14 @@ export function ConversationPanel({ projectId, cellId, cellTopic, token }: {
   const [input, setInput] = useState('')
   const [thinking, setThinking] = useState(false)
   const [sessionId, setSessionId] = useState<string | null>(null)
-  const [submitted, setSubmitted] = useState(false)
+  const [submitDone, setSubmitDone] = useState(false)
   const [sessionError, setSessionError] = useState(false)
   const [recording, setRecording] = useState(false)
+  // Confidence prompt
+  const [showConfidence, setShowConfidence] = useState(false)
+  const [confidenceScore, setConfidenceScore] = useState<number | null>(null)
+  const [confidenceSaved, setConfidenceSaved] = useState(false)
+
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const mediaRef = useRef<MediaRecorder | null>(null)
@@ -22,10 +27,16 @@ export function ConversationPanel({ projectId, cellId, cellTopic, token }: {
   const recordingRef = useRef(false)
   const lastSpaceRef = useRef(0)
   const toggleMicRef = useRef<(() => void) | null>(null)
+  const tokenRef = useRef(token)
+
+  // Keep token fresh — WorkOS access tokens expire in ~5 min
+  useEffect(() => {
+    fetch('/api/token').then(r => r.ok ? r.json() : null).then(d => { if (d?.token) tokenRef.current = d.token }).catch(() => {})
+  }, [])
 
   useEffect(() => {
-    api.getOrCreateSession(token, projectId, cellId)
-      .then(s => { setSessionId(s.session_id); if (s.status === 'submitted') setSubmitted(true) })
+    api.getOrCreateSession(tokenRef.current, projectId, cellId)
+      .then(s => setSessionId(s.session_id))
       .catch(() => setSessionError(true))
   }, [token, projectId, cellId])
 
@@ -33,12 +44,15 @@ export function ConversationPanel({ projectId, cellId, cellTopic, token }: {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages.length, thinking])
 
-  // keep refs in sync so spacebar handler never has a stale closure
   useEffect(() => { recordingRef.current = recording }, [recording])
-  useEffect(() => { toggleMicRef.current = toggleMic }, [toggleMic])
+
+  // Show confidence prompt after 5 user messages
+  useEffect(() => {
+    const userCount = messages.filter(m => m.role === 'user').length
+    if (userCount >= 5 && !confidenceSaved && !showConfidence) setShowConfidence(true)
+  }, [messages]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // spacebar: single press → start mic, double press within 300ms → stop mic
-  // skips if the text input is focused (user is typing)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.code !== 'Space') return
@@ -60,15 +74,20 @@ export function ConversationPanel({ projectId, cellId, cellTopic, token }: {
 
   const send = useCallback(async (text?: string) => {
     const msg = (text || input).trim()
-    if (!msg || !sessionId || thinking || submitted) return
+    if (!msg || !sessionId || thinking) return
     setInput('')
     setMessages(m => [...m, { role: 'user', content: msg }])
     setThinking(true)
     setMessages(m => [...m, { role: 'assistant', content: '' }])
 
     try {
+      const d = await fetch('/api/token').then(r => r.ok ? r.json() : null)
+      if (d?.token) tokenRef.current = d.token
+    } catch {}
+
+    try {
       streamAnswer(
-        projectId, sessionId, msg, cellId, token,
+        projectId, sessionId, msg, cellId, tokenRef.current,
         (tok) => setMessages(m => {
           const updated = [...m]
           const last = updated[updated.length - 1]
@@ -84,6 +103,15 @@ export function ConversationPanel({ projectId, cellId, cellTopic, token }: {
           })
           inputRef.current?.focus()
         },
+        undefined,
+        (errMsg) => {
+          setThinking(false)
+          setMessages(m => {
+            const updated = [...m]
+            updated[updated.length - 1] = { ...updated[updated.length - 1], content: `Error: ${errMsg}` }
+            return updated
+          })
+        },
       )
     } catch {
       setThinking(false)
@@ -93,13 +121,24 @@ export function ConversationPanel({ projectId, cellId, cellTopic, token }: {
         return updated
       })
     }
-  }, [input, sessionId, thinking, submitted, projectId, cellId, token])
+  }, [input, sessionId, thinking, projectId, cellId])
 
   const submit = async () => {
     if (!sessionId) return
     try {
-      await api.submitSession(token, projectId, sessionId)
-      setSubmitted(true)
+      await api.submitSession(tokenRef.current, projectId, sessionId)
+      setSubmitDone(true)
+      setTimeout(() => setSubmitDone(false), 3000)
+    } catch {}
+  }
+
+  const saveConfidence = async (score: number) => {
+    setConfidenceScore(score)
+    if (!sessionId) return
+    try {
+      await api.setConfidenceScore(tokenRef.current, projectId, sessionId, cellId, score)
+      setConfidenceSaved(true)
+      setTimeout(() => setShowConfidence(false), 1200)
     } catch {}
   }
 
@@ -119,7 +158,7 @@ export function ConversationPanel({ projectId, cellId, cellTopic, token }: {
         if (!sessionId || !chunksRef.current.length) return
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
         try {
-          const transcript = await api.sendVoice(token, projectId, sessionId, blob)
+          const transcript = await api.sendVoice(tokenRef.current, projectId, sessionId, blob)
           if (transcript) send(transcript)
         } catch {}
       }
@@ -127,7 +166,8 @@ export function ConversationPanel({ projectId, cellId, cellTopic, token }: {
       recorder.start()
       setRecording(true)
     } catch {}
-  }, [recording, sessionId, token, projectId, send])
+  }, [recording, sessionId, projectId, send])
+  useEffect(() => { toggleMicRef.current = toggleMic }, [toggleMic])
 
   if (sessionError) return (
     <div className="flex items-center justify-center h-full text-muted text-sm">
@@ -144,7 +184,7 @@ export function ConversationPanel({ projectId, cellId, cellTopic, token }: {
               <Icons.Chat />
             </div>
             <div className="text-center">
-              <div className="font-semibold text-ink text-sm">{cellTopic || 'Cell Discussion'}</div>
+              <div className="font-semibold text-amber-600 text-sm">{cellTopic || 'Cell Discussion'}</div>
               <div className="text-xs mt-1 text-subtle">Ask anything about this topic</div>
             </div>
           </div>
@@ -173,10 +213,16 @@ export function ConversationPanel({ projectId, cellId, cellTopic, token }: {
               {m.sources && m.sources.length > 0 && (
                 <div className="mt-2 pt-2 border-t border-current/10 flex flex-wrap gap-1">
                   {m.sources.map(s => (
-                    <span key={s} className="inline-flex items-center gap-1 text-xs bg-current/10 px-2 py-0.5 rounded-md">
+                    <a
+                      key={s.id}
+                      href={s.url ?? `/projects/${projectId}/assets`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs bg-current/10 px-2 py-0.5 rounded-md hover:bg-current/20 transition-colors"
+                    >
                       <Icons.File />
-                      <span className="max-w-[120px] truncate">{s}</span>
-                    </span>
+                      <span className="max-w-[120px] truncate">{s.name}</span>
+                    </a>
                   ))}
                 </div>
               )}
@@ -186,39 +232,75 @@ export function ConversationPanel({ projectId, cellId, cellTopic, token }: {
         <div ref={bottomRef} />
       </div>
 
+      {/* Confidence prompt — shown after 5 messages */}
+      {showConfidence && !submitted && (
+        <div className="border-t border-stroke px-4 py-3" style={{ background: 'rgba(141,90,43,0.04)' }}>
+          {confidenceSaved ? (
+            <p className="text-xs text-center text-green-700 font-medium py-1">
+              ✓ Confidence saved — thank you
+            </p>
+          ) : (
+            <>
+              <p className="text-xs font-medium text-ink mb-2">
+                How confident are you in your analysis of <span className="text-amber-600">{cellTopic || 'this topic'}</span>?
+              </p>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-muted mr-1">Low</span>
+                {[1,2,3,4,5,6,7,8,9,10].map(s => (
+                  <button
+                    key={s}
+                    onClick={() => saveConfidence(s)}
+                    className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all duration-150 ${
+                      confidenceScore === s
+                        ? 'bg-amber-600 text-white shadow-sm'
+                        : 'bg-surface border border-stroke text-ink hover:border-amber-400'
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+                <span className="text-xs text-muted ml-1">High</span>
+                <button onClick={() => setShowConfidence(false)} className="ml-auto text-xs text-muted hover:text-ink">
+                  Dismiss
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
       <div className="border-t border-stroke p-4 bg-surface">
-        {submitted ? (
-          <div className="flex items-center justify-center gap-2 py-2 text-sm text-green-700 bg-green-50 rounded-xl">
+        {submitDone && (
+          <div className="flex items-center justify-center gap-2 py-1.5 mb-3 text-sm text-green-700 bg-green-50 rounded-xl">
             <Icons.Check /> Response submitted — thank you
           </div>
-        ) : (
-          <div className="flex gap-2">
-            <input
-              ref={inputRef}
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), send())}
-              placeholder={recording ? 'Recording…' : 'Ask about this topic…'}
-              disabled={thinking || recording}
-              className="input flex-1"
-            />
-            <button onClick={toggleMic} disabled={thinking}
-              className={`w-10 flex items-center justify-center rounded-lg transition-all duration-150 ${
-                recording
-                  ? 'bg-red-500 text-white animate-pulse'
-                  : 'btn-ghost border border-stroke'
-              }`}>
-              <Icons.Mic />
-            </button>
-            <button onClick={() => send()} disabled={!input.trim() || thinking || recording}
-              className="btn-primary w-10 flex items-center justify-center">
-              <Icons.Send />
-            </button>
-            <button onClick={submit} className="btn-secondary px-3 flex items-center gap-1.5 text-xs">
-              <Icons.Check /> Submit
-            </button>
-          </div>
         )}
+        <div className="flex gap-2">
+          <input
+            ref={inputRef}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), send())}
+            placeholder={recording ? 'Recording…' : 'Ask about this topic…'}
+            disabled={thinking || recording}
+            className="input flex-1"
+          />
+          <button onClick={toggleMic} disabled={thinking}
+            className={`w-10 flex items-center justify-center rounded-lg transition-all duration-150 ${
+              recording
+                ? 'bg-red-500 text-white animate-pulse'
+                : 'btn-ghost border border-stroke'
+            }`}>
+            <Icons.Mic />
+          </button>
+          <button onClick={() => send()} disabled={!input.trim() || thinking || recording}
+            className="btn-primary w-10 flex items-center justify-center">
+            <Icons.Send />
+          </button>
+          <button onClick={submit} className="btn-secondary px-3 flex items-center gap-1.5 text-xs">
+            <Icons.Check /> Submit
+          </button>
+        </div>
       </div>
     </div>
   )

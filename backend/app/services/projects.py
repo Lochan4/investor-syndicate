@@ -2,13 +2,45 @@ from __future__ import annotations
 import asyncpg
 
 
+async def seed_flow_cells(conn: asyncpg.Connection, project_id: str) -> None:
+    """Seed flow cells from the live template version. Idempotent — skips if cells exist."""
+    existing = await conn.fetchval(
+        "SELECT COUNT(*) FROM flow_cells WHERE project_id=$1", project_id
+    )
+    if existing:
+        return
+    version = await conn.fetchrow(
+        "SELECT id FROM flow_template_versions WHERE status='live' ORDER BY version_num DESC LIMIT 1"
+    )
+    if not version:
+        return
+    template_cells = await conn.fetch(
+        "SELECT * FROM flow_template_cells WHERE version_id=$1 ORDER BY cell_order",
+        str(version["id"]),
+    )
+    COLS, COL_GAP, ROW_GAP, PAD = 3, 560.0, 300.0, 80.0
+    for i, tc in enumerate(template_cells):
+        await conn.execute(
+            """INSERT INTO flow_cells(project_id, template_cell_id, topic, prompt,
+                   position_x, position_y, characteristics, policy_doc_ids)
+               VALUES($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT DO NOTHING""",
+            project_id, str(tc["id"]), tc["topic"], tc["prompt"],
+            PAD + (i % COLS) * COL_GAP,
+            PAD + (i // COLS) * ROW_GAP,
+            tc["characteristics"] or [],
+            list(tc["policy_doc_ids"] or []),
+        )
+
+
 async def list_for_user(db: asyncpg.Pool, user_id: str) -> list[asyncpg.Record]:
     rows = await db.fetch(
         """
-        SELECT p.id, p.startup_name, p.sector, p.stage, p.status, p.created_at
+        SELECT DISTINCT p.id, p.startup_name, p.sector, p.stage, p.status, p.created_at
         FROM projects p
-        JOIN project_members pm ON pm.project_id = p.id
-        WHERE pm.user_id = $1
+        WHERE
+          p.id IN (SELECT project_id FROM project_members WHERE user_id = $1)
+          OR (p.workspace_id IS NOT NULL AND
+              p.workspace_id IN (SELECT workspace_id FROM workspace_members WHERE user_id = $1))
         ORDER BY p.created_at DESC
         """,
         user_id,
@@ -37,8 +69,9 @@ async def create(
             await conn.execute(
                 """
                 INSERT INTO project_members (project_id, user_id, role, added_by)
-                VALUES ($1, $2, 'reviewer', $2)
+                VALUES ($1, $2, 'admin', $2)
                 """,
                 project["id"], created_by,
             )
+            await seed_flow_cells(conn, str(project["id"]))
     return dict(project)

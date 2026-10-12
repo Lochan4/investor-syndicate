@@ -421,26 +421,33 @@ export default function LandingPage() {
         <span style={{ fontFamily: "'Oliver', serif", fontSize: 26, color: '#1C1917', letterSpacing: '0.02em' }}>
           <span style={{ fontSize: '1.45em', marginRight: '-2px' }}>s</span>yndicate
         </span>
-        <Link
-          href="/dashboard"
-          style={{
-            fontSize: 13,
-            fontWeight: 600,
-            color: '#92400E',
-            textDecoration: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '8px 18px',
-            borderRadius: 9999,
-            border: '1.5px solid rgba(180,95,5,0.35)',
-            background: 'rgba(252,250,244,0.85)',
-            boxShadow: '0 2px 8px rgba(180,95,5,0.14), 0 1px 2px rgba(180,95,5,0.08), inset 0 1px 0 rgba(255,255,255,0.6)',
-            backdropFilter: 'blur(8px)',
-          }}
-        >
-          Sign in →
-        </Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <a
+            href="/apply"
+            style={{
+              fontSize: 13, fontWeight: 600, color: '#92400E',
+              textDecoration: 'none', padding: '8px 18px', borderRadius: 9999,
+              border: '1.5px solid rgba(180,95,5,0.25)',
+              background: 'transparent',
+            }}
+          >
+            Apply
+          </a>
+          <Link
+            href="/workspaces"
+            style={{
+              fontSize: 13, fontWeight: 600, color: '#92400E',
+              textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6,
+              padding: '8px 18px', borderRadius: 9999,
+              border: '1.5px solid rgba(180,95,5,0.35)',
+              background: 'rgba(252,250,244,0.85)',
+              boxShadow: '0 2px 8px rgba(180,95,5,0.14), 0 1px 2px rgba(180,95,5,0.08), inset 0 1px 0 rgba(255,255,255,0.6)',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            Sign in →
+          </Link>
+        </div>
       </nav>
 
       {/* ── Section 1: Hero ─────────────────────────────────── */}
@@ -518,33 +525,36 @@ export default function LandingPage() {
             intelligence — founders, market, moat, competitors and more.
           </p>
 
-          <Link
-            href="/dashboard"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '14px 30px',
-              background: '#D97706',
-              color: '#fff',
-              borderRadius: 10,
-              fontWeight: 700,
-              fontSize: 14,
-              textDecoration: 'none',
-              letterSpacing: '-0.01em',
-            }}
-          >
-            Start Analysis
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path
-                d="M3 7h8M8 4l3 3-3 3"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <Link
+              href="/workspaces"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                padding: '14px 30px', background: '#D97706', color: '#fff',
+                borderRadius: 10, fontWeight: 700, fontSize: 14,
+                textDecoration: 'none', letterSpacing: '-0.01em',
+              }}
+            >
+              Start Analysis
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </Link>
+            <a
+              href="/apply"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                padding: '13px 30px',
+                background: 'transparent',
+                color: '#92400E',
+                borderRadius: 10, fontWeight: 700, fontSize: 14,
+                textDecoration: 'none', letterSpacing: '-0.01em',
+                border: '1.5px solid rgba(180,95,5,0.35)',
+              }}
+            >
+              Apply as Founder
+            </a>
+          </div>
         </div>
 
         {/* Scroll hint */}

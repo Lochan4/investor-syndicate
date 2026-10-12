@@ -21,7 +21,7 @@ async def traverse(
         """SELECT c.id, c.text, c.asset_id,
                   1 - (c.embedding <=> $1::vector) AS sim
            FROM chunks c
-           WHERE c.project_id = $2
+           WHERE c.project_id = $2 AND c.embedding IS NOT NULL
            ORDER BY c.embedding <=> $1::vector
            LIMIT 5""",
         vec_str, project_id,

@@ -37,33 +37,38 @@ export function AssetManager({ projectId, token, platformRole = 'investor' }: { 
   const [graphLoading, setGraphLoading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
+  // Server-passed token may be stale; keep a fresh copy client-side
+  const tokenRef = useRef(token)
+  useEffect(() => {
+    fetch('/api/token').then(r => r.ok ? r.json() : null).then(d => { if (d?.token) tokenRef.current = d.token }).catch(() => {})
+  }, [])
 
   const loadEntityGraph = useCallback(() => {
     setGraphLoading(true)
-    api.getEntityGraph(token, projectId)
+    api.getEntityGraph(tokenRef.current, projectId)
       .then(data => setEntityGraph(data))
       .catch(() => {})
       .finally(() => setGraphLoading(false))
-  }, [projectId, token])
+  }, [projectId])
 
   useEffect(() => {
     let active = true
-    const load = () => api.listAssets(token, projectId)
+    const load = () => api.listAssets(tokenRef.current, projectId)
       .then(data => { if (active) { setAssets(data); setLoading(false) } })
       .catch(() => { if (active) setLoading(false) })
     load()
     const id = setInterval(load, 3000)
     return () => { active = false; clearInterval(id) }
-  }, [projectId, token])
+  }, [projectId])
 
   const uploadFile = useCallback(async (file: File) => {
     const kind = KIND_MAP[file.type] || 'text'
     setUploading(u => [...u, { name: file.name, progress: 0 }])
     try {
-      const { upload_url, storage_key, content_type } = await api.getUploadUrl(token, projectId, file.name, kind, file.type || 'application/octet-stream')
+      const { upload_url, storage_key, content_type } = await api.getUploadUrl(tokenRef.current, projectId, file.name, kind, file.type || 'application/octet-stream')
       await fetch(upload_url, { method: 'PUT', body: file, headers: { 'Content-Type': content_type } })
-      const asset = await api.createAsset(token, projectId, { filename: file.name, kind, storage_key })
-      await api.confirmAsset(token, projectId, asset.id)
+      const asset = await api.createAsset(tokenRef.current, projectId, { filename: file.name, kind, storage_key })
+      await api.confirmAsset(tokenRef.current, projectId, asset.id)
       toast(`${file.name} uploaded`, 'success')
     } catch (e: any) {
       toast(`Failed to upload ${file.name}: ${e?.message ?? 'unknown error'}`, 'error')
@@ -74,13 +79,26 @@ export function AssetManager({ projectId, token, platformRole = 'investor' }: { 
 
   const deleteAsset = useCallback(async (assetId: string, filename: string) => {
     try {
-      await api.deleteAsset(token, projectId, assetId)
+      await api.deleteAsset(tokenRef.current, projectId, assetId)
       setAssets(a => a.filter(x => x.id !== assetId))
       toast(`${filename} deleted`, 'success')
     } catch (e: any) {
       toast(`Failed to delete: ${e?.message ?? 'unknown error'}`, 'error')
     }
   }, [token, projectId, toast])
+
+  const [reanalysing, setReanalysing] = useState<Set<string>>(new Set())
+  const reanalyse = useCallback(async (assetId: string) => {
+    setReanalysing(s => new Set(s).add(assetId))
+    try {
+      await api.reanalyseAsset(tokenRef.current, projectId, assetId)
+      toast('Analysis complete', 'success')
+    } catch (e: any) {
+      toast(`Reanalysis failed: ${e?.message ?? 'unknown error'}`, 'error')
+    } finally {
+      setReanalysing(s => { const n = new Set(s); n.delete(assetId); return n })
+    }
+  }, [projectId, toast])
 
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault(); setDragging(false)
@@ -190,7 +208,21 @@ export function AssetManager({ projectId, token, platformRole = 'investor' }: { 
                   </div>
                 )}
 
-                {asset.status === 'ready' && asset.analysis_cache && (
+                {asset.status === 'ready' && asset.analysis_cache && !asset.analysis_cache.summary && (
+                  <div className="mt-3 flex items-center justify-between">
+                    <span className="text-xs text-brown-mid">Analysis not available</span>
+                    <button
+                      onClick={() => reanalyse(asset.id)}
+                      disabled={reanalysing.has(asset.id)}
+                      className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg border border-amber/40 text-amber hover:bg-amber/10 transition-all disabled:opacity-50"
+                    >
+                      {reanalysing.has(asset.id) && <span className="w-3 h-3 border-2 border-amber border-t-transparent rounded-full animate-spin" />}
+                      {reanalysing.has(asset.id) ? 'Analysing…' : 'Run analysis'}
+                    </button>
+                  </div>
+                )}
+
+                {asset.status === 'ready' && asset.analysis_cache && asset.analysis_cache.summary && (
                   <div className="mt-4 pt-4 border-t border-brown-mid/20 grid grid-cols-3 gap-4 animate-fade-in">
                     <div>
                       <div className="label">Summary</div>

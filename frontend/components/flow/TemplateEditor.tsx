@@ -30,7 +30,7 @@ function StepSlider({ value, onChange }: { value: number; onChange: (v: number) 
   )
 }
 
-interface Props { token: string; versions: TemplateVersion[]; initialCells?: TemplateCellInput[] }
+interface Props { token: string; versions: TemplateVersion[]; initialCells?: TemplateCellInput[]; useCase: string }
 
 interface CellState extends TemplateCellInput {
   _mode: 'prompt' | 'characteristics'
@@ -38,7 +38,7 @@ interface CellState extends TemplateCellInput {
 }
 
 const emptyCell = (order: number): CellState => ({
-  topic: '', prompt: '', position_x: 0, position_y: 0, cell_order: order,
+  topic: '', prompt: '', description: '', position_x: 0, position_y: 0, cell_order: order,
   characteristics: [], policy_doc_ids: [],
   _mode: 'prompt', _extracting: false,
 })
@@ -166,7 +166,7 @@ function PolicyDocModal({
 }
 
 // ── Main Editor ─────────────────────────────────────────────────────────────
-export function TemplateEditor({ token, versions: initialVersions, initialCells }: Props) {
+export function TemplateEditor({ token, versions: initialVersions, initialCells, useCase }: Props) {
   const [cells, setCells] = useState<CellState[]>(
     initialCells && initialCells.length > 0 ? initialCells.map(toCell) : [emptyCell(0)]
   )
@@ -228,7 +228,7 @@ export function TemplateEditor({ token, versions: initialVersions, initialCells 
     updateCell(i, { _extracting: true })
     try {
       const result = await api.extractCharacteristics(token, cell.prompt, cell.policy_doc_ids)
-      updateCell(i, { topic: result.topic, characteristics: result.characteristics, _mode: 'characteristics', _extracting: false })
+      updateCell(i, { topic: result.topic, description: result.description ?? '', characteristics: result.characteristics, _mode: 'characteristics', _extracting: false })
     } catch (e: any) {
       setError(e.message || 'Extraction failed')
       updateCell(i, { _extracting: false })
@@ -297,11 +297,11 @@ export function TemplateEditor({ token, versions: initialVersions, initialCells 
     setSaving(true); setError(''); setSaved(false)
     try {
       const payload: TemplateCellInput[] = cells.map((c, i) => ({
-        topic: c.topic, prompt: c.prompt,
+        topic: c.topic, prompt: c.prompt, description: c.description,
         position_x: c.position_x, position_y: c.position_y, cell_order: i,
         characteristics: c.characteristics, policy_doc_ids: c.policy_doc_ids,
       }))
-      await api.publishTemplate(token, payload)
+      await api.publishTemplate(token, payload, useCase)
       const updated = await api.listTemplateVersions(token)
       setVersions(updated)
       setSaved(true)

@@ -1,4 +1,4 @@
-export interface Project { id: string; startup_name: string; sector?: string; stage?: string; status: string; created_at: string }
+export interface Project { id: string; startup_name: string; sector?: string; stage?: string; status: string; is_investable?: boolean | null; decision_notes?: string | null; decided_at?: string | null; created_at: string }
 export interface GraphData {
   nodes: Array<{ id: string; asset_id: string; asset_name: string; kind: string; preview: string }>
   edges: Array<{ source: string; target: string }>
@@ -9,26 +9,48 @@ export interface EntityGraphData {
 }
 export interface Investment extends Project { role: string }
 export interface Asset { id: string; filename: string; kind: string; status: string; analysis_cache?: { entities: string[]; summary: string; topics: string[] }; created_at: string }
-export interface FlowCell { id: string; topic: string; prompt?: string; position_x: number; position_y: number; output_cache?: any }
+export interface FlowCell { id: string; topic: string; prompt?: string; description?: string; position_x: number; position_y: number; output_cache?: any }
 export interface FlowEdge { id: string; from_cell: string; to_cell: string }
 export interface Analysis { id: string; stage: string; content: any; created_at: string }
 export interface Notification { id: string; project_id: string; kind: string; created_at: string }
-export interface TemplateVersion { id: string; version_num: number; status: string; published_at?: string; published_by_email?: string }
+export interface TemplateVersion { id: string; version_num: number; status: string; use_case: string; published_at?: string; published_by_email?: string }
 export interface Characteristic { name: string; strength: number }
-export interface TemplateCellInput { id?: string; topic: string; prompt: string; position_x: number; position_y: number; cell_order: number; characteristics: Characteristic[]; policy_doc_ids: string[] }
+export interface TemplateCellInput { id?: string; topic: string; prompt: string; description?: string; position_x: number; position_y: number; cell_order: number; characteristics: Characteristic[]; policy_doc_ids: string[] }
 export interface UserProfile { id: string; email: string; platform_role: string; can_edit_canvas: boolean }
 export interface PlatformUser { id: string; email: string; platform_role: string; status: string; created_at: string }
 export interface PolicyDoc { id: string; filename: string; storage_key: string; created_at: string }
 export type ActivityEventType =
+  | 'intent'
   | 'search_start' | 'search_done'
   | 'browser_start' | 'screenshot'
   | 'kg_start' | 'kg_done'
   | 'error'
 export interface ActivityEvent { type: ActivityEventType; data: Record<string, any> }
+export interface Workspace { id: string; name: string; description?: string; created_by?: string; created_at: string; member_count?: number }
+export interface WorkspaceMember { user_id: string; email: string; role: string; added_at: string }
+export interface WorkspaceDetail extends Workspace { members: WorkspaceMember[] }
+export interface Application {
+  id: string; founder_name: string; founder_email: string; startup_name: string
+  sector?: string; stage?: string; one_liner?: string; website?: string
+  pitch_doc_key?: string; pitch_doc_name?: string
+  status: 'submitted' | 'reviewing' | 'added' | 'rejected'
+  status_token: string; workspace_id?: string; project_id?: string
+  reviewed_by?: string; reviewed_at?: string; created_at: string
+}
+export interface ApplicationStatus { id: string; startup_name: string; founder_name: string; status: string; created_at: string }
 export type KgEventType = 'kg_snapshot' | 'kg_nodes' | 'kg_edges' | 'kg_done'
 export interface KgEvent { type: KgEventType; data: Record<string, any> }
 
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+
+async function publicFetch<T>(path: string, opts: RequestInit = {}): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', ...opts.headers },
+  })
+  if (!res.ok) throw new Error(`API ${res.status}: ${await res.text()}`)
+  return res.json()
+}
 
 async function getFreshToken(): Promise<string | null> {
   try {
@@ -62,6 +84,8 @@ export const api = {
   listInvestments: (token: string) => apiFetch<Investment[]>('/investments', token),
   deleteProject: (token: string, id: string) =>
     apiFetch(`/projects/${id}`, token, { method: 'DELETE' }),
+  setProjectDecision: (token: string, id: string, is_investable: boolean, notes?: string) =>
+    apiFetch(`/projects/${id}/decision`, token, { method: 'PATCH', body: JSON.stringify({ is_investable, notes }) }),
 
   // Assets
   listAssets: (token: string, projectId: string) => apiFetch<Asset[]>(`/projects/${projectId}/assets`, token),
@@ -71,6 +95,8 @@ export const api = {
     apiFetch(`/projects/${projectId}/assets/${assetId}/confirm`, token, { method: 'POST' }),
   deleteAsset: (token: string, projectId: string, assetId: string) =>
     apiFetch(`/projects/${projectId}/assets/${assetId}`, token, { method: 'DELETE' }),
+  reanalyseAsset: (token: string, projectId: string, assetId: string) =>
+    apiFetch(`/projects/${projectId}/assets/${assetId}/reanalyse`, token, { method: 'POST' }),
   getUploadUrl: (token: string, projectId: string, filename: string, kind: string, content_type: string) =>
     apiFetch<{ upload_url: string; storage_key: string; content_type: string }>(`/projects/${projectId}/assets/upload-url`, token, {
       method: 'POST', body: JSON.stringify({ filename, kind, content_type }),
@@ -85,6 +111,10 @@ export const api = {
     }),
   submitSession: (token: string, projectId: string, sessionId: string) =>
     apiFetch(`/projects/${projectId}/conversation/${sessionId}/submit`, token, { method: 'POST' }),
+  setConfidenceScore: (token: string, projectId: string, sessionId: string, cellId: string, score: number) =>
+    apiFetch(`/projects/${projectId}/conversation/${sessionId}/confidence`, token, {
+      method: 'PATCH', body: JSON.stringify({ cell_id: cellId, score }),
+    }),
   sendVoice: async (token: string, projectId: string, sessionId: string, blob: Blob): Promise<string> => {
     const form = new FormData()
     form.append('audio', blob, 'voice.webm')
@@ -123,16 +153,16 @@ export const api = {
     apiFetch<{ queued: boolean }>(`/projects/${projectId}/competitive-scan`, token, { method: 'POST' }),
 
   // Admin flow template
-  listTemplateVersions: (token: string) =>
-    apiFetch<TemplateVersion[]>('/admin/flow-template/versions', token),
+  listTemplateVersions: (token: string, useCase?: string) =>
+    apiFetch<TemplateVersion[]>(`/admin/flow-template/versions${useCase ? `?use_case=${useCase}` : ''}`, token),
   getTemplateCells: (token: string, versionId: string) =>
     apiFetch<TemplateCellInput[]>(`/admin/flow-template/cells/${versionId}`, token),
   updateCellPolicyDocs: (token: string, cellId: string, policy_doc_ids: string[]) =>
     apiFetch(`/admin/flow-template/cells/${cellId}/policy-docs`, token, {
       method: 'PATCH', body: JSON.stringify({ policy_doc_ids }),
     }),
-  publishTemplate: (token: string, cells: TemplateCellInput[]) =>
-    apiFetch('/admin/flow-template/publish', token, { method: 'POST', body: JSON.stringify({ cells }) }),
+  publishTemplate: (token: string, cells: TemplateCellInput[], useCase: string) =>
+    apiFetch('/admin/flow-template/publish', token, { method: 'POST', body: JSON.stringify({ cells, use_case: useCase }) }),
   promoteVersion: (token: string, versionId: string) =>
     apiFetch(`/admin/flow-template/versions/${versionId}/promote`, token, { method: 'POST' }),
   extractCharacteristics: (token: string, prompt: string, policy_doc_ids: string[] = []) =>
@@ -154,6 +184,53 @@ export const api = {
   // Invites
   inviteUser: (token: string, email: string, project_id: string, role: string) =>
     apiFetch('/admin/invite', token, { method: 'POST', body: JSON.stringify({ email, project_id, role }) }),
+  inviteToWorkspace: (token: string, workspaceId: string, email: string, role: string) =>
+    apiFetch(`/workspaces/${workspaceId}/invite`, token, { method: 'POST', body: JSON.stringify({ email, role }) }),
+
+  // Workspace
+  listWorkspaces: (token: string) => apiFetch<Workspace[]>('/workspaces', token),
+  getWorkspace: (token: string, workspaceId: string) => apiFetch<WorkspaceDetail>(`/workspaces/${workspaceId}`, token),
+  removeWorkspaceMember: (token: string, workspaceId: string, userId: string) =>
+    apiFetch(`/workspaces/${workspaceId}/members/${userId}`, token, { method: 'DELETE' }),
+
+  // Project members
+  listProjectMembers: (token: string, projectId: string) =>
+    apiFetch<Array<{ user_id: string; email: string; role: string }>>(`/projects/${projectId}/members`, token),
+  getMyProjectRole: (token: string, projectId: string) =>
+    apiFetch<{ role: string }>(`/projects/${projectId}/my-role`, token),
+
+  // Apply (public — no auth)
+  submitApplication: (body: {
+    founder_name: string; founder_email: string; startup_name: string
+    sector?: string; stage?: string; one_liner?: string; website?: string
+    pitch_doc_key?: string; pitch_doc_name?: string
+  }) => publicFetch<{ id: string; status_token: string; startup_name: string }>('/apply', { method: 'POST', body: JSON.stringify(body) }),
+  getApplyUploadUrl: (filename: string, content_type: string) =>
+    publicFetch<{ upload_url: string; storage_key: string }>('/apply/upload-url', { method: 'POST', body: JSON.stringify({ filename, content_type }) }),
+  getApplicationStatus: (token: string) => publicFetch<ApplicationStatus>(`/apply/status/${token}`),
+
+  // Applications (admin)
+  listApplications: (token: string) => apiFetch<Application[]>('/applications', token),
+  getApplication: (token: string, id: string) => apiFetch<Application>(`/applications/${id}`, token),
+  updateApplicationStatus: (token: string, id: string, status: string) =>
+    apiFetch(`/applications/${id}/status`, token, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  addApplicationToWorkspace: (token: string, appId: string, workspaceId: string) =>
+    apiFetch<{ project_id: string; workspace_id: string }>(`/applications/${appId}/add-to-workspace`, token, {
+      method: 'POST', body: JSON.stringify({ workspace_id: workspaceId }),
+    }),
+
+  // Workspaces
+  listWorkspaces: (token: string) => apiFetch<Workspace[]>('/workspaces', token),
+  createWorkspace: (token: string, body: { name: string; description?: string }) =>
+    apiFetch<Workspace>('/workspaces', token, { method: 'POST', body: JSON.stringify(body) }),
+  getWorkspace: (token: string, id: string) => apiFetch<WorkspaceDetail>(`/workspaces/${id}`, token),
+  listWorkspaceProjects: (token: string, id: string) => apiFetch<Project[]>(`/workspaces/${id}/projects`, token),
+  createWorkspaceProject: (token: string, workspaceId: string, body: { startup_name: string; sector?: string; stage?: string }) =>
+    apiFetch<Project>(`/workspaces/${workspaceId}/projects`, token, { method: 'POST', body: JSON.stringify(body) }),
+  addWorkspaceMember: (token: string, workspaceId: string, email: string, role = 'member') =>
+    apiFetch(`/workspaces/${workspaceId}/members`, token, { method: 'POST', body: JSON.stringify({ email, role }) }),
+  removeWorkspaceMember: (token: string, workspaceId: string, userId: string) =>
+    apiFetch(`/workspaces/${workspaceId}/members/${userId}`, token, { method: 'DELETE' }),
 
   // User / admin control
   getMe: (token: string) => apiFetch<UserProfile>('/me', token),
@@ -213,6 +290,8 @@ export function streamKgFeed(
   return () => ctrl.abort()
 }
 
+export interface CitationSource { id: string; name: string; url?: string }
+
 export function streamAnswer(
   projectId: string,
   sessionId: string,
@@ -220,8 +299,9 @@ export function streamAnswer(
   cellId: string,
   token: string,
   onToken: (t: string) => void,
-  onDone: (sources: string[]) => void,
+  onDone: (sources: CitationSource[]) => void,
   onTraversal?: (data: { seeds: Array<{id: string; asset_id: string; relevance: number; preview: string}>; total_nodes: number; source_ids: string[] }) => void,
+  onError?: (msg: string) => void,
 ) {
   const url = `${BASE}/projects/${projectId}/conversation/${sessionId}/stream?message=${encodeURIComponent(message)}&cell_id=${encodeURIComponent(cellId)}`
   fetch(url, { headers: { Authorization: `Bearer ${token}` } }).then(async (res) => {
@@ -233,11 +313,14 @@ export function streamAnswer(
       const lines = dec.decode(value).split('\n')
       for (const line of lines) {
         if (!line.startsWith('data: ')) continue
-        const data = JSON.parse(line.slice(6))
-        if (data.type === 'traversal') onTraversal?.(data)
-        if (data.type === 'token') onToken(data.token)
-        if (data.type === 'done') onDone(data.sources || [])
+        try {
+          const data = JSON.parse(line.slice(6))
+          if (data.type === 'traversal') onTraversal?.(data)
+          if (data.type === 'token') onToken(data.token)
+          if (data.type === 'done') onDone(data.sources || [])
+          if (data.type === 'error') { onError?.(data.message); onDone([]) }
+        } catch {}
       }
     }
-  })
+  }).catch(e => { onError?.(e?.message ?? 'Stream failed'); onDone([]) })
 }

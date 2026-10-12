@@ -99,7 +99,6 @@ async def update_project_if_ready(db: asyncpg.Pool, project_id: str) -> bool:
                     "SELECT * FROM flow_template_cells WHERE version_id=$1 ORDER BY cell_order",
                     str(version["id"]),
                 )
-                import json as _json
                 COLS, COL_GAP, ROW_GAP, PAD = 3, 560.0, 300.0, 80.0
                 for i, tc in enumerate(template_cells):
                     await db.execute(
@@ -109,7 +108,7 @@ async def update_project_if_ready(db: asyncpg.Pool, project_id: str) -> bool:
                         project_id, str(tc["id"]), tc["topic"], tc["prompt"],
                         PAD + (i % COLS) * COL_GAP,
                         PAD + (i // COLS) * ROW_GAP,
-                        _json.dumps(tc["characteristics"] or []),
+                        tc["characteristics"] or [],
                         list(tc["policy_doc_ids"] or []),
                     )
         return True

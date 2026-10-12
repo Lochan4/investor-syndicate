@@ -7,9 +7,10 @@ interface Props {
   token: string
   projectId: string
   projectName: string
+  workspaceId?: string
 }
 
-export function DeleteProjectButton({ token, projectId, projectName }: Props) {
+export function DeleteProjectButton({ token, projectId, projectName, workspaceId }: Props) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -18,15 +19,14 @@ export function DeleteProjectButton({ token, projectId, projectName }: Props) {
   async function handleDelete() {
     setLoading(true)
     setError('')
+    const back = workspaceId ? `/workspaces/${workspaceId}` : '/workspaces'
     try {
       await api.deleteProject(token, projectId)
-      router.push('/projects')
-      router.refresh()
+      router.push(back)
     } catch (e: any) {
       // 404 means project is already gone — treat as success
       if (e?.message?.includes('404')) {
-        router.push('/projects')
-        router.refresh()
+        router.push(back)
         return
       }
       setError(e?.message ?? 'Failed to delete')

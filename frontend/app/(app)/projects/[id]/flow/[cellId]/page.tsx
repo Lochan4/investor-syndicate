@@ -10,25 +10,25 @@ export default async function CellPage({ params }: { params: { id: string; cellI
   const cell = cells.cells.find((c: any) => c.id === params.cellId)
 
   return (
-    <div className="h-screen flex flex-col bg-background" data-testid="cell-chat">
+    <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', flexDirection: 'column', background: 'var(--background, #FAFAF8)' }} data-testid="cell-chat">
       <div className="px-6 py-3 border-b border-stroke flex items-center gap-3 bg-surface">
         <a href={`/projects/${params.id}/flow`} className="text-muted hover:text-ink transition-colors text-sm">← Flow</a>
         <span className="text-stroke">|</span>
-        <h2 className="font-semibold text-ink text-sm">{cell?.topic || 'Cell'}</h2>
+        <h2 className="font-semibold text-amber-600 text-sm">{cell?.topic || 'Cell'}</h2>
       </div>
       <div className="flex-1 flex overflow-hidden">
-        <div className="w-[58%] border-r border-stroke flex flex-col overflow-hidden">
-          <ConversationPanel
+        <div className="w-[42%] border-r border-stroke flex flex-col overflow-hidden">
+          <AssistantPanel
             projectId={params.id}
             cellId={params.cellId}
-            cellTopic={cell?.topic}
             token={accessToken!}
           />
         </div>
         <div className="flex-1 flex flex-col overflow-hidden">
-          <AssistantPanel
+          <ConversationPanel
             projectId={params.id}
             cellId={params.cellId}
+            cellTopic={cell?.topic}
             token={accessToken!}
           />
         </div>

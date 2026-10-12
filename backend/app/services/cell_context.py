@@ -50,6 +50,21 @@ async def pop_activities(project_id: str, cell_id: str, cursor: int) -> list[dic
     return [json.loads(e) for e in raw]
 
 
+async def push_kg_event(project_id: str, event_type: str, data: dict) -> None:
+    """RPUSH kg:{project_id}, 2h TTL — KG build progress events."""
+    r = await _redis()
+    key = f"kg:{project_id}"
+    await r.rpush(key, json.dumps({"type": event_type, "data": data}))
+    await r.expire(key, 2 * 3600)
+
+
+async def pop_kg_events(project_id: str, cursor: int) -> list[dict]:
+    """LRANGE kg:{project_id} from cursor to end."""
+    r = await _redis()
+    raw = await r.lrange(f"kg:{project_id}", cursor, -1)
+    return [json.loads(e) for e in raw]
+
+
 async def get_all_turns(project_id: str, cell_id: str) -> list[dict]:
     """KEYS cell_ctx:{pid}:{cid}:* — LRANGE all, return list of {user_id, turns}."""
     r = await _redis()

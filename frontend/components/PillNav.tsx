@@ -6,10 +6,11 @@ import { Icons } from './Icons'
 
 const NAV = [
   { href: '/investments', label: 'Investments', icon: Icons.Chart },
-  { href: '/dashboard',   label: 'Projects',    icon: Icons.Folder },
+  { href: '/workspaces',  label: 'Workspaces',  icon: Icons.Workspace },
 ]
 
 const CANVAS_EDITOR_ROLES = new Set(['super_admin', 'admin', 'developer'])
+const ADMIN_ROLES = new Set(['super_admin', 'admin'])
 
 const DROPDOWN_ITEMS = [
   { href: '/settings',                       label: 'Admin Control' },
@@ -19,9 +20,16 @@ const DROPDOWN_ITEMS = [
 export function PillNav({ role }: { role?: string }) {
   const path = usePathname() ?? ''
   const [open, setOpen] = useState(false)
+  const [hovered, setHovered] = useState(false)
   const dropRef = useRef<HTMLDivElement>(null)
   const canEdit = CANVAS_EDITOR_ROLES.has(role ?? '')
+  const isAdmin = ADMIN_ROLES.has(role ?? '')
   const settingsActive = path === '/settings' || path.startsWith('/admin/settings')
+  const listActive = path === '/admin/inbox' || path.startsWith('/admin/inbox')
+
+  // Auto-hide on conversation (flow cell) pages — show only on hover
+  const autoHide = /\/projects\/[^/]+\/flow\/[^/]+/.test(path)
+  const visible = !autoHide || hovered || open
 
   useEffect(() => {
     if (!open) return
@@ -33,13 +41,21 @@ export function PillNav({ role }: { role?: string }) {
   }, [open])
 
   return (
+    // Hover zone: always in the DOM and positioned, intercepts mouse even when pill is invisible
     <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
         position: 'fixed',
-        top: 20,
+        top: 0,
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 50,
+        padding: '20px 40px 16px',  // generous hit area above and around the pill
+      }}
+    >
+    <div
+      style={{
         display: 'flex',
         alignItems: 'center',
         gap: 2,
@@ -48,6 +64,9 @@ export function PillNav({ role }: { role?: string }) {
         borderRadius: 9999,
         border: '1px solid rgba(141,90,43,0.14)',
         boxShadow: '0 4px 24px rgba(141,90,43,0.13), 0 1px 4px rgba(141,90,43,0.07)',
+        opacity: visible ? 1 : 0,
+        pointerEvents: visible ? 'auto' : 'none',
+        transition: 'opacity 0.2s ease',
       }}
     >
       {NAV.map(({ href, label, icon: Icon }) => {
@@ -71,6 +90,23 @@ export function PillNav({ role }: { role?: string }) {
         )
       })}
 
+      {isAdmin && (
+        <Link
+          href="/admin/inbox"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 7,
+            padding: '8px 18px', borderRadius: 9999, fontSize: 13,
+            fontWeight: listActive ? 700 : 500, textDecoration: 'none',
+            transition: 'all 0.15s ease',
+            background: listActive ? '#D47E30' : 'transparent',
+            color: listActive ? '#FEFCF5' : '#8D5A2B',
+          }}
+        >
+          <span style={{ display: 'flex', opacity: listActive ? 1 : 0.7 }}><Icons.List /></span>
+          List
+        </Link>
+      )}
+
       {canEdit && (
         <div ref={dropRef} style={{ position: 'relative' }}>
           <button
@@ -78,13 +114,13 @@ export function PillNav({ role }: { role?: string }) {
             style={{
               display: 'flex', alignItems: 'center', gap: 7,
               padding: '8px 18px', borderRadius: 9999, fontSize: 13,
-              fontWeight: settingsActive || open ? 700 : 500,
+              fontWeight: settingsActive ? 700 : 500,
               border: 'none', cursor: 'pointer', transition: 'all 0.15s ease',
-              background: settingsActive || open ? '#D47E30' : 'transparent',
-              color: settingsActive || open ? '#FEFCF5' : '#8D5A2B',
+              background: settingsActive ? '#D47E30' : open ? 'rgba(141,90,43,0.10)' : 'transparent',
+              color: settingsActive ? '#FEFCF5' : '#8D5A2B',
             }}
           >
-            <span style={{ display: 'flex', opacity: settingsActive || open ? 1 : 0.7 }}>
+            <span style={{ display: 'flex', opacity: settingsActive ? 1 : 0.7 }}>
               <Icons.Flow />
             </span>
             Settings
@@ -140,6 +176,7 @@ export function PillNav({ role }: { role?: string }) {
           )}
         </div>
       )}
+    </div>
     </div>
   )
 }

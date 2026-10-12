@@ -29,6 +29,15 @@ async def list_flow_cells(
     edges = await db.fetch(
         "SELECT * FROM flow_edges WHERE project_id=$1", project_id
     )
+    # Self-heal: if cells exist but no edges, create sequential ones
+    if rows and not edges:
+        for i in range(len(rows) - 1):
+            await db.execute(
+                """INSERT INTO flow_edges(project_id, from_cell, to_cell)
+                   VALUES($1,$2,$3) ON CONFLICT DO NOTHING""",
+                project_id, str(rows[i]["id"]), str(rows[i + 1]["id"]),
+            )
+        edges = await db.fetch("SELECT * FROM flow_edges WHERE project_id=$1", project_id)
     return {"cells": [dict(r) for r in rows], "edges": [dict(r) for r in edges]}
 
 
@@ -112,13 +121,24 @@ async def open_flow(
         pos_x = PAD + (i % COLS) * COL_GAP
         pos_y = PAD + (i // COLS) * ROW_GAP
         await db.execute(
-            """INSERT INTO flow_cells(project_id, template_cell_id, topic, prompt, position_x, position_y, characteristics, policy_doc_ids)
-               VALUES($1,$2,$3,$4,$5,$6,$7,$8)
+            """INSERT INTO flow_cells(project_id, template_cell_id, topic, prompt, description, position_x, position_y, characteristics, policy_doc_ids)
+               VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)
                ON CONFLICT DO NOTHING""",
-            project_id, str(tc["id"]), tc["topic"], tc["prompt"],
+            project_id, str(tc["id"]), tc["topic"], tc["prompt"], tc.get("description"),
             pos_x, pos_y,
             json.dumps(tc["characteristics"] or []),
             list(tc["policy_doc_ids"] or []),
+        )
+
+    # Create sequential edges: cell[0] → cell[1] → cell[2] …
+    inserted = await db.fetch(
+        "SELECT id FROM flow_cells WHERE project_id=$1 ORDER BY created_at", project_id
+    )
+    for i in range(len(inserted) - 1):
+        await db.execute(
+            """INSERT INTO flow_edges(project_id, from_cell, to_cell)
+               VALUES($1,$2,$3) ON CONFLICT DO NOTHING""",
+            project_id, str(inserted[i]["id"]), str(inserted[i + 1]["id"]),
         )
 
     await db.execute("UPDATE projects SET status='open' WHERE id=$1", project_id)
@@ -151,15 +171,26 @@ async def relayout_flow(
 
 @router.get("/admin/flow-template/versions")
 async def list_template_versions(
+    use_case: str | None = None,
     user: CurrentUser = Depends(require_canvas_editor),
     db: asyncpg.Pool = Depends(get_db),
 ):
-    rows = await db.fetch(
-        """SELECT ftv.*, u.email AS published_by_email
-           FROM flow_template_versions ftv
-           LEFT JOIN users u ON u.id = ftv.published_by
-           ORDER BY ftv.version_num DESC"""
-    )
+    if use_case:
+        rows = await db.fetch(
+            """SELECT ftv.*, u.email AS published_by_email
+               FROM flow_template_versions ftv
+               LEFT JOIN users u ON u.id = ftv.published_by
+               WHERE ftv.use_case = $1
+               ORDER BY ftv.version_num DESC""",
+            use_case,
+        )
+    else:
+        rows = await db.fetch(
+            """SELECT ftv.*, u.email AS published_by_email
+               FROM flow_template_versions ftv
+               LEFT JOIN users u ON u.id = ftv.published_by
+               ORDER BY ftv.version_num DESC"""
+        )
     return [dict(r) for r in rows]
 
 
@@ -204,6 +235,7 @@ class Characteristic(BaseModel):
 class TemplateCellBody(BaseModel):
     topic: str
     prompt: str
+    description: str | None = None
     position_x: float = 0.0
     position_y: float = 0.0
     cell_order: int = 0
@@ -213,6 +245,7 @@ class TemplateCellBody(BaseModel):
 
 class PublishBody(BaseModel):
     cells: list[TemplateCellBody]
+    use_case: str = 'startup_project_analysis'
 
 
 @router.post("/admin/flow-template/publish", status_code=201)
@@ -230,9 +263,9 @@ async def publish_template(
                 "SELECT COALESCE(MAX(version_num), 0) FROM flow_template_versions"
             )
             new_version = await conn.fetchrow(
-                """INSERT INTO flow_template_versions(version_num, status, published_by, published_at)
-                   VALUES($1,'live',$2,now()) RETURNING id, version_num""",
-                max_ver + 1, user.id,
+                """INSERT INTO flow_template_versions(version_num, status, use_case, published_by, published_at)
+                   VALUES($1,'live',$2,$3,now()) RETURNING id, version_num""",
+                max_ver + 1, body.use_case, user.id,
             )
             version_id = str(new_version["id"])
             for cell in body.cells:
@@ -240,9 +273,9 @@ async def publish_template(
                 doc_ids = [uuid.UUID(d) for d in cell.policy_doc_ids]
                 await conn.execute(
                     """INSERT INTO flow_template_cells
-                         (version_id, topic, prompt, position_x, position_y, cell_order, characteristics, policy_doc_ids)
-                       VALUES($1,$2,$3,$4,$5,$6,$7,$8)""",
-                    version_id, cell.topic, cell.prompt,
+                         (version_id, topic, prompt, description, position_x, position_y, cell_order, characteristics, policy_doc_ids)
+                       VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)""",
+                    version_id, cell.topic, cell.prompt, cell.description,
                     cell.position_x, cell.position_y, cell.cell_order, chars, doc_ids,
                 )
     return {"version_id": version_id, "version_num": new_version["version_num"]}
@@ -326,10 +359,11 @@ async def confirm_policy_doc(
 EXTRACT_PROMPT = """\
 You are an investment evaluation system. Given the analysis prompt below, extract:
 1. A short cell name (1-3 words, e.g. "Team", "Market Size", "Traction")
-2. 3-6 key evaluation characteristics/criteria that this prompt is measuring
+2. A short description (2-3 sentences, max 60 words) explaining what this cell evaluates and why it matters for investment decisions
+3. 3-6 key evaluation characteristics/criteria that this prompt is measuring
 
 {policy_section}Return ONLY valid JSON in this exact shape:
-{{"topic": "...", "characteristics": [{{"name": "...", "strength": 5}}]}}
+{{"topic": "...", "description": "...", "characteristics": [{{"name": "...", "strength": 5}}]}}
 
 Prompt:
 {prompt}"""

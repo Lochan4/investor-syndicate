@@ -2,6 +2,28 @@
 import { useState } from 'react'
 import { ActivityEvent } from '@/lib/api'
 
+function IntentCard({ data }: { data: any }) {
+  const queries: string[] = data.queries || []
+  return (
+    <div className="card animate-fade-in border-l-2 border-l-amber">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="w-2 h-2 rounded-full bg-amber shrink-0" />
+        <span className="label mb-0">Intent classified</span>
+      </div>
+      {data.intent && (
+        <p className="text-xs text-ink mb-2">{data.intent}</p>
+      )}
+      {queries.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {queries.map((q, i) => (
+            <span key={i} className="text-xs bg-amber/10 text-amber-700 px-2 py-0.5 rounded-full">{q}</span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function SearchStartCard({ data }: { data: any }) {
   return (
     <div className="card animate-fade-in">
@@ -116,6 +138,7 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
     <div className="space-y-3">
       {events.map((e, i) => {
         switch (e.type) {
+          case 'intent':         return <IntentCard        key={i} data={e.data} />
           case 'search_start':   return <SearchStartCard   key={i} data={e.data} />
           case 'search_done':    return <SearchDoneCard    key={i} data={e.data} />
           case 'browser_start':  return <BrowserStartCard  key={i} data={e.data} />

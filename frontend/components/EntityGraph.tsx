@@ -58,27 +58,23 @@ export function EntityGraph({ data }: Props) {
 
     root.render(
       <ForceGraph2D
-        ref={fgRef}
+        ref={(fg: any) => {
+          if (fg && !fgRef.current) {
+            fgRef.current = fg
+            // Set forces before first tick so nodes spread from the start
+            fg.d3Force('charge')?.strength(-800)
+            fg.d3Force('link')?.distance(200)
+            fg.d3Force('center')?.strength(0.05)
+          }
+        }}
         graphData={graphData}
         width={w}
         height={h}
         nodeLabel="name"
         nodeRelSize={1}
-        // Strong repulsion + long link distance = spread out graph
-        d3AlphaDecay={0.01}
-        d3VelocityDecay={0.2}
+        d3AlphaDecay={0.02}
+        d3VelocityDecay={0.3}
         cooldownTicks={300}
-        warmupTicks={50}
-        onEngineStop={() => {
-          // Tune forces after engine initialises — this is the key fix
-          if (fgRef.current) {
-            fgRef.current.d3Force('charge')?.strength(-600)
-            fgRef.current.d3Force('link')?.distance(180)
-            fgRef.current.d3Force('center')?.strength(0.03)
-            // Restart sim with new forces
-            fgRef.current.d3ReheatSimulation()
-          }
-        }}
         nodeCanvasObject={(node, ctx, globalScale) => {
           const n = node as any
           const r = n.r ?? 8

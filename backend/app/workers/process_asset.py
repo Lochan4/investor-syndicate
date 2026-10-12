@@ -5,7 +5,7 @@ ctx["db"] must be an asyncpg.Pool, injected by WorkerSettings.
 from __future__ import annotations
 import httpx
 
-from app.services import asset_analysis, graph, ner
+from app.services import asset_analysis, cell_context, graph, ner
 from app.services import chunker, embeddings, llm
 from app.services.extractors import pdf, spreadsheet, audio, image
 from app.services.storage import presigned_download_url
@@ -68,6 +68,24 @@ async def process_asset(ctx: dict, asset_id: str) -> None:
             [(asset_id, project_id, i, chunks[i], str(vectors[i])) for i in range(len(chunks))],
         )
 
+        # emit KG node events so the frontend can stream the graph as it builds
+        try:
+            chunk_meta = await db.fetch(
+                """SELECT c.id, c.text, a.filename, a.kind, a.id AS asset_id
+                   FROM chunks c JOIN assets a ON c.asset_id = a.id
+                   WHERE c.asset_id = $1 ORDER BY c.chunk_index""",
+                asset_id,
+            )
+            nodes_payload = [
+                {"id": str(r["id"]), "asset_id": str(r["asset_id"]),
+                 "asset_name": r["filename"], "kind": r["kind"],
+                 "preview": r["text"][:120] + ("…" if len(r["text"]) > 120 else "")}
+                for r in chunk_meta
+            ]
+            await cell_context.push_kg_event(project_id, "kg_nodes", {"nodes": nodes_payload})
+        except Exception:
+            pass  # non-fatal
+
         # 5. NER — one call on the full document, not one per chunk
         # ponytail: doc-level NER; per-chunk linking adds no retrieval value since
         #           traversal uses chunk_edges (NEXT/SIMILAR_TO), not chunk_mentions
@@ -98,6 +116,20 @@ async def process_asset(ctx: dict, asset_id: str) -> None:
         await graph.build_next_edges(db, asset_id)
         await graph.build_similarity_edges(db, asset_id)
         await graph.update_project_if_ready(db, project_id)
+
+        # emit KG edge events
+        try:
+            edge_rows = await db.fetch(
+                """SELECT from_chunk::text, to_chunk::text
+                   FROM chunk_edges
+                   WHERE from_chunk IN (SELECT id FROM chunks WHERE asset_id=$1)""",
+                asset_id,
+            )
+            edges_payload = [{"source": str(e["from_chunk"]), "target": str(e["to_chunk"])} for e in edge_rows]
+            await cell_context.push_kg_event(project_id, "kg_edges", {"edges": edges_payload})
+            await cell_context.push_kg_event(project_id, "kg_done", {"asset_id": asset_id, "chunks": len(chunks)})
+        except Exception:
+            pass  # non-fatal
 
     except Exception as exc:
         # Mark asset failed so it doesn't stay stuck in 'processing'

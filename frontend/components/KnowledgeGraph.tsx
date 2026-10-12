@@ -16,115 +16,149 @@ const KIND_COLOR: Record<string, { bg: string; border: string; text: string }> =
 }
 const DEFAULT_KIND = { bg: '#F8FAFC', border: '#94A3B8', text: '#475569' }
 
-function computeLayout(nodes: GraphData['nodes']) {
-  const groups: Record<string, GraphData['nodes']> = {}
-  for (const n of nodes) {
-    if (!groups[n.asset_id]) groups[n.asset_id] = []
-    groups[n.asset_id].push(n)
-  }
-  const assetIds = Object.keys(groups)
-  const positions: Record<string, { x: number; y: number }> = {}
+const CHUNK_COLS = 5
+const CHUNK_GAP  = 80   // px between chunk nodes
+const GROUP_GAP  = 180  // horizontal gap between asset groups
+const ASSET_Y    = 0    // asset parent node Y
+const CHUNKS_Y   = 100  // chunks start Y (below parent)
 
-  // Each doc gets its own column-group; chunks laid out in a grid within it
-  const COLS = 4          // chunks per row within a doc group
-  const COL_GAP = 200     // px between chunk columns
-  const ROW_GAP = 200     // px between chunk rows
-  const GROUP_GAP = 300   // extra horizontal gap between doc groups
-
-  let groupOffsetX = 0
-  assetIds.forEach((assetId) => {
-    const chunks = groups[assetId]
-    const groupCols = Math.min(chunks.length, COLS)
-    chunks.forEach((chunk, ci) => {
-      const col = ci % COLS
-      const row = Math.floor(ci / COLS)
-      positions[chunk.id] = {
-        x: groupOffsetX + col * COL_GAP,
-        y: row * ROW_GAP,
-      }
-    })
-    groupOffsetX += groupCols * COL_GAP + GROUP_GAP
-  })
-
-  return positions
-}
-
-function buildRfNodes(
+function buildGraphElements(
   dataNodes: GraphData['nodes'],
+  dataEdges: GraphData['edges'],
   highlightIds?: Set<string>,
   newIds?: Set<string>,
-): Node[] {
-  const positions = computeLayout(dataNodes)
-  return dataNodes.map(n => {
-    const col = KIND_COLOR[n.kind] ?? DEFAULT_KIND
-    const highlighted = highlightIds?.has(n.id)
-    const isNew = newIds?.has(n.id)
-    return {
-      id: n.id,
-      position: positions[n.id] ?? { x: 0, y: 0 },
-      data: { label: '', preview: n.preview, assetName: n.asset_name, kind: n.kind },
+): { nodes: Node[]; edges: Edge[] } {
+  // Group chunks by asset
+  const groups: Record<string, GraphData['nodes']> = {}
+  const assetMeta: Record<string, { name: string; kind: string }> = {}
+  for (const n of dataNodes) {
+    if (!groups[n.asset_id]) {
+      groups[n.asset_id] = []
+      assetMeta[n.asset_id] = { name: n.asset_name, kind: n.kind }
+    }
+    groups[n.asset_id].push(n)
+  }
+
+  const rfNodes: Node[] = []
+  const rfEdges: Edge[] = []
+
+  let groupOffsetX = 0
+
+  for (const [assetId, chunks] of Object.entries(groups)) {
+    const { name, kind } = assetMeta[assetId]
+    const col = KIND_COLOR[kind] ?? DEFAULT_KIND
+    const groupCols = Math.min(chunks.length, CHUNK_COLS)
+    const groupWidth = groupCols * CHUNK_GAP
+
+    // ── Asset parent node ─────────────────────────────────
+    const assetNodeId = `asset-${assetId}`
+    rfNodes.push({
+      id: assetNodeId,
+      position: { x: groupOffsetX + groupWidth / 2 - 60, y: ASSET_Y },
+      data: { label: name.length > 24 ? name.slice(0, 22) + '…' : name },
       style: {
-        width: 10,
-        height: 10,
-        borderRadius: '50%',
-        background: highlighted ? '#D97706' : col.bg,
-        border: `2px solid ${highlighted ? '#B45309' : col.border}`,
-        boxShadow: highlighted ? '0 0 8px rgba(217,119,6,0.6)' : undefined,
-        cursor: 'pointer',
-        // animate new nodes popping in
-        animation: isNew ? 'kg-node-in 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards' : undefined,
-        opacity: isNew ? 0 : 1,
+        width: 120,
+        height: 32,
+        borderRadius: 16,
+        background: col.bg,
+        border: `2px solid ${col.border}`,
+        color: col.text,
+        fontSize: 11,
+        fontWeight: 600,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'default',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
       },
       type: 'default',
-    }
-  })
-}
+    })
 
-function buildRfEdges(edges: GraphData['edges'], animated = false): Edge[] {
-  return edges.map((e, i) => ({
-    id: `e-${i}`,
-    source: e.source,
-    target: e.target,
-    style: { stroke: '#CBD5E1', strokeWidth: 1, opacity: 0.4 },
-    animated,
-  }))
+    // ── Chunk nodes ───────────────────────────────────────
+    chunks.forEach((chunk, ci) => {
+      const cx = groupOffsetX + (ci % CHUNK_COLS) * CHUNK_GAP
+      const cy = CHUNKS_Y + Math.floor(ci / CHUNK_COLS) * CHUNK_GAP
+      const highlighted = highlightIds?.has(chunk.id)
+      const isNew = newIds?.has(chunk.id)
+
+      rfNodes.push({
+        id: chunk.id,
+        position: { x: cx, y: cy },
+        data: { label: '', preview: chunk.preview, assetName: name, kind },
+        style: {
+          width: 10,
+          height: 10,
+          borderRadius: '50%',
+          background: highlighted ? '#D97706' : col.bg,
+          border: `2px solid ${highlighted ? '#B45309' : col.border}`,
+          boxShadow: highlighted ? '0 0 8px rgba(217,119,6,0.6)' : undefined,
+          cursor: 'pointer',
+          animation: isNew ? 'kg-node-in 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards' : undefined,
+          opacity: isNew ? 0 : 1,
+        },
+        type: 'default',
+      })
+
+      // Edge: asset → chunk
+      rfEdges.push({
+        id: `parent-${assetId}-${ci}`,
+        source: assetNodeId,
+        target: chunk.id,
+        style: { stroke: col.border, strokeWidth: 1, opacity: 0.25 },
+        animated: false,
+      })
+    })
+
+    groupOffsetX += groupCols * CHUNK_GAP + GROUP_GAP
+  }
+
+  // ── KG similarity / next edges ────────────────────────
+  dataEdges.forEach((e, i) => {
+    rfEdges.push({
+      id: `kg-${i}`,
+      source: e.source,
+      target: e.target,
+      style: { stroke: '#CBD5E1', strokeWidth: 1, opacity: 0.35 },
+      animated: false,
+    })
+  })
+
+  return { nodes: rfNodes, edges: rfEdges }
 }
 
 interface Props {
   data: GraphData
   highlightIds?: Set<string>
-  isLive?: boolean  // true while an asset is being processed — animates edges
+  isLive?: boolean
 }
 
 export function KnowledgeGraph({ data, highlightIds, isLive }: Props) {
   const [tooltip, setTooltip] = useState<{ x: number; y: number; text: string } | null>(null)
-  const prevNodeIds = useRef(new Set<string>())
+  const prevNodeIds = useRef<string>('')
 
-  const initialNodes = useMemo(
-    () => buildRfNodes(data.nodes, highlightIds, new Set()),
+  const initial = useMemo(
+    () => buildGraphElements(data.nodes, data.edges, highlightIds, new Set()),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   )
-  const initialEdges = useMemo(() => buildRfEdges(data.edges, isLive), []) // eslint-disable-line
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
+  const [nodes, setNodes, onNodesChange] = useNodesState(initial.nodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initial.edges)
 
-  // Sync nodes from data prop — detect new ones and animate them
+  // Only rebuild when node IDs actually change (not on every poll re-render)
   useEffect(() => {
-    const newIds = new Set(
-      data.nodes.filter(n => !prevNodeIds.current.has(n.id)).map(n => n.id)
-    )
-    prevNodeIds.current = new Set(data.nodes.map(n => n.id))
-    setNodes(buildRfNodes(data.nodes, highlightIds, newIds))
-  }, [data.nodes, highlightIds]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Sync edges from data prop
-  useEffect(() => {
-    setEdges(buildRfEdges(data.edges, isLive))
-  }, [data.edges, isLive]) // eslint-disable-line react-hooks/exhaustive-deps
+    const key = data.nodes.map(n => n.id).sort().join(',')
+    if (key === prevNodeIds.current) return
+    const prevSet = new Set(prevNodeIds.current.split(',').filter(Boolean))
+    prevNodeIds.current = key
+    const newIds = new Set(data.nodes.filter(n => !prevSet.has(n.id)).map(n => n.id))
+    const { nodes: n, edges: e } = buildGraphElements(data.nodes, data.edges, highlightIds, newIds)
+    setNodes(n)
+    setEdges(e)
+  }, [data.nodes, data.edges, highlightIds]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const onNodeMouseEnter = useCallback((_: React.MouseEvent, node: Node) => {
+    if (!node.data.preview) return
     setTooltip({ x: node.position.x, y: node.position.y, text: `${node.data.assetName}: ${node.data.preview}` })
   }, [])
   const onNodeMouseLeave = useCallback(() => setTooltip(null), [])
@@ -157,7 +191,6 @@ export function KnowledgeGraph({ data, highlightIds, isLive }: Props) {
 
   return (
     <>
-      {/* inject keyframe via style tag — one per page mount, harmless */}
       <style>{`
         @keyframes kg-node-in {
           from { opacity: 0; transform: scale(0.1); }
@@ -181,7 +214,7 @@ export function KnowledgeGraph({ data, highlightIds, isLive }: Props) {
           onNodeMouseEnter={onNodeMouseEnter}
           onNodeMouseLeave={onNodeMouseLeave}
           fitView
-          fitViewOptions={{ padding: 0.15 }}
+          fitViewOptions={{ padding: 0.2 }}
           nodesDraggable={false}
           nodesConnectable={false}
           elementsSelectable={false}

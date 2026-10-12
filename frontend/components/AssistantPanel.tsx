@@ -8,24 +8,27 @@ export function AssistantPanel({ projectId, cellId, token }: {
 }) {
   const [events, setEvents] = useState<ActivityEvent[]>([])
   const [active, setActive] = useState(false)
-
   useEffect(() => {
-    const stop = streamActivityFeed(projectId, cellId, token, (e) => {
-      setActive(true)
-      setEvents(prev => {
-        // screenshot events replace the previous screenshot — no accumulating large base64 blobs
-        if (e.type === 'screenshot') {
-          const idx = prev.findLastIndex(ev => ev.type === 'screenshot')
-          if (idx >= 0) {
-            const next = [...prev]
-            next[idx] = e
-            return next
+    let stop: (() => void) | undefined
+    const start = (t: string) => {
+      stop = streamActivityFeed(projectId, cellId, t, (e) => {
+        setActive(true)
+        setEvents(prev => {
+          if (e.type === 'screenshot') {
+            const idx = prev.findLastIndex(ev => ev.type === 'screenshot')
+            if (idx >= 0) {
+              const next = [...prev]; next[idx] = e; return next
+            }
           }
-        }
-        return [...prev, e]
+          return [...prev, e]
+        })
       })
-    })
-    return stop
+    }
+    fetch('/api/token')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => start(d?.token || token))
+      .catch(() => start(token))
+    return () => stop?.()
   }, [projectId, cellId, token])
 
   return (

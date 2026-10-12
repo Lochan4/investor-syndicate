@@ -1,22 +1,56 @@
 'use client'
-import ReactFlow, { Background, Controls, Node, Edge, useNodesState, useEdgesState } from 'reactflow'
+import ReactFlow, { Background, Controls, Node, Edge, useNodesState, useEdgesState, MarkerType, Handle, Position } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { FlowCell, FlowEdge } from '@/lib/api'
 import Link from 'next/link'
-import { useMemo, useEffect, useRef } from 'react'
+import { useMemo, useEffect, useRef, useCallback } from 'react'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
 interface Props { projectId: string; cells: FlowCell[]; edges: FlowEdge[]; adminMode?: boolean; token?: string }
 
 function CellNode({ data }: any) {
+  const done = !!data.cell.output_cache
   return (
-    <Link href={`/projects/${data.projectId}/flow/${data.cell.id}`}>
-      <div className="bg-[#FDFBD4] border-2 border-[#8D5A2B] rounded-xl px-5 py-4 min-w-[220px] max-w-[280px] text-center cursor-pointer hover:border-[#D47E30] hover:shadow-md transition-all duration-200">
-        <div className="text-sm font-semibold text-[#825E34] leading-snug">{data.label}</div>
-        {data.cell.output_cache && <div className="text-xs text-[#D47E30] mt-1.5">● Analysed</div>}
+    <>
+      <Handle type="target" position={Position.Left} style={{ background: '#D47E30', border: 'none', width: 8, height: 8 }} />
+      <div className={`border-2 rounded-2xl p-5 w-[260px] shadow-sm transition-all duration-200 hover:shadow-md ${
+        done ? 'bg-[#F0FDF4] border-[#22C55E]' : 'bg-[#FEFDF5] border-[#C4A882]'
+      }`}>
+        {/* Title — Oliver font */}
+        <div style={{ fontFamily: 'Oliver, serif' }}
+          className={`text-base mb-2 leading-tight lowercase ${done ? 'text-[#15803D]' : 'text-[#5C3D1E]'}`}>
+          {data.label}
+        </div>
+
+        {/* Description */}
+        {data.cell.description && (
+          <p className="text-xs text-[#9A7355] leading-relaxed mb-4 line-clamp-4">
+            {data.cell.description}
+          </p>
+        )}
+
+        {/* Analysed badge */}
+        {done && (
+          <div className="flex items-center gap-1.5 text-xs text-[#16A34A] mb-3">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
+            Analysed
+          </div>
+        )}
+
+        {/* Converse button */}
+        <Link
+          href={`/projects/${data.projectId}/flow/${data.cell.id}`}
+          className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold text-white transition-colors duration-150"
+          style={{ background: '#D47E30' }}
+          onMouseEnter={e => (e.currentTarget.style.background = '#B86820')}
+          onMouseLeave={e => (e.currentTarget.style.background = '#D47E30')}
+        >
+          converse →
+        </Link>
       </div>
-    </Link>
+      <Handle type="source" position={Position.Right} style={{ background: '#D47E30', border: 'none', width: 8, height: 8 }} />
+    </>
   )
 }
 
@@ -37,7 +71,6 @@ function tooClose(cells: FlowCell[]): boolean {
 export function FlowCanvas({ projectId, cells, edges, adminMode, token }: Props) {
   const relayoutDone = useRef(false)
 
-  // Auto-relayout once if cells are too close — silently fixes bad stored positions
   useEffect(() => {
     if (!token || relayoutDone.current || cells.length < 2) return
     if (!tooClose(cells)) return
@@ -57,11 +90,16 @@ export function FlowCanvas({ projectId, cells, edges, adminMode, token }: Props)
 
   const rfEdges: Edge[] = useMemo(() => edges.map(e => ({
     id: e.id, source: e.from_cell, target: e.to_cell,
-    style: { stroke: '#D47E30', strokeWidth: 2 },
+    style: { stroke: '#D47E30', strokeWidth: 1.5, strokeDasharray: '6 4' },
+    markerEnd: { type: MarkerType.ArrowClosed, color: '#D47E30', width: 14, height: 14 },
   })), [edges])
 
-  const [rNodes, , onNodesChange] = useNodesState(nodes)
-  const [rEdges, , onEdgesChange] = useEdgesState(rfEdges)
+  const [rNodes, setNodes, onNodesChange] = useNodesState(nodes)
+  const [rEdges, setEdges, onEdgesChange] = useEdgesState(rfEdges)
+
+  // Sync when server re-renders with updated data (e.g. after self-heal creates edges)
+  useEffect(() => { setNodes(nodes) }, [nodes])    // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setEdges(rfEdges) }, [rfEdges]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{ height: '100%', background: '#FCFAF4' }}>
