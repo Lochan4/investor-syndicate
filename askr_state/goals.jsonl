@@ -110,3 +110,7 @@
 {"id": "52e7760c", "text": "Add user auto-upsert logic using 'sub' and 'email' JWT claims", "status": "open", "date": "2026-10-10", "added": "2026-10-10T15:58:11Z", "auto_suggested": true, "done_at": null}
 {"id": "ff81328e", "text": "Implement JWKS client and JWT validation in get_current_user()", "status": "discarded", "date": "2026-10-10", "added": "2026-10-10T15:58:11Z", "auto_suggested": true, "done_at": "2026-10-10T15:59:14Z"}
 {"id": "52e7760c", "text": "Add user auto-upsert logic using 'sub' and 'email' JWT claims", "status": "discarded", "date": "2026-10-10", "added": "2026-10-10T15:58:11Z", "auto_suggested": true, "done_at": "2026-10-10T15:59:14Z"}
+{"id": "eecd2eda", "text": "Implement JWKS client and JWT validation in get_current_user()", "status": "open", "date": "2026-10-14", "added": "2026-10-14T11:35:51Z", "auto_suggested": true, "done_at": null}
+{"id": "f092b150", "text": "Add user auto-upsert logic using 'sub' and 'email' JWT claims", "status": "open", "date": "2026-10-14", "added": "2026-10-14T11:35:51Z", "auto_suggested": true, "done_at": null}
+{"id": "eecd2eda", "text": "Implement JWKS client and JWT validation in get_current_user()", "status": "discarded", "date": "2026-10-14", "added": "2026-10-14T11:35:51Z", "auto_suggested": true, "done_at": "2026-10-16T10:58:06Z"}
+{"id": "f092b150", "text": "Add user auto-upsert logic using 'sub' and 'email' JWT claims", "status": "discarded", "date": "2026-10-14", "added": "2026-10-14T11:35:51Z", "auto_suggested": true, "done_at": "2026-10-16T10:58:06Z"}
