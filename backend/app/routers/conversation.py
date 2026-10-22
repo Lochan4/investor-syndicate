@@ -19,6 +19,39 @@ router = APIRouter(prefix="/projects/{project_id}", tags=["conversation"])
 
 _HAIKU = "claude-haiku-4-5-20251001"
 
+# Jev-style: all cell-level decisions in one Haiku call
+_CELL_JEV_PROMPT = """\
+You are a decision classifier. Answer ALL questions about this message simultaneously.
+Return ONLY valid JSON — no other text. Float values 0.0-1.0. navigation_target is a string.
+
+Activity topic: {topic}
+Activity description: {description}
+Message: "{message}"
+
+{{"is_on_topic": 0.0, "needs_web_search": 0.0, "is_biographical": 0.0, "is_navigation_command": 0.0, "navigation_target": ""}}
+
+Scoring:
+- is_on_topic: 1.0=clearly about the activity topic, 0.0=completely unrelated
+- needs_web_search: 1.0=requires current/external data (market stats, news)
+- is_biographical: 1.0=asking about a person's background, education, career history
+- is_navigation_command: 1.0=asking to go back, exit, or navigate elsewhere"""
+
+
+async def _cell_jev_check(message: str, topic: str, description: str) -> dict:
+    """Jev-style multi-question cell check. Fails open on error."""
+    try:
+        client = _anthropic()
+        msg = await client.messages.create(
+            model=_HAIKU,
+            max_tokens=128,
+            messages=[{"role": "user", "content": _CELL_JEV_PROMPT.format(
+                topic=topic, description=description[:300] if description else "", message=message
+            )}],
+        )
+        return json.loads(msg.content[0].text.strip())
+    except Exception:
+        return {"is_on_topic": 1.0, "needs_web_search": 0.0, "is_biographical": 0.0, "is_navigation_command": 0.0}
+
 
 def _anthropic():
     return get_async_client()
@@ -27,7 +60,7 @@ def _anthropic():
 def _build_system_prompt(cell_row) -> str:
     base = "You are an AI assistant helping investors conduct due diligence."
     if not cell_row:
-        return base + " Answer based on the provided document context. Be concise and accurate."
+        return base + " Answer based on the provided document context. Be concise and accurate. Use plain text only — no markdown, no asterisks for bold, no # headers."
     parts = [base]
     if cell_row["topic"]:
         parts.append(f"You are evaluating the startup on: {cell_row['topic']}.")
@@ -45,7 +78,7 @@ def _build_system_prompt(cell_row) -> str:
             if isinstance(c, dict)
         )
         parts.append(f"Key characteristics to assess (higher importance = weight more heavily):\n{weighted}")
-    parts.append("Answer based on the provided document context. Be concise and accurate.")
+    parts.append("Answer based on the provided document context. Be concise and accurate. Use plain text only — no markdown, no asterisks for bold, no # headers.")
     return "\n\n".join(parts)
 
 
@@ -93,6 +126,89 @@ async def activity_stream(
             await asyncio.sleep(0.5)
 
     return StreamingResponse(event_gen(), media_type="text/event-stream")
+
+
+# ── GET /activities ──────────────────────────────────────
+
+@router.get("/activities")
+async def list_project_activities(
+    project_id: str,
+    user: CurrentUser = Depends(get_current_user),
+    db: asyncpg.Pool = Depends(get_db),
+):
+    """Return all flow cells for a project with per-user activity status."""
+    cells = await db.fetch(
+        "SELECT id, topic, prompt, description FROM flow_cells WHERE project_id=$1 ORDER BY created_at",
+        project_id,
+    )
+
+    session = await db.fetchrow(
+        "SELECT id, status, cell_confidence FROM conversation_sessions WHERE project_id=$1 AND user_id=$2",
+        project_id, user.id,
+    )
+    session_status = session["status"] if session else "active"
+    cell_confidence: dict = (session["cell_confidence"] or {}) if session else {}
+
+    turn_rows = await db.fetch(
+        """SELECT cell_id, COUNT(*) AS cnt
+           FROM cell_conversation_turns
+           WHERE project_id=$1 AND user_id=$2 AND role='user'
+           GROUP BY cell_id""",
+        project_id, user.id,
+    )
+    turn_counts = {str(r["cell_id"]): int(r["cnt"]) for r in turn_rows}
+
+    result = []
+    for cell in cells:
+        cell_id = str(cell["id"])
+        turns = turn_counts.get(cell_id, 0)
+        confidence = cell_confidence.get(cell_id)
+
+        # Completion %: turns (max 60%) + confidence set (+20%) + submitted (+20%)
+        pct = min(turns / 10, 0.6)
+        if confidence:
+            pct += 0.2
+        if session_status == "submitted":
+            pct += 0.2
+        completion_pct = round(min(pct * 100, 100))
+
+        if session_status == "submitted":
+            state = "closed"
+        elif turns > 0:
+            state = "in_progress"
+        else:
+            state = "open"
+
+        result.append({
+            "id": cell_id,
+            "topic": cell["topic"],
+            "description": cell.get("description"),
+            "turn_count": turns,
+            "confidence_score": confidence,
+            "completion_pct": completion_pct,
+            "state": state,
+        })
+
+    return result
+
+
+# ── GET /conversation/{cell_id}/turns ────────────────────
+
+@router.get("/conversation/{cell_id}/turns")
+async def get_turns(
+    project_id: str,
+    cell_id: str,
+    user: CurrentUser = Depends(get_current_user),
+    db: asyncpg.Pool = Depends(get_db),
+):
+    rows = await db.fetch(
+        """SELECT role, content
+           FROM cell_conversation_turns
+           WHERE project_id=$1 AND cell_id=$2 AND user_id=$3
+           ORDER BY created_at""",
+        project_id, cell_id, user.id,
+    )
+    return [{"role": r["role"], "content": r["content"]} for r in rows]
 
 
 # ── POST /sessions/{cell_id} ──────────────────────────────
@@ -184,10 +300,47 @@ async def send_message(
 
 # ── GET /conversation/{session_id}/stream ────────────────
 
-async def _save_qa_to_kg(db: asyncpg.Pool, project_id: str, question: str, answer: str) -> None:
-    """Embed the Q&A pair and upsert it into the project KG as a conversation chunk."""
+def _chunk_answer(answer: str, max_chars: int = 800) -> list[str]:
+    """Split answer into paragraph-sized chunks for tighter embeddings."""
+    paragraphs = [p.strip() for p in answer.split('\n\n') if p.strip()]
+    chunks: list[str] = []
+    for para in paragraphs:
+        if len(para) <= max_chars:
+            chunks.append(para)
+        else:
+            sentences = re.split(r'(?<=[.!?])\s+', para)
+            current = ""
+            for s in sentences:
+                if len(current) + len(s) > max_chars and current:
+                    chunks.append(current.strip())
+                    current = s
+                else:
+                    current = (current + " " + s).strip()
+            if current:
+                chunks.append(current)
+    return chunks or [answer[:max_chars]]
+
+
+async def _save_turns(db: asyncpg.Pool, project_id: str, cell_id: str, user_id: str, question: str, answer: str) -> None:
     try:
-        # Get or create a conversation asset for this project
+        await db.execute(
+            """INSERT INTO cell_conversation_turns(project_id, cell_id, user_id, role, content)
+               VALUES($1,$2,$3,'user',$4)""",
+            project_id, cell_id, user_id, question,
+        )
+        await db.execute(
+            """INSERT INTO cell_conversation_turns(project_id, cell_id, user_id, role, content)
+               VALUES($1,$2,$3,'assistant',$4)""",
+            project_id, cell_id, user_id, answer,
+        )
+    except Exception:
+        pass
+
+
+async def _save_qa_to_kg(db: asyncpg.Pool, project_id: str, question: str, answer: str) -> None:
+    """Chunk Q&A, embed each piece, store with a shared qa_group_id for sibling retrieval."""
+    import uuid as _uuid
+    try:
         asset_id = await db.fetchval(
             "SELECT id FROM assets WHERE project_id=$1 AND kind='text' AND filename='Conversation History' LIMIT 1",
             project_id,
@@ -203,13 +356,22 @@ async def _save_qa_to_kg(db: asyncpg.Pool, project_id: str, question: str, answe
             "SELECT COALESCE(MAX(chunk_index)+1, 0) FROM chunks WHERE asset_id=$1", str(asset_id)
         )) or 0
 
-        qa_text = f"Q: {question}\nA: {answer}"
-        vec = (await embeddings.embed_batch([qa_text]))[0]
-        await db.execute(
-            """INSERT INTO chunks(asset_id, project_id, chunk_index, text, embedding)
-               VALUES($1,$2,$3,$4,$5::vector) ON CONFLICT DO NOTHING""",
-            str(asset_id), project_id, next_idx, qa_text, str(vec),
-        )
+        # Question as first chunk (what future queries will match against)
+        # Answer split into paragraph chunks (retrieved as siblings)
+        q_chunk = f"Q: {question}"
+        a_chunks = _chunk_answer(answer)
+        all_chunks = [q_chunk] + a_chunks
+
+        qa_group_id = _uuid.uuid4()
+        vecs = await embeddings.embed_batch(all_chunks)
+
+        for i, (text, vec) in enumerate(zip(all_chunks, vecs)):
+            await db.execute(
+                """INSERT INTO chunks(asset_id, project_id, chunk_index, text, embedding, qa_group_id)
+                   VALUES($1,$2,$3,$4,$5::vector,$6) ON CONFLICT DO NOTHING""",
+                str(asset_id), project_id, next_idx + i, text, str(vec), qa_group_id,
+            )
+
         await graph.build_similarity_edges(db, str(asset_id))
     except Exception:
         pass  # non-fatal
@@ -225,16 +387,76 @@ async def stream_answer(
     db: asyncpg.Pool = Depends(get_db),
     arq=Depends(get_arq),
 ):
+    _DOCK_RE = re.compile(
+        r'(?:move|place|dock|put|send)\s+(?:the\s+)?(.+?)\s+(?:window\s+)?(?:to\s+the\s+|to\s+)(left|right|top|bottom)',
+        re.IGNORECASE,
+    )
+
     async def event_gen():
-        # 1. KG traversal
+        # 0. Fetch cell metadata first — needed for guardrail + system prompt
+        cell_row = await db.fetchrow(
+            "SELECT topic, prompt, description, characteristics, policy_doc_ids FROM flow_cells WHERE id=$1", cell_id
+        )
+
+        # 1. Jev check — guardrail + routing signals in one Haiku call
+        jev: dict = {}
+        if cell_row and cell_row.get("topic"):
+            jev = await _cell_jev_check(
+                message,
+                cell_row["topic"] or "",
+                cell_row.get("prompt") or cell_row.get("description") or "",
+            )
+            if jev.get("is_on_topic", 1.0) < 0.4:
+                topic_name = cell_row["topic"]
+                yield f"data: {json.dumps({'type': 'guardrail', 'confidence': round(jev.get('is_on_topic', 0) * 100), 'message': f'Your question does not seem related to this activity: {topic_name}. Please keep questions relevant to this topic.'})}\n\n"
+                yield f"data: {json.dumps({'type': 'done', 'sources': []})}\n\n"
+                return
+
+        # 2. Dock-window shortcut — no LLM needed
+        m = _DOCK_RE.search(message)
+        if m:
+            title_hint = m.group(1).strip()
+            edge = m.group(2).lower()
+            await cell_context.push_activity(project_id, cell_id, "dock_window", {"title_hint": title_hint, "edge": edge})
+            yield f"data: {json.dumps({'type': 'text', 'text': f'Moved to {edge}.'})}\n\n"
+            yield f"data: {json.dumps({'type': 'done', 'sources': []})}\n\n"
+            return
+
+        # 3. KG traversal
         project_row = await db.fetchrow("SELECT startup_name FROM projects WHERE id=$1", project_id)
         company = (project_row["startup_name"] if project_row else "") or ""
 
+        # Pull key entities/topics extracted from uploaded assets (pitch deck, docs, etc.)
+        asset_rows = await db.fetch(
+            "SELECT analysis_cache FROM assets WHERE project_id=$1 AND status='ready' ORDER BY created_at",
+            project_id,
+        )
+        project_entities: list[str] = []
+        for ar in asset_rows:
+            cache = ar["analysis_cache"] or {}
+            if isinstance(cache, str):
+                try:
+                    cache = json.loads(cache)
+                except Exception:
+                    cache = {}
+            project_entities.extend(cache.get("entities", [])[:8])
+            project_entities.extend(cache.get("topics", [])[:4])
+        # Dedupe while preserving order, cap at 20
+        seen: set[str] = set()
+        deduped: list[str] = []
+        for e in project_entities:
+            low = e.lower()
+            if low not in seen:
+                seen.add(low)
+                deduped.append(e)
+        project_entities = deduped[:20]
+
         ctx_chunks, source_ids, trace = await traversal.traverse(db, project_id, cell_id, message)
 
-        yield f"data: {json.dumps({'type': 'traversal', 'seeds': trace['seeds'], 'total_nodes': trace['total_nodes'], 'source_ids': trace['source_ids']})}\n\n"
+        avg_rel = trace["avg_top_relevance"]
+        yield f"data: {json.dumps({'type': 'traversal', 'seeds': trace['seeds'], 'total_nodes': trace['total_nodes'], 'source_ids': trace['source_ids'], 'avg_top_relevance': avg_rel})}\n\n"
         await cell_context.push_activity(project_id, cell_id, "traversal", {
-            "seeds": trace["seeds"], "total_nodes": trace["total_nodes"], "source_ids": source_ids,
+            "seeds": trace["seeds"], "total_nodes": trace["total_nodes"], "source_ids": source_ids, "avg_top_relevance": avg_rel,
         })
 
         # Handle explicit URL intent for browser session
@@ -242,50 +464,77 @@ async def stream_answer(
         if explicit_url:
             await arq.enqueue_job("run_agent_browser_session", project_id, cell_id, explicit_url)
 
-        # 2. AI judge: classify intent → targeted queries + doc URLs
-        intent_data = await agent_actions.classify_search_intent(message, company, ctx_chunks)
-        await cell_context.push_activity(project_id, cell_id, "intent", intent_data)
+        # 2. Route: RAG-only if hybrid traversal covers the question well, else RAG+Serper
+        # Threshold is lower than pure cosine (0.82) because graph-decayed nodes pull avg down
+        _RAG_ONLY_THRESHOLD = 0.65
+        # Jev signals replace the old keyword set for biographical/web-search detection
+        force_web = (
+            jev.get("is_biographical", 0) > 0.55 or
+            jev.get("needs_web_search", 0) > 0.55
+        )
+        use_web = force_web or avg_rel < _RAG_ONLY_THRESHOLD
 
-        # 3. Targeted Serper searches + doc URL scraping in parallel
-        queries = (intent_data.get("queries") or [f'"{company}" {message}'])[:2]
-        doc_urls = (intent_data.get("urls") or [])[:3]
-
-        for q in queries:
-            await cell_context.push_activity(project_id, cell_id, "search_start", {"query": q})
-
-        search_tasks = [asyncio.create_task(agent_actions.web_search(q)) for q in queries]
-        scrape_tasks = [asyncio.create_task(agent_actions.extract_page_text(u)) for u in doc_urls]
-
-        search_results_list = await asyncio.gather(*search_tasks, return_exceptions=True)
-        scrape_results_list = await asyncio.gather(*scrape_tasks, return_exceptions=True)
+        await cell_context.push_activity(project_id, cell_id, "route", {
+            "route": "rag+serper" if use_web else "rag_only",
+            "avg_top_relevance": avg_rel,
+            "threshold": _RAG_ONLY_THRESHOLD,
+        })
 
         all_web_results: list[dict] = []
-        for r in search_results_list:
-            if isinstance(r, list):
-                all_web_results.extend(r)
-
-        if all_web_results:
-            # Deduplicate by link
-            seen: set[str] = set()
-            deduped = []
-            for r in all_web_results:
-                if r.get("link") not in seen:
-                    seen.add(r.get("link", ""))
-                    deduped.append(r)
-            all_web_results = deduped
-            await cell_context.push_activity(project_id, cell_id, "search_done", {"results": all_web_results})
-
         scraped_context_parts: list[str] = []
-        for url, result in zip(doc_urls, scrape_results_list):
-            if isinstance(result, str) and result:
-                scraped_context_parts.append(f"[From {url}]\n{result[:1500]}")
-                await cell_context.push_activity(project_id, cell_id, "browser_start", {"url": url})
+
+        if use_web:
+            intent_data = await agent_actions.classify_search_intent(message, company, ctx_chunks, project_entities)
+            await cell_context.push_activity(project_id, cell_id, "intent", intent_data)
+
+            queries = (intent_data.get("queries") or [f'"{company}" {message}'])[:3]
+            doc_urls = (intent_data.get("urls") or [])[:3]
+
+            for q in queries:
+                await cell_context.push_activity(project_id, cell_id, "search_start", {"query": q})
+
+            search_tasks = [asyncio.create_task(agent_actions.web_search(q)) for q in queries]
+            scrape_tasks = [asyncio.create_task(agent_actions.extract_page_text(u)) for u in doc_urls]
+
+            search_results_list = await asyncio.gather(*search_tasks, return_exceptions=True)
+            scrape_results_list = await asyncio.gather(*scrape_tasks, return_exceptions=True)
+
+            for r in search_results_list:
+                if isinstance(r, list):
+                    all_web_results.extend(r)
+
+            if all_web_results:
+                seen: set[str] = set()
+                deduped = []
+                for r in all_web_results:
+                    if r.get("link") not in seen:
+                        seen.add(r.get("link", ""))
+                        deduped.append(r)
+                all_web_results = deduped
+                await cell_context.push_activity(project_id, cell_id, "search_done", {"results": all_web_results})
+
+            for url, result in zip(doc_urls, scrape_results_list):
+                if isinstance(result, str) and result:
+                    scraped_context_parts.append(f"[From {url}]\n{result[:1500]}")
+                    await cell_context.push_activity(project_id, cell_id, "browser_start", {"url": url})
+
+            # Scrape LinkedIn profiles found in search results (not in pitch deck)
+            li_urls = [
+                r["link"] for r in all_web_results
+                if "linkedin.com/in/" in r.get("link", "")
+            ][:2]
+            if li_urls:
+                li_scrape = await asyncio.gather(
+                    *[agent_actions.extract_page_text(u) for u in li_urls],
+                    return_exceptions=True,
+                )
+                for url, result in zip(li_urls, li_scrape):
+                    if isinstance(result, str) and result:
+                        scraped_context_parts.append(f"[LinkedIn: {url}]\n{result[:2000]}")
+                        await cell_context.push_activity(project_id, cell_id, "browser_start", {"url": url})
 
         # 4. Build combined context
         upstream = await cell_context.get_cell_analysis(project_id, cell_id)
-        cell_row = await db.fetchrow(
-            "SELECT topic, prompt, characteristics, policy_doc_ids FROM flow_cells WHERE id=$1", cell_id
-        )
         policy_text = await _get_policy_text(db, cell_row)
 
         user_content = f"Context from documents:\n{chr(10).join(ctx_chunks)}"
@@ -332,9 +581,15 @@ async def stream_answer(
                 sources_out.append({"id": sid, "name": row["filename"], "url": url})
         yield f"data: {json.dumps({'type': 'done', 'sources': sources_out})}\n\n"
 
-        # 6. Save Q&A back to KG
+        # Push citation sources to activity feed so WindowCanvas can spawn document cards
+        if sources_out:
+            await cell_context.push_activity(project_id, cell_id, "sources_done", {"sources": sources_out})
+
+        # 6. Save Q&A back to KG and persist turns — fire-and-forget so SSE connection closes immediately
         if answer_parts:
-            await _save_qa_to_kg(db, project_id, message, "".join(answer_parts))
+            full_answer = "".join(answer_parts)
+            asyncio.create_task(_save_qa_to_kg(db, project_id, message, full_answer))
+            asyncio.create_task(_save_turns(db, project_id, cell_id, user.id, message, full_answer))
 
     return StreamingResponse(event_gen(), media_type="text/event-stream")
 

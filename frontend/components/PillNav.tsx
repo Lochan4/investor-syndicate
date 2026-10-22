@@ -4,15 +4,9 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { Icons } from './Icons'
 
-const NAV = [
-  { href: '/investments', label: 'Investments', icon: Icons.Chart },
-  { href: '/workspaces',  label: 'Workspaces',  icon: Icons.Workspace },
-]
-
 const CANVAS_EDITOR_ROLES = new Set(['super_admin', 'admin', 'developer'])
-const ADMIN_ROLES = new Set(['super_admin', 'admin'])
 
-const DROPDOWN_ITEMS = [
+const SETTINGS_ITEMS = [
   { href: '/settings',                       label: 'Admin Control' },
   { href: '/admin/settings/flow-template',   label: 'Edit Canvas' },
 ]
@@ -23,11 +17,10 @@ export function PillNav({ role }: { role?: string }) {
   const [hovered, setHovered] = useState(false)
   const dropRef = useRef<HTMLDivElement>(null)
   const canEdit = CANVAS_EDITOR_ROLES.has(role ?? '')
-  const isAdmin = ADMIN_ROLES.has(role ?? '')
   const settingsActive = path === '/settings' || path.startsWith('/admin/settings')
-  const listActive = path === '/admin/inbox' || path.startsWith('/admin/inbox')
+  const convActive = path === '/admin/conversation' || path.startsWith('/admin/conversation')
 
-  // Auto-hide on conversation (flow cell) pages — show only on hover
+  // Auto-hide on activity conversation pages — show only on hover
   const autoHide = /\/projects\/[^/]+\/flow\/[^/]+/.test(path)
   const visible = !autoHide || hovered || open
 
@@ -40,8 +33,9 @@ export function PillNav({ role }: { role?: string }) {
     return () => document.removeEventListener('mousedown', close)
   }, [open])
 
+  if (!canEdit) return null
+
   return (
-    // Hover zone: always in the DOM and positioned, intercepts mouse even when pill is invisible
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -51,63 +45,41 @@ export function PillNav({ role }: { role?: string }) {
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 50,
-        padding: '20px 40px 16px',  // generous hit area above and around the pill
+        padding: '16px 40px 16px',
       }}
     >
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 2,
-        padding: '5px 6px',
-        background: '#FEFCF5',
-        borderRadius: 9999,
-        border: '1px solid rgba(141,90,43,0.14)',
-        boxShadow: '0 4px 24px rgba(141,90,43,0.13), 0 1px 4px rgba(141,90,43,0.07)',
-        opacity: visible ? 1 : 0,
-        pointerEvents: visible ? 'auto' : 'none',
-        transition: 'opacity 0.2s ease',
-      }}
-    >
-      {NAV.map(({ href, label, icon: Icon }) => {
-        const active = path === href || (href !== '/dashboard' && path.startsWith(href))
-        return (
-          <Link
-            key={href}
-            href={href}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 7,
-              padding: '8px 18px', borderRadius: 9999, fontSize: 13,
-              fontWeight: active ? 700 : 500, textDecoration: 'none',
-              transition: 'all 0.15s ease',
-              background: active ? '#D47E30' : 'transparent',
-              color: active ? '#FEFCF5' : '#8D5A2B',
-            }}
-          >
-            <span style={{ display: 'flex', opacity: active ? 1 : 0.7 }}><Icon /></span>
-            {label}
-          </Link>
-        )
-      })}
-
-      {isAdmin && (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+          padding: '5px 6px',
+          background: '#FEFCF5',
+          borderRadius: 9999,
+          border: '1px solid rgba(141,90,43,0.14)',
+          boxShadow: '0 4px 24px rgba(141,90,43,0.13), 0 1px 4px rgba(141,90,43,0.07)',
+          opacity: visible ? 1 : 0,
+          pointerEvents: visible ? 'auto' : 'none',
+          transition: 'opacity 0.2s ease',
+        }}
+      >
+        {/* Conversation */}
         <Link
-          href="/admin/inbox"
+          href="/admin/conversation"
           style={{
             display: 'flex', alignItems: 'center', gap: 7,
             padding: '8px 18px', borderRadius: 9999, fontSize: 13,
-            fontWeight: listActive ? 700 : 500, textDecoration: 'none',
+            fontWeight: convActive ? 700 : 500, textDecoration: 'none',
             transition: 'all 0.15s ease',
-            background: listActive ? '#D47E30' : 'transparent',
-            color: listActive ? '#FEFCF5' : '#8D5A2B',
+            background: convActive ? '#D47E30' : 'transparent',
+            color: convActive ? '#FEFCF5' : '#8D5A2B',
           }}
         >
-          <span style={{ display: 'flex', opacity: listActive ? 1 : 0.7 }}><Icons.List /></span>
-          List
+          <span style={{ display: 'flex', opacity: convActive ? 1 : 0.7 }}><Icons.Chat /></span>
+          Conversation
         </Link>
-      )}
 
-      {canEdit && (
+        {/* Settings dropdown */}
         <div ref={dropRef} style={{ position: 'relative' }}>
           <button
             onClick={() => setOpen(o => !o)}
@@ -140,7 +112,7 @@ export function PillNav({ role }: { role?: string }) {
               minWidth: 170,
               zIndex: 100,
             }}>
-              {DROPDOWN_ITEMS.map(({ href, label }) => (
+              {SETTINGS_ITEMS.map(({ href, label }) => (
                 <Link
                   key={href}
                   href={href}
@@ -175,8 +147,7 @@ export function PillNav({ role }: { role?: string }) {
             </div>
           )}
         </div>
-      )}
-    </div>
+      </div>
     </div>
   )
 }

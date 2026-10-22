@@ -56,43 +56,55 @@ async def classify_search_intent(
     question: str,
     company: str,
     kg_context: list[str],
+    project_entities: list[str] | None = None,
 ) -> dict:
-    """Condense investor question into clean search queries using key entities from documents."""
+    """Condense investor question into precise search queries using company context and extracted entities."""
     from app.services.llm import get_async_client
 
     context_preview = "\n---\n".join(kg_context[:2])[:1200] if kg_context else "(no document context)"
+    entities_str = ", ".join(project_entities) if project_entities else "(none extracted yet)"
 
-    prompt = f"""You are a search query generator for investment due diligence.
+    prompt = f"""You are a precise search query generator for investment due diligence.
 
-Company being evaluated: {company}
+COMPANY BEING EVALUATED: "{company}"
+⚠️  Always use this EXACT name verbatim in queries. Never stem, abbreviate, or pluralise it.
+    Example: company = "Leaps" → use "Leaps", NOT "leap", NOT "leaping", NOT "leaps.io"
 
-Document excerpts (ignore OCR noise/garbled text — only use clean recognizable words):
+KEY ENTITIES EXTRACTED FROM UPLOADED DOCUMENTS (pitch deck, financials, etc.):
+{entities_str}
+
+DOCUMENT EXCERPTS (ignore OCR noise — only use clean recognizable text):
 {context_preview}
 
-Investor question (may be voice-transcribed, may contain noise — extract the CORE intent only):
+INVESTOR QUESTION (may be voice-transcribed — extract CORE intent only):
 "{question}"
 
-Your job — two steps:
+INSTRUCTIONS:
 
-STEP 1: Identify the core intent in one clean sentence. Ignore noise/filler words.
+STEP 1: Identify the precise intent in one clean sentence. What specific information does the investor need?
 
-STEP 2: Extract clean named entities from the DOCUMENTS (not the question):
-- Founder/person full names (properly capitalized)
-- Company or product names
-- Any URLs (http/www links)
+STEP 2: Build 2–3 laser-targeted search queries.
+- Always anchor queries with the EXACT company name "{company}" unless the question is specifically about a named person
+- Use entities from the extracted list above when they are directly relevant to the question
+- Each query must be specific: company name + precise topic (e.g. "{company} job application automation competitors")
+- If the question is about a person: "[Full Person Name] [topic]" and "[Full Person Name] site:linkedin.com"
+- NEVER use a stemmed, partial, or modified version of the company name
+- NEVER generate generic queries without the company anchor
 
-STEP 3: Build 2 targeted search queries using those entities.
-- Each query: [person name or company name] + [specific topic from intent]
-- Example: "Sai Trilochan Munigela university degree", "{company} founding team background"
-- NEVER copy garbled words or noise into queries
-- NEVER use a vague query like just the company name alone
+STEP 3: Pull any verbatim URLs found in the document excerpts.
 
-Return ONLY this JSON (no explanation):
+Return ONLY this JSON (no explanation, no markdown):
 {{
-  "intent": "clean one-sentence description of what the investor needs",
-  "queries": ["query 1", "query 2"],
-  "urls": ["any verbatim URLs from documents"]
-}}"""
+  "intent": "one precise sentence describing what the investor needs to find",
+  "queries": ["query 1", "query 2", "optional query 3"],
+  "urls": ["any verbatim URLs from documents"],
+  "card_type": "maps or company or web"
+}}
+
+card_type must be exactly one of:
+- "maps": location/geography/where company or person is based
+- "company": specific people, founders, team, education, LinkedIn, work history
+- "web": product, market, competitors, funding, industry — everything else"""
 
     try:
         client = get_async_client()
@@ -109,7 +121,7 @@ Return ONLY this JSON (no explanation):
                 raw = raw[4:]
         result = _json.loads(raw.strip())
         # Sanitise: ensure queries are non-empty strings, cap at 2
-        queries = [q for q in result.get("queries", []) if isinstance(q, str) and len(q) > 5][:2]
+        queries = [q for q in result.get("queries", []) if isinstance(q, str) and len(q) > 5][:3]
         if not queries:
             queries = [f"{company} {result.get('intent', 'overview')}"]
         result["queries"] = queries
@@ -124,8 +136,64 @@ Return ONLY this JSON (no explanation):
         }
 
 
+def _extract_meta_description(html: str) -> str:
+    """Pull og:description or meta description from raw HTML — works for LinkedIn public profiles."""
+    import re as _re
+    for pattern in (
+        r'<meta[^>]+property=["\']og:description["\'][^>]+content=["\']([^"\']+)["\']',
+        r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']og:description["\']',
+        r'<meta[^>]+name=["\']description["\'][^>]+content=["\']([^"\']+)["\']',
+        r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+name=["\']description["\']',
+    ):
+        m = _re.search(pattern, html, _re.IGNORECASE)
+        if m:
+            return m.group(1).strip()
+    return ""
+
+
+async def _scrape_linkedin(url: str) -> str:
+    """Try meta description first (no auth needed), then Playwright for public profiles."""
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+                      "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9",
+    }
+    try:
+        async with httpx.AsyncClient(timeout=10, follow_redirects=True) as http:
+            resp = await http.get(url, headers=headers)
+        meta = _extract_meta_description(resp.text)
+        if meta and len(meta) > 40:
+            return meta
+    except Exception:
+        pass
+
+    # Playwright fallback — gets more body text for truly public profiles
+    try:
+        from playwright.async_api import async_playwright
+        async with async_playwright() as pw:
+            browser = await pw.chromium.launch(headless=True)
+            ctx = await browser.new_context(
+                user_agent=headers["User-Agent"],
+                locale="en-US",
+                viewport={"width": 1280, "height": 800},
+            )
+            page = await ctx.new_page()
+            await page.goto(url, wait_until="domcontentloaded", timeout=15_000)
+            await page.wait_for_timeout(1500)
+            text = await page.evaluate("() => document.body.innerText")
+            await browser.close()
+            # Strip the login-wall boilerplate LinkedIn adds
+            lines = [l.strip() for l in text.splitlines() if l.strip()]
+            meaningful = [l for l in lines if len(l) > 20 and "sign in" not in l.lower() and "join now" not in l.lower()]
+            return "\n".join(meaningful[:60])
+    except Exception:
+        return ""
+
+
 async def extract_page_text(url: str) -> str:
-    """Fetch URL and strip HTML to plain text (stdlib html.parser, no new deps)."""
+    """Fetch URL and strip HTML to plain text. LinkedIn gets special handling."""
+    if "linkedin.com" in url:
+        return await _scrape_linkedin(url)
     try:
         async with httpx.AsyncClient(timeout=15, follow_redirects=True) as http:
             resp = await http.get(url, headers={"User-Agent": "Mozilla/5.0"})

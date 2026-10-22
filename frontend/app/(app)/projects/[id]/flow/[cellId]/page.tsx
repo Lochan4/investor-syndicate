@@ -1,6 +1,7 @@
 import { withAuth } from '@workos-inc/authkit-nextjs'
 import { ConversationPanel } from '@/components/CellChat'
-import { AssistantPanel } from '@/components/AssistantPanel'
+import { LeftAssetsPanel } from '@/components/LeftAssetsPanel'
+import { WindowCanvas } from '@/components/WindowCanvas'
 import { api } from '@/lib/api'
 
 export default async function CellPage({ params }: { params: { id: string; cellId: string } }) {
@@ -17,14 +18,13 @@ export default async function CellPage({ params }: { params: { id: string; cellI
         <h2 className="font-semibold text-amber-600 text-sm">{cell?.topic || 'Cell'}</h2>
       </div>
       <div className="flex-1 flex overflow-hidden">
-        <div className="w-[42%] border-r border-stroke flex flex-col overflow-hidden">
-          <AssistantPanel
-            projectId={params.id}
-            cellId={params.cellId}
-            token={accessToken!}
-          />
+        <div className="shrink-0 border-r border-stroke flex flex-col overflow-hidden">
+          <LeftAssetsPanel projectId={params.id} token={accessToken!} />
         </div>
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 border-r border-stroke flex flex-col overflow-hidden">
+          <WindowCanvas projectId={params.id} cellId={params.cellId} token={accessToken!} />
+        </div>
+        <div className="shrink-0 flex flex-col overflow-hidden">
           <ConversationPanel
             projectId={params.id}
             cellId={params.cellId}

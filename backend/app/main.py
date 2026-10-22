@@ -10,7 +10,7 @@ from arq.worker import Worker
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import admin, analyses, applications, assets, conversation, flow, notifications, projects, workspaces
+from app.routers import admin, analyses, applications, assets, conversation, flow, investor, notifications, projects, workspaces
 from app.routers import apply as apply_router
 from app.worker import WorkerSettings
 
@@ -38,6 +38,9 @@ async def lifespan(app: FastAPI):
         )
         await conn.execute(
             "ALTER TABLE flow_template_versions ADD COLUMN IF NOT EXISTS use_case text DEFAULT 'startup_project_analysis'"
+        )
+        await conn.execute(
+            "ALTER TABLE chunks ADD COLUMN IF NOT EXISTS qa_group_id uuid"
         )
 
     # Start the background worker in-process — no separate `arq` command needed
@@ -80,6 +83,7 @@ app.include_router(admin.router,         prefix="/api/v1")
 app.include_router(workspaces.router,    prefix="/api/v1")
 app.include_router(applications.router,  prefix="/api/v1")
 app.include_router(apply_router.router,  prefix="/api/v1")
+app.include_router(investor.router,      prefix="/api/v1")
 
 
 @app.get("/health")

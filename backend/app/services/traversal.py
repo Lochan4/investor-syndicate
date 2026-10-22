@@ -18,7 +18,7 @@ async def traverse(
     vec_str = str(query_vec)
 
     seed_rows = await db.fetch(
-        """SELECT c.id, c.text, c.asset_id,
+        """SELECT c.id, c.text, c.asset_id, c.qa_group_id,
                   1 - (c.embedding <=> $1::vector) AS sim
            FROM chunks c
            WHERE c.project_id = $2 AND c.embedding IS NOT NULL
@@ -34,7 +34,10 @@ async def traverse(
     for row in seed_rows:
         cid = str(row["id"])
         sim = float(row["sim"])
-        visited[cid] = {"text": row["text"], "asset_id": str(row["asset_id"]), "relevance": sim}
+        visited[cid] = {
+            "text": row["text"], "asset_id": str(row["asset_id"]), "relevance": sim,
+            "qa_group_id": str(row["qa_group_id"]) if row["qa_group_id"] else None,
+        }
         frontier.append((cid, sim))
 
     # BFS up to depth 3, cap 40 nodes
@@ -63,7 +66,7 @@ async def traverse(
                 if rel < 0.45:
                     continue
                 chunk_row = await db.fetchrow(
-                    "SELECT text, asset_id FROM chunks WHERE id=$1", neighbor
+                    "SELECT text, asset_id, qa_group_id FROM chunks WHERE id=$1", neighbor
                 )
                 if not chunk_row:
                     continue
@@ -71,6 +74,7 @@ async def traverse(
                     "text": chunk_row["text"],
                     "asset_id": str(chunk_row["asset_id"]),
                     "relevance": rel,
+                    "qa_group_id": str(chunk_row["qa_group_id"]) if chunk_row["qa_group_id"] else None,
                 }
                 next_frontier.append((neighbor, rel))
 
@@ -80,7 +84,36 @@ async def traverse(
     context_chunks = [n["text"] for n in top]
     source_ids = list(dict.fromkeys(n["asset_id"] for n in top))
 
+    # Sibling expansion: if a Q&A chunk was found, fetch its group siblings for full context
+    _MAX_GROUPS = 2
+    _MAX_SIBLINGS_PER_GROUP = 3
+    _SIBLING_CHAR_BUDGET = 6000
+
+    qa_group_ids = list(dict.fromkeys(
+        info["qa_group_id"] for info in visited.values() if info.get("qa_group_id")
+    ))[:_MAX_GROUPS]
+
+    if qa_group_ids:
+        visited_ids = list(visited.keys())
+        sibling_texts: list[str] = []
+        for gid in qa_group_ids:
+            sib_rows = await db.fetch(
+                """SELECT text FROM chunks
+                   WHERE qa_group_id = $1 AND id != ALL($2::uuid[])
+                   ORDER BY chunk_index ASC LIMIT $3""",
+                gid, visited_ids, _MAX_SIBLINGS_PER_GROUP,
+            )
+            sibling_texts.extend(r["text"] for r in sib_rows)
+        # Cap total sibling injection by char budget
+        budget = 0
+        for t in sibling_texts:
+            if budget + len(t) > _SIBLING_CHAR_BUDGET:
+                break
+            context_chunks.append(t)
+            budget += len(t)
+
     first_five = list(visited.items())[:5]
+    avg_top_relevance = sum(n["relevance"] for n in top) / len(top) if top else 0.0
     trace = {
         "seeds": [
             {
@@ -93,5 +126,6 @@ async def traverse(
         ],
         "total_nodes": len(visited),
         "source_ids": source_ids,
+        "avg_top_relevance": avg_top_relevance,
     }
     return context_chunks, source_ids, trace

@@ -34,6 +34,21 @@ async def create_asset(
     return await svc.create(db, project_id, body.filename, body.kind, body.storage_key, body.file_size_bytes)
 
 
+@router.get("/{asset_id}/download-url")
+async def get_download_url(
+    project_id: str,
+    asset_id: str,
+    user: CurrentUser = Depends(get_current_user),
+    db: asyncpg.Pool = Depends(get_db),
+):
+    row = await db.fetchrow("SELECT storage_key FROM assets WHERE id=$1 AND project_id=$2", asset_id, project_id)
+    if not row:
+        from fastapi import HTTPException
+        raise HTTPException(404, "Asset not found")
+    url = storage.presigned_download_url(row["storage_key"])
+    return {"url": url}
+
+
 @router.post("/{asset_id}/confirm")
 async def confirm_asset(
     project_id: str,

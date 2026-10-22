@@ -28,7 +28,7 @@ export default async function FlowTemplatePage({
   if (!useCase) {
     return (
       <div className="p-8 max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold text-[#825E34] mb-2">Canvas Editor</h1>
+        <h1 className="text-2xl font-semibold text-[#825E34] mb-2">Canvas Editor</h1>
         <p className="text-sm text-[#8D5A2B]/60 mb-8">
           Select a use case to view or edit its canvas template.
         </p>
@@ -40,9 +40,7 @@ export default async function FlowTemplatePage({
               className="group flex items-center justify-between bg-white border border-[#C4A882] rounded-2xl px-7 py-6 hover:border-[#D47E30] hover:shadow-md transition-all duration-200"
             >
               <div>
-                <h2 style={{ fontFamily: 'Oliver, serif' }} className="text-lg text-[#5C3D1E] mb-1.5 lowercase font-light">
-                  {uc.title}
-                </h2>
+                <h2 className="text-lg text-[#5C3D1E] mb-1.5 font-semibold">{uc.title.charAt(0).toUpperCase() + uc.title.slice(1).toLowerCase()}</h2>
                 <p className="text-sm text-[#9A7355] max-w-xl leading-relaxed">
                   {uc.description}
                 </p>

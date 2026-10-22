@@ -24,6 +24,8 @@ export type ActivityEventType =
   | 'search_start' | 'search_done'
   | 'browser_start' | 'screenshot'
   | 'kg_start' | 'kg_done'
+  | 'sources_done' | 'route' | 'traversal'
+  | 'dock_window'
   | 'error'
 export interface ActivityEvent { type: ActivityEventType; data: Record<string, any> }
 export interface Workspace { id: string; name: string; description?: string; created_by?: string; created_at: string; member_count?: number }
@@ -101,6 +103,8 @@ export const api = {
     apiFetch<{ upload_url: string; storage_key: string; content_type: string }>(`/projects/${projectId}/assets/upload-url`, token, {
       method: 'POST', body: JSON.stringify({ filename, kind, content_type }),
     }),
+  getAssetDownloadUrl: (token: string, projectId: string, assetId: string) =>
+    apiFetch<{ url: string }>(`/projects/${projectId}/assets/${assetId}/download-url`, token),
 
   // Conversation
   getOrCreateSession: (token: string, projectId: string, cellId: string) =>
@@ -115,6 +119,8 @@ export const api = {
     apiFetch(`/projects/${projectId}/conversation/${sessionId}/confidence`, token, {
       method: 'PATCH', body: JSON.stringify({ cell_id: cellId, score }),
     }),
+  getCellHistory: (token: string, projectId: string, cellId: string) =>
+    apiFetch<{ role: string; content: string }[]>(`/projects/${projectId}/conversation/${cellId}/turns`, token),
   sendVoice: async (token: string, projectId: string, sessionId: string, blob: Blob): Promise<string> => {
     const form = new FormData()
     form.append('audio', blob, 'voice.webm')
@@ -232,6 +238,23 @@ export const api = {
   removeWorkspaceMember: (token: string, workspaceId: string, userId: string) =>
     apiFetch(`/workspaces/${workspaceId}/members/${userId}`, token, { method: 'DELETE' }),
 
+  // Investor waterfall
+  getProjectActivities: (token: string, projectId: string) =>
+    apiFetch<Activity[]>(`/projects/${projectId}/activities`, token),
+  investorStage1: (token: string, message: string) =>
+    apiFetch<Stage1Response>('/investor/stage1', token, { method: 'POST', body: JSON.stringify({ message }) }),
+  adminStage1: (token: string, message: string) =>
+    apiFetch<AdminStage1Response>('/admin/stage1', token, { method: 'POST', body: JSON.stringify({ message }) }),
+  transcribeAudio: async (token: string, blob: Blob): Promise<string> => {
+    const form = new FormData()
+    form.append('audio', blob, 'voice.webm')
+    const res = await fetch(`${BASE}/investor/transcribe`, {
+      method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form,
+    })
+    if (!res.ok) throw new Error(`Transcribe ${res.status}`)
+    return (await res.json()).transcript as string
+  },
+
   // User / admin control
   getMe: (token: string) => apiFetch<UserProfile>('/me', token),
   listUsers: (token: string) => apiFetch<PlatformUser[]>('/admin/users', token),
@@ -290,7 +313,33 @@ export function streamKgFeed(
   return () => ctrl.abort()
 }
 
-export interface CitationSource { id: string; name: string; url?: string }
+export interface Activity {
+  id: string
+  topic: string
+  description?: string
+  turn_count: number
+  confidence_score?: number
+  completion_pct: number
+  state: 'open' | 'in_progress' | 'closed'
+}
+
+export interface Stage1Project {
+  id: string; startup_name: string; sector?: string; stage?: string; status: string; role?: string
+}
+export interface Stage1Workspace {
+  id: string; name: string; description?: string; role?: string
+}
+export interface Stage1Response {
+  intent: string; message: string; projects: Stage1Project[]; workspaces: Stage1Workspace[]
+}
+export interface AdminStage1Response {
+  intent: string; message: string
+  applications: Array<{ id: string; founder_name: string; startup_name: string; sector?: string; stage?: string; status: string }>
+  workspaces: Array<{ id: string; name: string; description?: string }>
+  projects: Array<{ id: string; startup_name: string; sector?: string; status: string }>
+}
+
+export interface CitationSource { id: string; name: string; url?: string; chunk_preview?: string }
 
 export function streamAnswer(
   projectId: string,
@@ -319,6 +368,7 @@ export function streamAnswer(
           if (data.type === 'token') onToken(data.token)
           if (data.type === 'done') onDone(data.sources || [])
           if (data.type === 'error') { onError?.(data.message); onDone([]) }
+          if (data.type === 'guardrail') { onError?.(data.message); onDone([]) }
         } catch {}
       }
     }
