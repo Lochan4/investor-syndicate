@@ -434,7 +434,7 @@ export default function LandingPage() {
             Apply
           </a>
           <Link
-            href="/workspaces"
+            href="/dashboard"
             style={{
               fontSize: 13, fontWeight: 600, color: '#92400E',
               textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6,
@@ -527,7 +527,7 @@ export default function LandingPage() {
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
             <Link
-              href="/workspaces"
+              href="/dashboard"
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8,
                 padding: '14px 30px', background: '#D97706', color: '#fff',

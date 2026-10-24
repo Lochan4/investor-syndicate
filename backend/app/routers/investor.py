@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json
+import logging
 
 import asyncpg
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
@@ -10,25 +11,54 @@ from app.services.llm import get_async_client
 from app.services.extractors import audio as whisper_extract
 
 router = APIRouter(tags=["investor"])
+log = logging.getLogger("investor")
 
 _HAIKU = "claude-haiku-4-5-20251001"
 
-# Jev-style: all decisions in one call, probabilities 0.0–1.0
+# Single-intent classifiers — deterministic routing, no probability ambiguity
 _INVESTOR_JEV = """\
-You are a decision classifier. Answer ALL questions about this investor voice query simultaneously.
-Return ONLY valid JSON — no other text. Float values 0.0-1.0. navigation_target is a string.
+Classify this investor dashboard voice query into ONE specific intent.
+
+EXAMPLES:
+"show my projects" → {{"intent":"projects","navigation_target":""}}
+"show me the projects" → {{"intent":"projects","navigation_target":""}}
+"what projects do I have" → {{"intent":"projects","navigation_target":""}}
+"active projects" → {{"intent":"active","navigation_target":""}}
+"show workspaces" → {{"intent":"workspaces","navigation_target":""}}
+"open leaps" → {{"intent":"navigate","navigation_target":"leaps"}}
+"show everything" → {{"intent":"all","navigation_target":""}}
+
+RULES:
+- "show me X" / "show X" / "just X" / "only X" → that specific X intent
+- "open [name]" / "go to [name]" → navigate with that name
+- "all" ONLY for genuinely ambiguous queries like "show me everything" or "what do I have"
 
 Query: "{message}"
 
-{{"is_asking_for_projects": 0.0, "is_asking_for_workspaces": 0.0, "is_active_only": 0.0, "is_assigned_only": 0.0, "is_navigation_command": 0.0, "navigation_target": ""}}"""
+Return ONLY the JSON object, no other text:"""
 
 _ADMIN_JEV = """\
-You are a decision classifier. Answer ALL questions about this admin voice query simultaneously.
-Return ONLY valid JSON — no other text. Float values 0.0-1.0. navigation_target is a string.
+Classify this admin dashboard voice query into ONE specific intent.
+
+EXAMPLES:
+"show me the applications" → {{"intent":"applications","navigation_target":""}}
+"show applications" → {{"intent":"applications","navigation_target":""}}
+"just applications" → {{"intent":"applications","navigation_target":""}}
+"pending applications" → {{"intent":"pending_applications","navigation_target":""}}
+"show me the projects" → {{"intent":"projects","navigation_target":""}}
+"show workspaces" → {{"intent":"workspaces","navigation_target":""}}
+"open leaps" → {{"intent":"navigate","navigation_target":"leaps"}}
+"show everything" → {{"intent":"all","navigation_target":""}}
+
+RULES:
+- "show me X" / "show X" / "just X" / "only X" → that specific X intent
+- "open [name]" / "go to [name]" → navigate with that name
+- "all" ONLY for genuinely ambiguous queries like "show me everything" or "what do I have"
+- Valid intents: applications, pending_applications, workspaces, projects, navigate, all
 
 Query: "{message}"
 
-{{"is_asking_for_applications": 0.0, "is_pending_only": 0.0, "is_asking_for_workspaces": 0.0, "is_asking_for_projects": 0.0, "is_navigation_command": 0.0, "navigation_target": ""}}"""
+Return ONLY the JSON object, no other text:"""
 
 
 class Stage1Body(BaseModel):
@@ -43,31 +73,47 @@ async def investor_stage1(
     user: CurrentUser = Depends(get_current_user),
     db: asyncpg.Pool = Depends(get_db),
 ):
+    log.info("[STAGE1:INVESTOR] user=%s  query=%r", user.id, body.message)
+
     client = get_async_client()
-    msg = await client.messages.create(
-        model=_HAIKU,
-        max_tokens=128,
-        messages=[{"role": "user", "content": _INVESTOR_JEV.format(message=body.message)}],
-    )
     try:
-        d = json.loads(msg.content[0].text.strip())
-    except Exception:
-        d = {}
+        msg = await client.messages.create(
+            model=_HAIKU,
+            max_tokens=64,
+            system='You are a JSON classifier. Output ONLY a valid JSON object, nothing else.',
+            messages=[{"role": "user", "content": _INVESTOR_JEV.format(message=body.message)}],
+        )
+        raw_jev = msg.content[0].text.strip()
+        if raw_jev.startswith("```"):
+            raw_jev = raw_jev.split("```")[1].lstrip("json").strip()
+        d = json.loads(raw_jev)
+        log.info("[JEV:INVESTOR] intent=%r  nav_target=%r", d.get("intent"), d.get("navigation_target"))
+    except Exception as exc:
+        log.error("[JEV:INVESTOR] parse failed: %s", exc)
+        d = {"intent": "all"}
 
-    # Navigation command — return early, frontend handles routing
-    if d.get("is_navigation_command", 0) > 0.75 and d.get("navigation_target", "").strip():
-        nav = d["navigation_target"].strip()
-        return {"intent": "navigate", "navigation_target": nav, "message": f"Going to {nav}.", "projects": [], "workspaces": []}
+    intent = d.get("intent", "all")
+    nav_target = d.get("navigation_target", "").strip()
 
-    fetch_projects = (
-        d.get("is_asking_for_projects", 0) > 0.45 or
-        d.get("is_active_only", 0) > 0.45 or
-        d.get("is_assigned_only", 0) > 0.45
-    )
-    fetch_workspaces = d.get("is_asking_for_workspaces", 0) > 0.45
-    # Default to general (fetch both) when nothing specific was detected
-    if not fetch_projects and not fetch_workspaces:
-        fetch_projects = fetch_workspaces = True
+    if intent == "navigate" and nav_target:
+        log.info("[DECISION:INVESTOR] NAVIGATE  target=%r", nav_target)
+        row = await db.fetchrow(
+            """SELECT p.id FROM projects p
+               JOIN project_members pm ON pm.project_id = p.id
+               WHERE pm.user_id = $1 AND LOWER(p.startup_name) LIKE $2
+               ORDER BY p.created_at DESC LIMIT 1""",
+            user.id, f"%{nav_target.lower()}%",
+        )
+        if row:
+            route = f"/investor/{row['id']}"
+            log.info("[DECISION:INVESTOR] resolved %r → %s", nav_target, route)
+            return {"intent": "navigate", "route": route, "navigation_target": nav_target, "message": f"Opening {nav_target}.", "projects": [], "workspaces": []}
+        log.warning("[DECISION:INVESTOR] no project matched %r for user=%s", nav_target, user.id)
+        return {"intent": "navigate", "route": None, "navigation_target": nav_target, "message": f"No project found matching '{nav_target}'.", "projects": [], "workspaces": []}
+
+    fetch_projects = intent in ("projects", "active", "assigned", "all")
+    fetch_workspaces = intent in ("workspaces", "all")
+    log.info("[DECISION:INVESTOR] RESULTS  intent=%r  fetch_projects=%s  fetch_workspaces=%s", intent, fetch_projects, fetch_workspaces)
 
     projects: list[dict] = []
     workspaces: list[dict] = []
@@ -83,17 +129,20 @@ async def investor_stage1(
         )
         all_projects = [dict(r) for r in rows]
 
-        if d.get("is_active_only", 0) > 0.45:
+        if intent == "active":
             projects = [p for p in all_projects if p["status"] == "open"]
-        elif d.get("is_assigned_only", 0) > 0.45:
+            log.info("[DECISION:INVESTOR] filtered to active-only → %d projects", len(projects))
+        elif intent == "assigned":
             started = await db.fetch(
                 "SELECT DISTINCT project_id FROM cell_conversation_turns WHERE user_id=$1",
                 user.id,
             )
             started_ids = {str(r["project_id"]) for r in started}
             projects = [p for p in all_projects if str(p["id"]) in started_ids]
+            log.info("[DECISION:INVESTOR] filtered to assigned-only → %d projects", len(projects))
         else:
             projects = all_projects
+            log.info("[DECISION:INVESTOR] returning all %d projects", len(projects))
 
     if fetch_workspaces:
         ws_rows = await db.fetch(
@@ -105,6 +154,7 @@ async def investor_stage1(
             user.id,
         )
         workspaces = [dict(r) for r in ws_rows]
+        log.info("[DECISION:INVESTOR] returning %d workspaces", len(workspaces))
 
     parts = []
     if projects:
@@ -148,25 +198,56 @@ async def admin_stage1(
     db: asyncpg.Pool = Depends(get_db),
 ):
     if user.platform_role not in ("super_admin", "admin", "developer"):
+        log.warning("[STAGE1:ADMIN] forbidden user=%s role=%s", user.id, user.platform_role)
         raise HTTPException(403, "Admin access required")
 
-    client = get_async_client()
-    msg = await client.messages.create(
-        model=_HAIKU,
-        max_tokens=128,
-        messages=[{"role": "user", "content": _ADMIN_JEV.format(message=body.message)}],
-    )
-    try:
-        d = json.loads(msg.content[0].text.strip())
-    except Exception:
-        d = {}
+    log.info("[STAGE1:ADMIN] user=%s  query=%r", user.id, body.message)
 
-    fetch_apps = d.get("is_asking_for_applications", 0) > 0.45 or d.get("is_pending_only", 0) > 0.45
-    fetch_workspaces = d.get("is_asking_for_workspaces", 0) > 0.45
-    fetch_projects = d.get("is_asking_for_projects", 0) > 0.45
-    # Default to general
-    if not fetch_apps and not fetch_workspaces and not fetch_projects:
-        fetch_apps = fetch_workspaces = fetch_projects = True
+    client = get_async_client()
+    try:
+        msg = await client.messages.create(
+            model=_HAIKU,
+            max_tokens=64,
+            system='You are a JSON classifier. Output ONLY a valid JSON object, nothing else.',
+            messages=[{"role": "user", "content": _ADMIN_JEV.format(message=body.message)}],
+        )
+        raw_jev = msg.content[0].text.strip()
+        if raw_jev.startswith("```"):
+            raw_jev = raw_jev.split("```")[1].lstrip("json").strip()
+        d = json.loads(raw_jev)
+        log.info("[JEV:ADMIN] intent=%r  nav_target=%r", d.get("intent"), d.get("navigation_target"))
+    except Exception as exc:
+        log.error("[JEV:ADMIN] parse failed: %s", exc)
+        d = {"intent": "all"}
+
+    intent = d.get("intent", "all")
+    nav_target = d.get("navigation_target", "").strip()
+
+    if intent == "navigate" and nav_target:
+        log.info("[DECISION:ADMIN] NAVIGATE  target=%r", nav_target)
+        row = await db.fetchrow(
+            "SELECT id FROM projects WHERE LOWER(startup_name) LIKE $1 ORDER BY created_at DESC LIMIT 1",
+            f"%{nav_target.lower()}%",
+        )
+        if row:
+            route = f"/investor/{row['id']}"
+            log.info("[DECISION:ADMIN] resolved %r → project %s", nav_target, route)
+            return {"intent": "navigate", "route": route, "navigation_target": nav_target, "message": f"Opening {nav_target}.", "applications": [], "workspaces": [], "projects": []}
+        row = await db.fetchrow(
+            "SELECT id FROM startup_applications WHERE LOWER(startup_name) LIKE $1 ORDER BY created_at DESC LIMIT 1",
+            f"%{nav_target.lower()}%",
+        )
+        if row:
+            route = f"/admin/inbox/{row['id']}"
+            log.info("[DECISION:ADMIN] resolved %r → application %s", nav_target, route)
+            return {"intent": "navigate", "route": route, "navigation_target": nav_target, "message": f"Opening {nav_target}.", "applications": [], "workspaces": [], "projects": []}
+        log.warning("[DECISION:ADMIN] no match found for target=%r", nav_target)
+        return {"intent": "navigate", "route": None, "navigation_target": nav_target, "message": f"No match found for '{nav_target}'.", "applications": [], "workspaces": [], "projects": []}
+
+    fetch_apps = intent in ("applications", "pending_applications", "all")
+    fetch_workspaces = intent in ("workspaces", "all")
+    fetch_projects = intent in ("projects", "all")
+    log.info("[DECISION:ADMIN] RESULTS  intent=%r  fetch_apps=%s  fetch_workspaces=%s  fetch_projects=%s", intent, fetch_apps, fetch_workspaces, fetch_projects)
 
     applications: list[dict] = []
     workspaces: list[dict] = []
@@ -175,25 +256,29 @@ async def admin_stage1(
     if fetch_apps:
         rows = await db.fetch(
             """SELECT id, founder_name, startup_name, sector, stage, status, created_at
-               FROM applications ORDER BY created_at DESC LIMIT 50"""
+               FROM startup_applications ORDER BY created_at DESC LIMIT 50"""
         )
         all_apps = [dict(r) for r in rows]
-        if d.get("is_pending_only", 0) > 0.45:
+        if intent == "pending_applications":
             applications = [a for a in all_apps if a["status"] in ("submitted", "reviewing")]
+            log.info("[DECISION:ADMIN] filtered to pending-only → %d applications", len(applications))
         else:
             applications = all_apps
+            log.info("[DECISION:ADMIN] returning all %d applications", len(applications))
 
     if fetch_workspaces:
         rows = await db.fetch(
             "SELECT id, name, description, created_at FROM workspaces ORDER BY created_at DESC LIMIT 20"
         )
         workspaces = [dict(r) for r in rows]
+        log.info("[DECISION:ADMIN] returning %d workspaces", len(workspaces))
 
     if fetch_projects:
         rows = await db.fetch(
             "SELECT id, startup_name, sector, stage, status, created_at FROM projects ORDER BY created_at DESC LIMIT 30"
         )
         projects = [dict(r) for r in rows]
+        log.info("[DECISION:ADMIN] returning %d projects", len(projects))
 
     parts = []
     if applications:
@@ -243,5 +328,11 @@ async def transcribe(
 ):
     """Session-free audio transcription for Stage 1 and Stage 2 voice input."""
     data = await audio.read()
-    transcript = await whisper_extract.extract(data, audio.filename or "voice.webm")
-    return {"transcript": transcript}
+    log.info("[TRANSCRIBE] user=%s  audio_bytes=%d  filename=%s", user.id, len(data), audio.filename)
+    try:
+        transcript = await whisper_extract.extract(data, audio.filename or "voice.webm")
+        log.info("[TRANSCRIBE] user=%s  result=%r", user.id, transcript)
+        return {"transcript": transcript}
+    except Exception as exc:
+        log.error("[TRANSCRIBE] failed for user=%s: %s", user.id, exc)
+        raise

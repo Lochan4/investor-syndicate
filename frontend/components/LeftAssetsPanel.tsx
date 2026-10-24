@@ -86,10 +86,10 @@ function AssetRow({ asset, projectId, token }: { asset: Asset; projectId: string
   )
 }
 
-export function LeftAssetsPanel({ projectId, token }: { projectId: string; token: string }) {
+export function LeftAssetsPanel({ projectId, token, initialCollapsed, onBack }: { projectId: string; token: string; initialCollapsed?: boolean; onBack?: () => void }) {
   const [assets, setAssets] = useState<Asset[]>([])
   const [uploading, setUploading] = useState(false)
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(initialCollapsed ?? false)
   const fileRef = useRef<HTMLInputElement>(null)
   const tokenRef = useRef(token)
 
@@ -126,10 +126,23 @@ export function LeftAssetsPanel({ projectId, token }: { projectId: string; token
 
   if (collapsed) {
     return (
-      <div className="flex flex-col h-full bg-surface w-10 items-center justify-center transition-all border-r border-stroke">
+      <div className="flex flex-col h-full bg-surface w-10 items-center transition-all border-r border-stroke">
+        {/* Back arrow — top of the left border strip */}
+        {onBack && (
+          <button
+            onClick={onBack}
+            title="Back to projects"
+            className="mt-3 mb-1 text-muted hover:text-amber transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        )}
+        {/* Expand + label */}
         <button
           onClick={() => setCollapsed(false)}
-          className="flex flex-col items-center gap-2 text-muted hover:text-amber transition-colors py-3"
+          className="flex flex-col items-center gap-2 text-muted hover:text-amber transition-colors py-3 mt-2"
           title="Expand assets"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -145,7 +158,16 @@ export function LeftAssetsPanel({ projectId, token }: { projectId: string; token
     <div className="flex flex-col h-full bg-surface w-64 transition-all">
       {/* Header */}
       <div className="px-3 py-3 border-b border-stroke flex items-center justify-between shrink-0">
-        <span className="text-xs font-semibold text-ink uppercase tracking-wide">Assets</span>
+        <div className="flex items-center gap-2">
+          {onBack && (
+            <button onClick={onBack} title="Back to projects" className="text-muted hover:text-amber transition-colors">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+          )}
+          <span className="text-xs font-semibold text-ink uppercase tracking-wide">Assets</span>
+        </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => fileRef.current?.click()}

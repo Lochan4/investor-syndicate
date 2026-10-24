@@ -1,6 +1,7 @@
 from __future__ import annotations
 import asyncio
 import json
+import logging
 import os
 import re
 
@@ -16,6 +17,7 @@ from app.services.extractors import audio as whisper_extract
 from app.services import notifications as notif_svc
 
 router = APIRouter(prefix="/projects/{project_id}", tags=["conversation"])
+log = logging.getLogger("conversation")
 
 _HAIKU = "claude-haiku-4-5-20251001"
 
@@ -48,8 +50,15 @@ async def _cell_jev_check(message: str, topic: str, description: str) -> dict:
                 topic=topic, description=description[:300] if description else "", message=message
             )}],
         )
-        return json.loads(msg.content[0].text.strip())
-    except Exception:
+        raw = msg.content[0].text.strip()
+        result = json.loads(raw)
+        log.info(
+            "[JEV:CELL] topic=%r  scores=%s",
+            topic, json.dumps(result),
+        )
+        return result
+    except Exception as exc:
+        log.error("[JEV:CELL] parse failed for topic=%r message=%r: %s", topic, message[:80], exc)
         return {"is_on_topic": 1.0, "needs_web_search": 0.0, "is_biographical": 0.0, "is_navigation_command": 0.0}
 
 
@@ -393,6 +402,11 @@ async def stream_answer(
     )
 
     async def event_gen():
+        log.info(
+            "[STREAM] project=%s  cell=%s  user=%s  message=%r",
+            project_id, cell_id, user.id, message,
+        )
+
         # 0. Fetch cell metadata first — needed for guardrail + system prompt
         cell_row = await db.fetchrow(
             "SELECT topic, prompt, description, characteristics, policy_doc_ids FROM flow_cells WHERE id=$1", cell_id
@@ -406,9 +420,15 @@ async def stream_answer(
                 cell_row["topic"] or "",
                 cell_row.get("prompt") or cell_row.get("description") or "",
             )
-            if jev.get("is_on_topic", 1.0) < 0.4:
+            on_topic_score = jev.get("is_on_topic", 1.0)
+            if on_topic_score < 0.4:
                 topic_name = cell_row["topic"]
-                yield f"data: {json.dumps({'type': 'guardrail', 'confidence': round(jev.get('is_on_topic', 0) * 100), 'message': f'Your question does not seem related to this activity: {topic_name}. Please keep questions relevant to this topic.'})}\n\n"
+                log.warning(
+                    "[GUARDRAIL] BLOCKED  project=%s  cell=%s  topic=%r  "
+                    "on_topic=%.2f  message=%r",
+                    project_id, cell_id, topic_name, on_topic_score, message,
+                )
+                yield f"data: {json.dumps({'type': 'guardrail', 'confidence': round(on_topic_score * 100), 'message': f'Your question does not seem related to this activity: {topic_name}. Please keep questions relevant to this topic.'})}\n\n"
                 yield f"data: {json.dumps({'type': 'done', 'sources': []})}\n\n"
                 return
 
@@ -454,6 +474,14 @@ async def stream_answer(
         ctx_chunks, source_ids, trace = await traversal.traverse(db, project_id, cell_id, message)
 
         avg_rel = trace["avg_top_relevance"]
+        log.info(
+            "[TRAVERSAL] project=%s  cell=%s  seeds=%d  total_nodes=%d  "
+            "chunks_returned=%d  avg_relevance=%.3f  source_assets=%s",
+            project_id, cell_id,
+            len(trace["seeds"]), trace["total_nodes"],
+            len(ctx_chunks), avg_rel,
+            source_ids,
+        )
         yield f"data: {json.dumps({'type': 'traversal', 'seeds': trace['seeds'], 'total_nodes': trace['total_nodes'], 'source_ids': trace['source_ids'], 'avg_top_relevance': avg_rel})}\n\n"
         await cell_context.push_activity(project_id, cell_id, "traversal", {
             "seeds": trace["seeds"], "total_nodes": trace["total_nodes"], "source_ids": source_ids, "avg_top_relevance": avg_rel,
@@ -473,9 +501,18 @@ async def stream_answer(
             jev.get("needs_web_search", 0) > 0.55
         )
         use_web = force_web or avg_rel < _RAG_ONLY_THRESHOLD
+        route_label = "rag+serper" if use_web else "rag_only"
+        log.info(
+            "[ROUTE] project=%s  cell=%s  route=%s  "
+            "avg_rel=%.3f  threshold=%.2f  force_web=%s  "
+            "is_biographical=%.2f  needs_web_search=%.2f",
+            project_id, cell_id, route_label,
+            avg_rel, _RAG_ONLY_THRESHOLD, force_web,
+            jev.get("is_biographical", 0), jev.get("needs_web_search", 0),
+        )
 
         await cell_context.push_activity(project_id, cell_id, "route", {
-            "route": "rag+serper" if use_web else "rag_only",
+            "route": route_label,
             "avg_top_relevance": avg_rel,
             "threshold": _RAG_ONLY_THRESHOLD,
         })
@@ -489,9 +526,16 @@ async def stream_answer(
 
             queries = (intent_data.get("queries") or [f'"{company}" {message}'])[:3]
             doc_urls = (intent_data.get("urls") or [])[:3]
+            log.info(
+                "[SEARCH:INTENT] project=%s  cell=%s  intent=%r  queries=%s  urls=%s",
+                project_id, cell_id,
+                intent_data.get("intent", ""),
+                queries, doc_urls,
+            )
 
             for q in queries:
                 await cell_context.push_activity(project_id, cell_id, "search_start", {"query": q})
+                log.info("[SEARCH:QUERY] project=%s  cell=%s  query=%r", project_id, cell_id, q)
 
             search_tasks = [asyncio.create_task(agent_actions.web_search(q)) for q in queries]
             scrape_tasks = [asyncio.create_task(agent_actions.extract_page_text(u)) for u in doc_urls]
@@ -511,6 +555,11 @@ async def stream_answer(
                         seen.add(r.get("link", ""))
                         deduped.append(r)
                 all_web_results = deduped
+                log.info(
+                    "[SEARCH:RESULTS] project=%s  cell=%s  total_results=%d  titles=%s",
+                    project_id, cell_id, len(all_web_results),
+                    [r.get("title", "")[:50] for r in all_web_results[:4]],
+                )
                 await cell_context.push_activity(project_id, cell_id, "search_done", {"results": all_web_results})
 
             for url, result in zip(doc_urls, scrape_results_list):
@@ -555,13 +604,22 @@ async def stream_answer(
         user_content += f"\n\nQuestion: {message}"
 
         # 5. Stream LLM response
+        log.info(
+            "[LLM:START] project=%s  cell=%s  context_chars=%d  web_results=%d",
+            project_id, cell_id, len(user_content), len(all_web_results),
+        )
         answer_parts: list[str] = []
         try:
             async for tok in stream_tokens(_build_system_prompt(cell_row), user_content):
                 yield f"data: {json.dumps({'type': 'token', 'token': tok})}\n\n"
                 answer_parts.append(tok)
-        except Exception as e:
-            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+            log.info(
+                "[LLM:DONE] project=%s  cell=%s  answer_chars=%d",
+                project_id, cell_id, sum(len(t) for t in answer_parts),
+            )
+        except Exception as exc:
+            log.error("[LLM:ERROR] project=%s  cell=%s  error=%s", project_id, cell_id, exc)
+            yield f"data: {json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
 
         # Resolve asset filenames + presigned download URLs for citation chips
         sources_out: list[dict] = []
@@ -583,6 +641,10 @@ async def stream_answer(
 
         # Push citation sources to activity feed so WindowCanvas can spawn document cards
         if sources_out:
+            log.info(
+                "[SOURCES] project=%s  cell=%s  citations=%s",
+                project_id, cell_id, [s["name"] for s in sources_out],
+            )
             await cell_context.push_activity(project_id, cell_id, "sources_done", {"sources": sources_out})
 
         # 6. Save Q&A back to KG and persist turns — fire-and-forget so SSE connection closes immediately
@@ -662,5 +724,14 @@ async def voice_message(
     user: CurrentUser = Depends(get_current_user),
 ):
     data = await audio.read()
-    transcript = await whisper_extract.extract(data, audio.filename or "voice.webm")
-    return {"transcript": transcript}
+    log.info(
+        "[VOICE] project=%s  session=%s  user=%s  audio_bytes=%d",
+        project_id, session_id, user.id, len(data),
+    )
+    try:
+        transcript = await whisper_extract.extract(data, audio.filename or "voice.webm")
+        log.info("[VOICE] project=%s  user=%s  transcript=%r", project_id, user.id, transcript)
+        return {"transcript": transcript}
+    except Exception as exc:
+        log.error("[VOICE] transcription failed  project=%s  user=%s  error=%s", project_id, user.id, exc)
+        raise

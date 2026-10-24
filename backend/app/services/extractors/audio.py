@@ -16,8 +16,13 @@ def _get_client() -> AsyncOpenAI:
 
 
 async def extract(data: bytes, filename: str = "audio.mp3") -> str:
-    resp = await _get_client().audio.transcriptions.create(
-        model="whisper-1",
-        file=(filename, io.BytesIO(data)),
-    )
-    return resp.text
+    if len(data) < 1000:  # too short to be valid audio
+        return ""
+    try:
+        resp = await _get_client().audio.transcriptions.create(
+            model="whisper-1",
+            file=(filename, io.BytesIO(data)),
+        )
+        return resp.text
+    except Exception:
+        return ""  # bad format or too short — caller handles empty string

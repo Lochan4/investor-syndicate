@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { streamActivityFeed, ActivityEvent, CitationSource } from '@/lib/api'
+import { BorderTrail } from '@/components/core/border-trail'
 
 function MicButton() {
   const [active, setActive] = useState(false)
@@ -26,7 +27,7 @@ function MicButton() {
   )
 }
 
-type CardType = 'web' | 'maps' | 'company' | 'citation'
+type CardType = 'web' | 'maps' | 'company' | 'citation' | 'summary'
 type DockEdge = 'left' | 'right' | 'top' | 'bottom'
 
 interface WindowCard {
@@ -99,14 +100,25 @@ function DockPicker({ onDock, onClose }: { onDock: (edge: DockEdge) => void; onC
 
 // ── Card shell ─────────────────────────────────────────────
 
-function Card({ card, onToggleDock, onDock, children }: {
+function Card({ card, loading, onToggleDock, onDock, children }: {
   card: WindowCard
+  loading: boolean
   onToggleDock: () => void
   onDock: (edge: DockEdge) => void
   children: React.ReactNode
 }) {
   return (
     <div className="relative bg-white border border-stroke rounded-xl shadow-sm overflow-hidden shrink-0">
+      {loading && (
+        <BorderTrail
+          size={100}
+          duration={2.5}
+          style={{
+            boxShadow:
+              '0 0 40px 16px rgba(212,126,48,0.55), 0 0 80px 40px rgba(212,126,48,0.25), 0 0 120px 60px rgba(212,126,48,0.10)',
+          }}
+        />
+      )}
       {card.showDockPicker && (
         <DockPicker onDock={onDock} onClose={onToggleDock} />
       )}
@@ -243,6 +255,14 @@ function CitationCard({ data }: { data: CitationSource }) {
   )
 }
 
+function SummaryCard({ data }: { data: { text: string } }) {
+  return (
+    <div className="px-3 py-3 max-h-72 overflow-y-auto">
+      <pre className="text-xs text-ink whitespace-pre-wrap leading-relaxed font-sans">{data.text}</pre>
+    </div>
+  )
+}
+
 // ── Docked tab strip ───────────────────────────────────────
 
 function DockedTab({ card, onUndock }: { card: WindowCard; onUndock: () => void }) {
@@ -279,6 +299,11 @@ function cardIcon(type: CardType) {
       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
     </svg>
   )
+  if (type === 'summary') return (
+    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h7.5M8.25 9.75h7.5M8.25 12.75h4.5M3.75 3h16.5A.75.75 0 0 1 21 3.75v16.5A.75.75 0 0 1 20.25 21H3.75A.75.75 0 0 1 3 20.25V3.75A.75.75 0 0 1 3.75 3Z" />
+    </svg>
+  )
   return (
     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
@@ -289,6 +314,18 @@ function cardIcon(type: CardType) {
 // ── Main component ─────────────────────────────────────────
 
 const STORAGE_KEY = (cellId: string) => `canvas-cards-${cellId}`
+
+// Predefined grid zones — 8 positions spread across the canvas so new windows don't stack
+const GRID_POSITIONS = [
+  { x: 20,  y: 20  },
+  { x: 340, y: 20  },
+  { x: 660, y: 20  },
+  { x: 20,  y: 320 },
+  { x: 340, y: 320 },
+  { x: 660, y: 320 },
+  { x: 20,  y: 620 },
+  { x: 340, y: 620 },
+]
 
 export function WindowCanvas({ projectId, cellId, token }: {
   projectId: string; cellId: string; token: string
@@ -304,6 +341,7 @@ export function WindowCanvas({ projectId, cellId, token }: {
     } catch {}
     return []
   })
+  const cardsRef = useRef<WindowCard[]>([])
   const tokenRef = useRef(token)
   const idCounter = useRef(0)
   const dragState = useRef<{
@@ -318,6 +356,9 @@ export function WindowCanvas({ projectId, cellId, token }: {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Keep cardsRef in sync for dedup lookups inside callbacks
+  useEffect(() => { cardsRef.current = cards }, [cards])
+
   // Persist cards whenever they change
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY(cellId), JSON.stringify(cards)) } catch {}
@@ -329,11 +370,16 @@ export function WindowCanvas({ projectId, cellId, token }: {
 
   const newId = () => String(++idCounter.current)
 
-  const addCard = (type: CardType, title: string, data: any) => {
+  const addCard = (type: CardType, title: string, data: any): string => {
+    // Dedup: if an undocked card of the same type+title already exists, update it in place
+    const existing = cardsRef.current.find(c => c.docked === null && c.type === type && c.title === title)
+    if (existing) {
+      setCards(prev => prev.map(c => c.id === existing.id ? { ...c, data: { ...c.data, ...data } } : c))
+      return existing.id
+    }
     const id = newId()
-    // Cascade each new card 30px down-right so windows don't stack exactly
-    const offset = ((idCounter.current - 1) % 8) * 30
-    setCards(prev => [...prev, { id, type, title, data, docked: null, showDockPicker: false, x: 12 + offset, y: 12 + offset }])
+    const pos = GRID_POSITIONS[(idCounter.current - 1) % GRID_POSITIONS.length]
+    setCards(prev => [...prev, { id, type, title, data, docked: null, showDockPicker: false, x: pos.x, y: pos.y }])
     return id
   }
 
@@ -371,6 +417,18 @@ export function WindowCanvas({ projectId, cellId, token }: {
     setCards(prev => prev.map(c => c.id === id ? { ...c, showDockPicker: !c.showDockPicker } : c))
   }
 
+  // Shared dock helper: match by title substring, both SSE and voice commands use this
+  const dockByHint = (hint: string, edge: DockEdge) => {
+    const h = hint.toLowerCase()
+    setCards(prev => {
+      const match = prev.find(c =>
+        c.docked === null && (c.title.toLowerCase().includes(h) || h.includes(c.title.toLowerCase()))
+      )
+      if (!match) return prev
+      return prev.map(c => c.id === match.id ? { ...c, docked: edge, showDockPicker: false } : c)
+    })
+  }
+
   // Track the last research card id so we can update it with results
   const lastResearchId = useRef<string | null>(null)
 
@@ -380,7 +438,10 @@ export function WindowCanvas({ projectId, cellId, token }: {
         const cardType: CardType = e.data.card_type === 'maps' ? 'maps'
           : e.data.card_type === 'company' ? 'company'
           : 'web'
-        const id = addCard(cardType, e.data.intent || 'Research', {
+        // Use backend short title; fall back to first 4 words of intent
+        const title = e.data.title
+          || (e.data.intent || 'Research').split(' ').slice(0, 4).join(' ')
+        const id = addCard(cardType, title, {
           intent: e.data.intent,
           queries: e.data.queries || [],
           results: [],
@@ -403,20 +464,47 @@ export function WindowCanvas({ projectId, cellId, token }: {
           addCard('citation', source.name, source)
         }
       } else if (e.type === 'dock_window') {
-        const hint: string = (e.data.title_hint || '').toLowerCase()
-        const edge: DockEdge = e.data.edge
-        setCards(prev => {
-          const match = prev.find(c =>
-            c.title.toLowerCase().includes(hint) || hint.includes(c.title.toLowerCase())
-          )
-          if (!match) return prev
-          return prev.map(c => c.id === match.id ? { ...c, docked: edge, showDockPicker: false } : c)
-        })
+        dockByHint((e.data.title_hint || '').toLowerCase(), e.data.edge)
       }
     })
     return stop
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, cellId])
+
+  // Voice "dock [window name]" command — fired by ConversationPanel CDM
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { hint, edge } = (e as CustomEvent).detail
+      dockByHint(hint, edge)
+    }
+    window.addEventListener('dock-window', handler)
+    return () => window.removeEventListener('dock-window', handler)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // "clear all windows" command
+  useEffect(() => {
+    const handler = () => setCards([])
+    window.addEventListener('clear-canvas', handler)
+    return () => window.removeEventListener('clear-canvas', handler)
+  }, [])
+
+  // "show summary" command — opens a summary card
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { text } = (e as CustomEvent).detail
+      const id = newId()
+      const pos = GRID_POSITIONS[(idCounter.current - 1) % GRID_POSITIONS.length]
+      setCards(prev => {
+        const existing = prev.find(c => c.type === 'summary' && c.docked === null)
+        if (existing) return prev.map(c => c.id === existing.id ? { ...c, data: { text } } : c)
+        return [...prev, { id, type: 'summary', title: 'Conversation Summary', data: { text }, docked: null, showDockPicker: false, x: pos.x, y: pos.y }]
+      })
+    }
+    window.addEventListener('open-summary', handler)
+    return () => window.removeEventListener('open-summary', handler)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Open asset from sidebar as a canvas window
   useEffect(() => {
@@ -426,8 +514,8 @@ export function WindowCanvas({ projectId, cellId, token }: {
         // Don't open duplicate undocked windows for the same asset
         if (prev.some(c => c.type === 'citation' && c.data.id === id && c.docked === null)) return prev
         const next = ++idCounter.current
-        const offset = ((next - 1) % 8) * 30
-        return [...prev, { id: String(next), type: 'citation', title: name, data: { id, name, url, kind }, docked: null, showDockPicker: false, x: 12 + offset, y: 12 + offset }]
+        const pos = GRID_POSITIONS[(next - 1) % GRID_POSITIONS.length]
+        return [...prev, { id: String(next), type: 'citation', title: name, data: { id, name, url, kind }, docked: null, showDockPicker: false, x: pos.x, y: pos.y }]
       })
     }
     window.addEventListener('open-asset', handler)
@@ -442,15 +530,7 @@ export function WindowCanvas({ projectId, cellId, token }: {
 
   return (
     <div className="flex flex-col h-full bg-neutral-800">
-      {/* Header */}
-      <div className="px-3 py-3 border-b border-white/10 flex items-center shrink-0">
-        <span className="text-xs font-semibold text-white/70 uppercase tracking-wide">Canvas</span>
-        {cards.length > 0 && (
-          <span className="ml-2 text-xs text-white/40">{openCards.length} open · {cards.length - openCards.length} docked</span>
-        )}
-      </div>
-
-      {/* Top docked tabs — inside flex row below header */}
+      {/* Top docked tabs */}
       {dockedTop.length > 0 && (
         <div className="flex gap-1.5 px-3 py-1.5 border-b border-stroke flex-wrap shrink-0">
           {dockedTop.map(c => <DockedTab key={c.id} card={c} onUndock={() => undockCard(c.id)} />)}
@@ -491,6 +571,10 @@ export function WindowCanvas({ projectId, cellId, token }: {
             >
               <Card
                 card={card}
+                loading={
+                  (card.type === 'web' || card.type === 'company') &&
+                  !(card.data.results?.length)
+                }
                 onToggleDock={() => toggleDockPicker(card.id)}
                 onDock={edge => dockCard(card.id, edge)}
               >
@@ -504,6 +588,7 @@ export function WindowCanvas({ projectId, cellId, token }: {
                 {card.type === 'company'  && <CompanyCard data={card.data} />}
                 {card.type === 'web'      && <WebCard data={card.data} />}
                 {card.type === 'citation' && <CitationCard data={card.data} />}
+                {card.type === 'summary'  && <SummaryCard data={card.data} />}
               </Card>
             </div>
           ))}

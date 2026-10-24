@@ -54,25 +54,87 @@ export function AdminConversationCanvas({ token }: { token: string }) {
   const tokenRef = useRef(token)
   const recordingRef = useRef(false)
   const lastSpaceRef = useRef(0)
+  const srRef = useRef<any>(null)
+  const cdmFiredRef = useRef(false)
 
   useEffect(() => {
     fetch('/api/token').then(r => r.ok ? r.json() : null).then(d => { if (d?.token) tokenRef.current = d.token }).catch(() => {})
   }, [])
 
+  const matchItem = useCallback((text: string) => {
+    if (!result) return null
+    const lower = text.toLowerCase()
+    const matchName = (name: string) => {
+      const n = name.toLowerCase()
+      return lower.includes(n) || n.includes(lower) || n.split(' ').some(w => w.length > 2 && lower.includes(w))
+    }
+    const proj = result.projects.find(p => matchName(p.startup_name))
+    if (proj) return { type: 'project', id: proj.id } as const
+    const app = result.applications.find(a => matchName(a.startup_name))
+    if (app) return { type: 'application', id: app.id } as const
+    return null
+  }, [result])
+
+  // CDM-classify: pattern-match simple filter words client-side.
+  // Used as a guardrail: if Jev returns "all" but CDM knows better, filter the display.
+  const cdmClassify = (text: string): string | null => {
+    const t = text.toLowerCase()
+    if (/\b(open|go to|navigate)\b/.test(t)) return null  // navigation → Jev resolves name→ID
+    if (/\b(application|applications|applicants)\b/.test(t)) {
+      return /\b(pending|reviewing|under review)\b/.test(t) ? 'pending_applications' : 'applications'
+    }
+    if (/\b(workspace|workspaces)\b/.test(t)) return 'workspaces'
+    if (/\b(project|projects)\b/.test(t)) return 'projects'
+    return null
+  }
+
   const processTranscript = useCallback(async (transcript: string) => {
     if (!transcript.trim()) return
     setThinking(true)
     setHint(`"${transcript}"`)
+
+    // Layer 1 — CDM name match: instant navigation from already-loaded results
+    if (result) {
+      const matched = matchItem(transcript)
+      if (matched) {
+        router.push(matched.type === 'project' ? `/investor/${matched.id}` : `/admin/inbox/${matched.id}`)
+        return
+      }
+    }
+
+    // Layer 2 — Jev: backend classifies intent + fetches data
     try {
       const data = await api.adminStage1(tokenRef.current, transcript)
-      setResult(data)
-      setHint(data.message)
+      if (data.intent === 'navigate' && (data as any).route) {
+        router.push((data as any).route)
+        return
+      }
+
+      // Layer 3 — CDM guardrail: if Jev returned "all" but we can pattern-match a specific intent,
+      // filter the response so only the relevant section is shown
+      const localIntent = cdmClassify(transcript)
+      if (localIntent && data.intent === 'all') {
+        const filtered = { ...data }
+        if (localIntent !== 'applications' && localIntent !== 'pending_applications') filtered.applications = []
+        if (localIntent !== 'workspaces') filtered.workspaces = []
+        if (localIntent !== 'projects') filtered.projects = []
+        if (localIntent === 'pending_applications') {
+          filtered.applications = filtered.applications.filter(
+            (a: any) => a.status === 'submitted' || a.status === 'reviewing'
+          )
+        }
+        setResult(filtered)
+        setHint(data.message)
+      } else {
+        setResult(data)
+        setHint(data.message)
+      }
     } catch {
       setHint('Something went wrong. Please try again.')
     } finally {
       setThinking(false)
     }
-  }, [])
+  }, [result, router, matchItem]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleMic = useCallback(async () => {
     if (recording) {
@@ -83,13 +145,18 @@ export function AdminConversationCanvas({ token }: { token: string }) {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       const recorder = new MediaRecorder(stream)
       chunksRef.current = []
+      cdmFiredRef.current = false
       recorder.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
       recorder.onstop = async () => {
+        srRef.current?.abort()
+        srRef.current = null
         stream.getTracks().forEach(t => t.stop())
         setRecording(false)
         recordingRef.current = false
+        if (cdmFiredRef.current) { cdmFiredRef.current = false; return }
         if (!chunksRef.current.length) return
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
+        if (blob.size < 1000) return
         try {
           const transcript = await api.transcribeAudio(tokenRef.current, blob)
           if (transcript) await processTranscript(transcript)
@@ -103,10 +170,33 @@ export function AdminConversationCanvas({ token }: { token: string }) {
       setRecording(true)
       recordingRef.current = true
       setHint('Listening…')
+
+      // CDM: partial transcript detection — fires before Whisper completes
+      if (result) {
+        const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+        if (SR) {
+          const sr = new SR()
+          sr.interimResults = true
+          sr.continuous = false
+          sr.onresult = (e: any) => {
+            const partial = Array.from(e.results as any[]).map((r: any) => r[0].transcript).join(' ')
+            const matched = matchItem(partial)
+            if (matched) {
+              cdmFiredRef.current = true
+              sr.abort()
+              mediaRef.current?.stop()
+              router.push(matched.type === 'project' ? `/projects/${matched.id}` : `/admin/inbox/${matched.id}`)
+            }
+          }
+          sr.onerror = () => {}
+          sr.start()
+          srRef.current = sr
+        }
+      }
     } catch {
       setHint('Microphone access denied.')
     }
-  }, [recording, processTranscript])
+  }, [recording, processTranscript, result, matchItem, router])
 
   // Spacebar shortcut
   useEffect(() => {
@@ -260,29 +350,25 @@ export function AdminConversationCanvas({ token }: { token: string }) {
         </div>
       )}
 
-      {/* Hint */}
+      {/* Hint + Mic — stacked so text never overlaps the button */}
       <div style={{
-        position: 'absolute', bottom: 140, left: '50%', transform: 'translateX(-50%)',
-        textAlign: 'center', pointerEvents: 'none',
+        position: 'absolute', bottom: 40, left: '50%', transform: 'translateX(-50%)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20,
+        pointerEvents: 'none',
       }}>
         <p style={{
-          fontSize: 14,
+          fontSize: 14, textAlign: 'center',
           color: thinking ? '#D47E30' : recording ? '#ef4444' : 'rgba(255,255,255,0.35)',
           fontWeight: thinking ? 600 : 400,
           transition: 'color 0.3s ease',
-          maxWidth: 500, lineHeight: 1.5,
+          maxWidth: 500, lineHeight: 1.5, margin: 0,
         }}>
           {thinking ? 'Thinking…' : hint}
         </p>
-      </div>
-
-      {/* Mic */}
-      <div style={{
-        position: 'absolute', bottom: 52, left: '50%', transform: 'translateX(-50%)',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
-      }}>
-        <MicButton active={recording} onClick={toggleMic} />
-        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.20)', letterSpacing: '0.06em' }}>SPACE</span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, pointerEvents: 'auto' }}>
+          <MicButton active={recording} onClick={toggleMic} />
+          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.20)', letterSpacing: '0.06em' }}>SPACE</span>
+        </div>
       </div>
     </div>
   )

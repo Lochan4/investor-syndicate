@@ -1,9 +1,13 @@
 """GraphRAG traversal — BFS over chunk_edges seeded by embedding similarity."""
 from __future__ import annotations
 
+import logging
+
 import asyncpg
 
 from app.services.embeddings import embed_batch
+
+log = logging.getLogger("traversal")
 
 
 async def traverse(
@@ -14,6 +18,8 @@ async def traverse(
     upstream_ctx: str = "",
 ) -> tuple[list[str], list[str], dict]:
     """Returns (context_chunks, source_asset_ids, trace)."""
+    log.info("[TRAVERSE:START] project=%s  cell=%s  query=%r", project_id, cell_id, query[:120])
+
     query_vec = (await embed_batch([query]))[0]
     vec_str = str(query_vec)
 
@@ -26,6 +32,8 @@ async def traverse(
            LIMIT 5""",
         vec_str, project_id,
     )
+    if not seed_rows:
+        log.warning("[TRAVERSE:SEEDS] project=%s — no chunks found (no assets uploaded?)", project_id)
 
     # node_id -> {text, asset_id, relevance}
     visited: dict[str, dict] = {}
@@ -39,6 +47,10 @@ async def traverse(
             "qa_group_id": str(row["qa_group_id"]) if row["qa_group_id"] else None,
         }
         frontier.append((cid, sim))
+        log.info(
+            "[TRAVERSE:SEED] sim=%.3f  preview=%r",
+            sim, row["text"][:80],
+        )
 
     # BFS up to depth 3, cap 40 nodes
     for depth in range(1, 4):
@@ -83,6 +95,10 @@ async def traverse(
     top = sorted(visited.values(), key=lambda x: x["relevance"], reverse=True)[:12]
     context_chunks = [n["text"] for n in top]
     source_ids = list(dict.fromkeys(n["asset_id"] for n in top))
+    log.info(
+        "[TRAVERSE:DONE] project=%s  total_visited=%d  top_k=%d  source_assets=%d",
+        project_id, len(visited), len(top), len(source_ids),
+    )
 
     # Sibling expansion: if a Q&A chunk was found, fetch its group siblings for full context
     _MAX_GROUPS = 2

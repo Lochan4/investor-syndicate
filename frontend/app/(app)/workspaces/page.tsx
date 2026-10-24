@@ -1,4 +1,5 @@
 import { withAuth } from '@workos-inc/authkit-nextjs'
+import { redirect } from 'next/navigation'
 import { api, Workspace } from '@/lib/api'
 import { Icons } from '@/components/Icons'
 import Link from 'next/link'
@@ -20,6 +21,8 @@ export default async function WorkspacesPage() {
   } catch {
     error = true
   }
+
+  if (platformRole === 'investor') redirect('/investor')
 
   const canCreate = ADMIN_ROLES.has(platformRole)
 

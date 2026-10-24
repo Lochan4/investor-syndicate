@@ -15,10 +15,10 @@ function renderMd(text: string) {
 
 interface Message { role: 'user' | 'assistant'; content: string; sources?: CitationSource[] }
 
-export function ConversationPanel({ projectId, cellId, cellTopic, token }: {
-  projectId: string; cellId: string; cellTopic?: string; token: string
+export function ConversationPanel({ projectId, cellId, cellTopic, token, initialCollapsed }: {
+  projectId: string; cellId: string; cellTopic?: string; token: string; initialCollapsed?: boolean
 }) {
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(initialCollapsed ?? false)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [thinking, setThinking] = useState(false)
@@ -169,6 +169,39 @@ export function ConversationPanel({ projectId, cellId, cellTopic, token }: {
     } catch {}
   }
 
+  // Returns true if the transcript was a canvas command — skip sending to LLM
+  const tryCanvasCommand = (text: string): boolean => {
+    const lower = text.toLowerCase()
+
+    // "clear all windows" / "clear the canvas" / "remove all windows" / "clean canvas"
+    if (/\b(clear|remove|close|clean)\b.{0,20}\b(window|canvas|screen|all)\b|\b(clear|clean)\s+(up\s+)?canvas\b/.test(lower)) {
+      window.dispatchEvent(new CustomEvent('clear-canvas'))
+      return true
+    }
+
+    // "summary" / "give me a summary" / "show me a recap"
+    if (/\b(summary|summarize|summarise|recap|overview)\b/.test(lower)) {
+      const summaryText = messages
+        .filter(m => m.content)
+        .map(m => `${m.role === 'user' ? 'You' : 'Assistant'}: ${m.content}`)
+        .join('\n\n')
+      window.dispatchEvent(new CustomEvent('open-summary', { detail: { text: summaryText || 'No conversation yet.' } }))
+      return true
+    }
+
+    // "dock [window name] to [edge]"
+    if (!/\bdock\b/.test(lower)) return false
+    const edgeMatch = lower.match(/\b(left|right|top|bottom)\b/)
+    const edge = (edgeMatch?.[1] || 'left') as 'left' | 'right' | 'top' | 'bottom'
+    const hint = lower
+      .replace(/\bdock\b/, '').replace(/\bwindow\b/g, '').replace(/\bthe\b/g, '')
+      .replace(/\bto\b/g, '').replace(/\b(left|right|top|bottom)\b/g, '').replace(/\bside\b/g, '')
+      .trim().replace(/\s+/g, ' ')
+    if (hint.length < 2) return false
+    window.dispatchEvent(new CustomEvent('dock-window', { detail: { hint, edge } }))
+    return true
+  }
+
   const toggleMic = useCallback(async () => {
     if (recording) {
       mediaRef.current?.stop()
@@ -186,14 +219,28 @@ export function ConversationPanel({ projectId, cellId, cellTopic, token }: {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
         try {
           const transcript = await api.sendVoice(tokenRef.current, projectId, sessionId, blob)
+          if (transcript && tryCanvasCommand(transcript)) return
           if (transcript) send(transcript)
         } catch {}
       }
       mediaRef.current = recorder
       recorder.start()
       setRecording(true)
+
+      // CDM: Web Speech API partial results for instant dock detection
+      const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+      if (SR) {
+        const sr = new SR()
+        sr.interimResults = true; sr.continuous = false
+        sr.onresult = (ev: any) => {
+          const partial = Array.from(ev.results as any[]).map((r: any) => r[0].transcript).join(' ')
+          if (tryCanvasCommand(partial)) { sr.abort(); mediaRef.current?.stop() }
+        }
+        sr.onerror = () => {}
+        sr.start()
+      }
     } catch {}
-  }, [recording, sessionId, projectId, send])
+  }, [recording, sessionId, projectId, send]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { toggleMicRef.current = toggleMic }, [toggleMic])
 
   if (collapsed) return (
@@ -288,7 +335,7 @@ export function ConversationPanel({ projectId, cellId, cellTopic, token }: {
       </div>
 
       {/* Confidence prompt — shown after 5 messages */}
-      {showConfidence && !submitted && (
+      {showConfidence && !submitDone && (
         <div className="border-t border-stroke px-4 py-3" style={{ background: 'rgba(141,90,43,0.04)' }}>
           {confidenceSaved ? (
             <p className="text-xs text-center text-green-700 font-medium py-1">

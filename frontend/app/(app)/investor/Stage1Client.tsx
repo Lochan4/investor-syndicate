@@ -47,46 +47,66 @@ export function InvestorStage1({ token }: { token: string }) {
     fetch('/api/token').then(r => r.ok ? r.json() : null).then(d => { if (d?.token) tokenRef.current = d.token }).catch(() => {})
   }, [])
 
+  const matchProject = useCallback((text: string, projects: Stage1Project[]) => {
+    const lower = text.toLowerCase()
+    return projects.find(p => {
+      const name = p.startup_name.toLowerCase()
+      return lower.includes(name) || name.includes(lower) ||
+        name.split(' ').some(w => w.length > 2 && lower.includes(w))
+    })
+  }, [])
+
+  const cdmClassify = (text: string): string | null => {
+    const t = text.toLowerCase()
+    if (/\b(open|go to|navigate)\b/.test(t)) return null
+    if (/\b(active|open)\b/.test(t) && /\b(project|projects)\b/.test(t)) return 'active'
+    if (/\b(project|projects)\b/.test(t)) return 'projects'
+    if (/\b(workspace|workspaces)\b/.test(t)) return 'workspaces'
+    return null
+  }
+
   const processTranscript = useCallback(async (transcript: string) => {
     if (!transcript.trim()) return
     setThinking(true)
     setHint(`"${transcript}"`)
 
-    // If results are showing, try to match a navigation command
-    if (result) {
-      const lower = transcript.toLowerCase()
-      // Try project navigation
-      const matchedProject = result.projects.find(p =>
-        lower.includes(p.startup_name.toLowerCase()) ||
-        p.startup_name.toLowerCase().split(' ').some(w => lower.includes(w))
-      )
-      if (matchedProject) {
-        router.push(`/investor/${matchedProject.id}`)
-        return
-      }
-      // Try workspace navigation
-      const matchedWorkspace = result.workspaces.find(w =>
-        lower.includes(w.name.toLowerCase())
-      )
-      if (matchedWorkspace) {
-        // Workspaces don't have a stage 2 yet — stay on stage 1 for now
-        setThinking(false)
-        setHint(`Workspace "${matchedWorkspace.name}" — select a project to continue.`)
+    // If results are showing, first try local name match before hitting the API
+    if (result?.projects.length) {
+      const matched = matchProject(transcript, result.projects)
+      if (matched) {
+        router.push(`/investor/${matched.id}`)
         return
       }
     }
 
-    // Otherwise run stage 1 query
+    // Call stage1 — handles both queries and navigation intents via Jev
     try {
       const data = await api.investorStage1(tokenRef.current, transcript)
-      setResult({ projects: data.projects, workspaces: data.workspaces, message: data.message })
+
+      // Backend resolved the navigation target to a route — use it directly
+      if (data.intent === 'navigate' && (data as any).route) {
+        router.push((data as any).route)
+        return
+      }
+
+      // CDM guardrail: if Jev returned "all" but we can pattern-match a specific intent,
+      // filter so only the relevant section is shown
+      const localIntent = cdmClassify(transcript)
+      if (localIntent && data.intent === 'all') {
+        const filtered = { ...data }
+        if (localIntent !== 'projects' && localIntent !== 'active' && localIntent !== 'assigned') filtered.projects = []
+        if (localIntent !== 'workspaces') filtered.workspaces = []
+        setResult({ projects: filtered.projects, workspaces: filtered.workspaces, message: data.message })
+      } else {
+        setResult({ projects: data.projects, workspaces: data.workspaces, message: data.message })
+      }
       setHint(data.message)
     } catch {
       setHint('Something went wrong. Please try again.')
     } finally {
       setThinking(false)
     }
-  }, [result, router])
+  }, [result, router, matchProject])
 
   const toggleMic = useCallback(async () => {
     if (recording) {
@@ -108,6 +128,7 @@ export function InvestorStage1({ token }: { token: string }) {
         if (cdmFiredRef.current) { cdmFiredRef.current = false; return }
         if (!chunksRef.current.length) return
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
+        if (blob.size < 1000) { setThinking(false); return }  // too short, skip Whisper
         try {
           const transcript = await api.transcribeAudio(tokenRef.current, blob)
           if (transcript) await processTranscript(transcript)
@@ -240,24 +261,21 @@ export function InvestorStage1({ token }: { token: string }) {
 
             {result.workspaces.length > 0 && (
               <>
-                <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(254,252,245,0.35)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 16 }}>
+                <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(254,252,245,0.22)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10, marginTop: result.projects.length > 0 ? 8 : 0 }}>
                   Workspaces
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {result.workspaces.map(w => (
                     <div
                       key={w.id}
                       style={{
-                        padding: '16px 20px',
-                        background: 'rgba(254,252,245,0.04)',
-                        border: '1px solid rgba(254,252,245,0.08)',
-                        borderRadius: 14,
+                        padding: '7px 14px',
+                        background: 'rgba(254,252,245,0.03)',
+                        border: '1px solid rgba(254,252,245,0.06)',
+                        borderRadius: 20,
                       }}
                     >
-                      <div style={{ fontSize: 14, fontWeight: 600, color: '#FEFCF5' }}>{w.name}</div>
-                      {w.description && (
-                        <div style={{ fontSize: 11, color: 'rgba(254,252,245,0.4)', marginTop: 4 }}>{w.description}</div>
-                      )}
+                      <span style={{ fontSize: 12, fontWeight: 500, color: 'rgba(254,252,245,0.45)' }}>{w.name}</span>
                     </div>
                   ))}
                 </div>
@@ -267,28 +285,24 @@ export function InvestorStage1({ token }: { token: string }) {
         </div>
       )}
 
-      {/* Hint text */}
+      {/* Hint + Mic — stacked so text never overlaps the button */}
       <div style={{
-        position: 'absolute', bottom: 140, left: '50%', transform: 'translateX(-50%)',
-        textAlign: 'center', pointerEvents: 'none',
+        position: 'absolute', bottom: 40, left: '50%', transform: 'translateX(-50%)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20,
+        pointerEvents: 'none',
       }}>
         <p style={{
-          fontSize: 14, color: statusColor,
+          fontSize: 14, textAlign: 'center', color: statusColor,
           fontWeight: thinking ? 600 : 400,
           transition: 'color 0.3s ease',
-          maxWidth: 420, lineHeight: 1.5,
+          maxWidth: 420, lineHeight: 1.5, margin: 0,
         }}>
           {thinking ? 'Thinking…' : hint}
         </p>
-      </div>
-
-      {/* Centered mic */}
-      <div style={{
-        position: 'absolute', bottom: 52, left: '50%', transform: 'translateX(-50%)',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
-      }}>
-        <MicButton active={recording} onClick={toggleMic} />
-        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.20)', letterSpacing: '0.06em' }}>SPACE</span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, pointerEvents: 'auto' }}>
+          <MicButton active={recording} onClick={toggleMic} />
+          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.20)', letterSpacing: '0.06em' }}>SPACE</span>
+        </div>
       </div>
     </div>
   )

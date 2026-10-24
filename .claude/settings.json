@@ -85,13 +85,17 @@
     "Glob",
     "Grep",
     "Read",
+    "TaskCreate",
+    "TaskUpdate",
     "TodoWrite",
     "ToolSearch",
     "WebSearch",
     "Write",
     "mcp__claude_ai_Claude_Docs__batch",
     "mcp__claude_ai_Claude_Docs__guide",
-    "mcp__claude_ai_Claude_Docs__update"
+    "mcp__claude_ai_Claude_Docs__update",
+    "mcp__claude_ai_Firecrawl__firecrawl_scrape",
+    "mcp__claude_ai_Firecrawl__firecrawl_search"
   ],
   "statusLine": {
     "type": "command",

@@ -43,6 +43,21 @@ export interface ApplicationStatus { id: string; startup_name: string; founder_n
 export type KgEventType = 'kg_snapshot' | 'kg_nodes' | 'kg_edges' | 'kg_done'
 export interface KgEvent { type: KgEventType; data: Record<string, any> }
 
+export interface FinancierProspect {
+  id: string; startup_name: string; sector?: string; stage?: string; status: string
+  total_promised: number; total_given: number; total_remaining: number; commitment_count: number
+}
+export interface FinancierCommitment {
+  id: string; user_id: string; email: string
+  amount_promised: number; amount_given: number; amount_remaining: number
+  currency: string; notes?: string; updated_at?: string
+}
+export interface FinancierBreakdown {
+  project: { id: string; startup_name: string; sector?: string; stage?: string; status: string }
+  commitments: FinancierCommitment[]
+  total_promised: number; total_given: number; total_remaining: number
+}
+
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
 async function publicFetch<T>(path: string, opts: RequestInit = {}): Promise<T> {
@@ -260,6 +275,15 @@ export const api = {
   listUsers: (token: string) => apiFetch<PlatformUser[]>('/admin/users', token),
   updateUserRole: (token: string, userId: string, platform_role: string) =>
     apiFetch('/admin/users/' + userId + '/role', token, { method: 'PATCH', body: JSON.stringify({ platform_role }) }),
+
+  // Financier
+  listProspects: (token: string) => apiFetch<FinancierProspect[]>('/financier/prospects', token),
+  getProspectBreakdown: (token: string, projectId: string) =>
+    apiFetch<FinancierBreakdown>(`/financier/prospects/${projectId}`, token),
+  upsertCommitment: (token: string, projectId: string, body: { user_id: string; amount_promised: number; amount_given: number; currency?: string; notes?: string }) =>
+    apiFetch<FinancierCommitment>(`/financier/prospects/${projectId}/commitments`, token, { method: 'POST', body: JSON.stringify(body) }),
+  deleteCommitment: (token: string, commitmentId: string) =>
+    apiFetch(`/financier/commitments/${commitmentId}`, token, { method: 'DELETE' }),
 }
 
 export function streamActivityFeed(
@@ -330,10 +354,11 @@ export interface Stage1Workspace {
   id: string; name: string; description?: string; role?: string
 }
 export interface Stage1Response {
-  intent: string; message: string; projects: Stage1Project[]; workspaces: Stage1Workspace[]
+  intent: string; message: string; navigation_target?: string
+  projects: Stage1Project[]; workspaces: Stage1Workspace[]
 }
 export interface AdminStage1Response {
-  intent: string; message: string
+  intent: string; message: string; navigation_target?: string
   applications: Array<{ id: string; founder_name: string; startup_name: string; sector?: string; stage?: string; status: string }>
   workspaces: Array<{ id: string; name: string; description?: string }>
   projects: Array<{ id: string; startup_name: string; sector?: string; status: string }>

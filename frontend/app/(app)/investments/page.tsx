@@ -1,4 +1,5 @@
 import { withAuth } from '@workos-inc/authkit-nextjs'
+import { redirect } from 'next/navigation'
 import { api, Investment } from '@/lib/api'
 import { StatusBadge } from '@/components/StatusBadge'
 import { Icons } from '@/components/Icons'
@@ -18,8 +19,15 @@ function ctaLabel(inv: Investment) {
 export default async function InvestmentsPage() {
   const { accessToken } = await withAuth({ ensureSignedIn: true })
   let investments: Investment[] = []
+  let platformRole = 'investor'
   let error = false
-  try { investments = await api.listInvestments(accessToken!) } catch { error = true }
+  try {
+    const [inv, me] = await Promise.all([api.listInvestments(accessToken!), api.getMe(accessToken!)])
+    investments = inv
+    platformRole = me.platform_role
+  } catch { error = true }
+
+  if (platformRole === 'investor') redirect('/investor')
 
   return (
     <div className="p-8 max-w-4xl mx-auto">

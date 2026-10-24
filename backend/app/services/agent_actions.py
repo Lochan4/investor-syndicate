@@ -2,12 +2,14 @@
 from __future__ import annotations
 import base64
 import json as _json
+import logging
 import os
 from html.parser import HTMLParser
 
 import httpx
 
 _HAIKU = "claude-haiku-4-5-20251001"
+log = logging.getLogger("agent_actions")
 
 
 class _TextExtractor(HTMLParser):
@@ -38,18 +40,26 @@ class _TextExtractor(HTMLParser):
 
 async def web_search(query: str, num: int = 8) -> list[dict]:
     """Serper search → [{title, link, snippet}]."""
-    async with httpx.AsyncClient(timeout=10) as http:
-        r = await http.post(
-            "https://google.serper.dev/search",
-            json={"q": query, "num": num},
-            headers={"X-API-KEY": os.environ.get("SERPER_API_KEY", "")},
-        )
-    if r.status_code != 200:
+    log.info("[WEB_SEARCH] query=%r", query)
+    try:
+        async with httpx.AsyncClient(timeout=10) as http:
+            r = await http.post(
+                "https://google.serper.dev/search",
+                json={"q": query, "num": num},
+                headers={"X-API-KEY": os.environ.get("SERPER_API_KEY", "")},
+            )
+        if r.status_code != 200:
+            log.error("[WEB_SEARCH] Serper returned status=%d for query=%r", r.status_code, query)
+            return []
+        results = [
+            {"title": item.get("title", ""), "link": item.get("link", ""), "snippet": item.get("snippet", "")}
+            for item in r.json().get("organic", [])
+        ]
+        log.info("[WEB_SEARCH] query=%r  results=%d  top=%s", query, len(results), [x["title"][:40] for x in results[:3]])
+        return results
+    except Exception as exc:
+        log.error("[WEB_SEARCH] failed for query=%r: %s", query, exc)
         return []
-    return [
-        {"title": item.get("title", ""), "link": item.get("link", ""), "snippet": item.get("snippet", "")}
-        for item in r.json().get("organic", [])
-    ]
 
 
 async def classify_search_intent(
@@ -93,9 +103,15 @@ STEP 2: Build 2–3 laser-targeted search queries.
 
 STEP 3: Pull any verbatim URLs found in the document excerpts.
 
+STEP 4: Write a short window title — 2-5 words, specific to THIS question, not generic.
+Examples: "Core Competencies", "Founders Background", "Market Sizing",
+"Competitive Landscape", "Revenue Model", "Tech Stack", "Funding History",
+"CEO Profile", "Company Location", "Customer Segments", "Go-To-Market Strategy"
+
 Return ONLY this JSON (no explanation, no markdown):
 {{
   "intent": "one precise sentence describing what the investor needs to find",
+  "title": "2-5 word specific window label",
   "queries": ["query 1", "query 2", "optional query 3"],
   "urls": ["any verbatim URLs from documents"],
   "card_type": "maps or company or web"
@@ -106,6 +122,7 @@ card_type must be exactly one of:
 - "company": specific people, founders, team, education, LinkedIn, work history
 - "web": product, market, competitors, funding, industry — everything else"""
 
+    log.info("[INTENT_CLASSIFY] company=%r  question=%r", company, question[:120])
     try:
         client = get_async_client()
         msg = await client.messages.create(
@@ -125,8 +142,14 @@ card_type must be exactly one of:
         if not queries:
             queries = [f"{company} {result.get('intent', 'overview')}"]
         result["queries"] = queries
+        log.info(
+            "[INTENT_CLASSIFY] intent=%r  card_type=%s  queries=%s  urls=%s",
+            result.get("intent", ""), result.get("card_type", ""),
+            queries, result.get("urls", []),
+        )
         return result
-    except Exception:
+    except Exception as exc:
+        log.error("[INTENT_CLASSIFY] failed for company=%r question=%r: %s", company, question[:80], exc)
         # Safe fallback: company + condensed question (first 8 words only)
         short = " ".join(question.split()[:8])
         return {
@@ -192,15 +215,21 @@ async def _scrape_linkedin(url: str) -> str:
 
 async def extract_page_text(url: str) -> str:
     """Fetch URL and strip HTML to plain text. LinkedIn gets special handling."""
+    log.info("[SCRAPE] url=%s", url)
     if "linkedin.com" in url:
-        return await _scrape_linkedin(url)
+        text = await _scrape_linkedin(url)
+        log.info("[SCRAPE:LINKEDIN] url=%s  chars=%d", url, len(text))
+        return text
     try:
         async with httpx.AsyncClient(timeout=15, follow_redirects=True) as http:
             resp = await http.get(url, headers={"User-Agent": "Mozilla/5.0"})
         parser = _TextExtractor()
         parser.feed(resp.text)
-        return parser.get_text()[:20_000]
-    except Exception:
+        text = parser.get_text()[:20_000]
+        log.info("[SCRAPE] url=%s  status=%d  chars=%d", url, resp.status_code, len(text))
+        return text
+    except Exception as exc:
+        log.error("[SCRAPE] failed url=%s: %s", url, exc)
         return ""
 
 
