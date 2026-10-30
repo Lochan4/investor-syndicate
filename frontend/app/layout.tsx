@@ -1,27 +1,39 @@
-import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
-import "./globals.css";
-import { ToastProvider } from "@/components/Toast";
+import type { Metadata } from 'next'
+import { Figtree, Instrument_Serif } from 'next/font/google'
+import './globals.css'
+import LoadingScreen from '@/components/LoadingScreen'
+import { ToastProvider } from '@/components/Toast'
+import ClientRoot from '@/components/ClientRoot'
 
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-jakarta",
-  display: "swap",
-  weight: ["400", "500", "600", "700"],
-  fallback: ["Arial", "sans-serif"],
-});
+const figtree = Figtree({
+  subsets: ['latin'],
+  variable: '--sans',
+  display: 'swap',
+  weight: ['400', '500', '600', '800'],
+})
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ['latin'],
+  variable: '--serif',
+  display: 'swap',
+  weight: '400',
+  style: ['normal', 'italic'],
+})
 
 export const metadata: Metadata = {
-  title: "Syndicate — Investment Due Diligence",
-  description: "AI-powered investment due diligence platform",
-};
+  title: 'QCI Club — Early-Stage Investor Network',
+  description: 'Apply once, pitch to the whole group, get a clear answer.',
+}
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${jakarta.variable} ${jakarta.className}`}>
+    <html lang="en" className={`${figtree.variable} ${instrumentSerif.variable}`}>
       <body>
-        <ToastProvider>{children}</ToastProvider>
+        <LoadingScreen />
+        <ClientRoot>
+          <ToastProvider>{children}</ToastProvider>
+        </ClientRoot>
       </body>
     </html>
-  );
+  )
 }

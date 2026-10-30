@@ -13,7 +13,7 @@ const STEP_LABELS = ['Your Details', 'Pitch Deck', 'Review & Submit']
 const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '10px 14px',
-  border: '1px solid rgba(141,90,43,0.22)',
+  border: '1px solid rgba(15,45,107,0.22)',
   borderRadius: 10,
   background: 'rgba(255,255,255,0.7)',
   fontSize: 14,
@@ -36,7 +36,6 @@ export function ApplySection() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [submitted, setSubmitted] = useState(false)
-  const [statusToken, setStatusToken] = useState('')
   const [startupName, setStartupNameState] = useState('')
 
   const [form, setForm] = useState({
@@ -89,7 +88,6 @@ export function ApplySection() {
         pitch_doc_key: pitchKey || undefined,
         pitch_doc_name: pitchFile?.name || undefined,
       })
-      setStatusToken(result.status_token)
       setStartupNameState(form.startup_name.trim())
       setSubmitted(true)
     } catch (err: any) {
@@ -100,8 +98,6 @@ export function ApplySection() {
 
   // ── Success state ──────────────────────────────────────────
   if (submitted) {
-    const origin = typeof window !== 'undefined' ? window.location.origin : ''
-    const statusUrl = `${origin}/apply/status/${statusToken}`
     return (
       <div style={{ textAlign: 'center', padding: '60px 24px', maxWidth: 480, margin: '0 auto' }}>
         <div style={{
@@ -117,35 +113,10 @@ export function ApplySection() {
         <h3 style={{ fontSize: 22, fontWeight: 700, color: '#1C1917', marginBottom: 8 }}>
           Application submitted!
         </h3>
-        <p style={{ fontSize: 14, color: 'rgba(28,25,23,0.55)', lineHeight: 1.7, marginBottom: 28 }}>
+        <p style={{ fontSize: 14, color: 'rgba(28,25,23,0.55)', lineHeight: 1.7 }}>
           We've received your application for <strong style={{ color: '#1C1917' }}>{startupName}</strong>.
           Our team will review it and get back to you shortly.
         </p>
-        <div style={{
-          background: 'rgba(217,119,6,0.07)',
-          border: '1px solid rgba(217,119,6,0.2)',
-          borderRadius: 12,
-          padding: '16px 20px',
-          textAlign: 'left',
-          marginBottom: 16,
-        }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: '#92400E', letterSpacing: '0.1em', marginBottom: 6 }}>
-            YOUR STATUS LINK — save this
-          </p>
-          <p style={{ fontSize: 12, color: '#92400E', fontFamily: 'monospace', wordBreak: 'break-all' }}>
-            {statusUrl}
-          </p>
-        </div>
-        <a
-          href={statusUrl}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6,
-            padding: '10px 22px', background: '#D97706', color: '#fff',
-            borderRadius: 9, fontWeight: 600, fontSize: 13, textDecoration: 'none',
-          }}
-        >
-          Check Status →
-        </a>
       </div>
     )
   }
@@ -164,7 +135,7 @@ export function ApplySection() {
                 width: 26, height: 26, borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 11, fontWeight: 700,
-                background: done ? '#15803D' : active ? '#D97706' : 'rgba(141,90,43,0.1)',
+                background: done ? '#15803D' : active ? '#FCB303' : 'rgba(15,45,107,0.1)',
                 color: done || active ? '#fff' : 'rgba(28,25,23,0.4)',
                 flexShrink: 0,
               }}>
@@ -172,7 +143,7 @@ export function ApplySection() {
               </div>
               <span style={{
                 fontSize: 12, fontWeight: 500,
-                color: active ? '#D97706' : done ? '#15803D' : 'rgba(28,25,23,0.4)',
+                color: active ? '#FCB303' : done ? '#15803D' : 'rgba(28,25,23,0.4)',
                 display: 'none',
               }}
                 className="sm-show"
@@ -181,7 +152,7 @@ export function ApplySection() {
               </span>
             </div>
             {i < 2 && (
-              <div style={{ width: 32, height: 1, background: 'rgba(141,90,43,0.18)', flexShrink: 0 }} />
+              <div style={{ width: 32, height: 1, background: 'rgba(15,45,107,0.18)', flexShrink: 0 }} />
             )}
           </div>
         )
@@ -249,7 +220,7 @@ export function ApplySection() {
           <div
             onClick={() => fileRef.current?.click()}
             style={{
-              border: `2px dashed ${pitchFile ? 'rgba(21,128,61,0.5)' : 'rgba(141,90,43,0.25)'}`,
+              border: `2px dashed ${pitchFile ? 'rgba(21,128,61,0.5)' : 'rgba(15,45,107,0.25)'}`,
               borderRadius: 14,
               padding: '48px 24px',
               textAlign: 'center',
@@ -267,7 +238,7 @@ export function ApplySection() {
               }}
             />
             {uploading ? (
-              <p style={{ fontSize: 13, color: '#D97706', fontWeight: 600 }}>Uploading…</p>
+              <p style={{ fontSize: 13, color: '#FCB303', fontWeight: 600 }}>Uploading…</p>
             ) : pitchFile ? (
               <>
                 <p style={{ fontSize: 13, fontWeight: 700, color: '#15803D' }}>{pitchFile.name}</p>
@@ -289,7 +260,7 @@ export function ApplySection() {
       {/* Step 3 — Review */}
       {step === 3 && (
         <div style={{
-          border: '1px solid rgba(141,90,43,0.14)',
+          border: '1px solid rgba(15,45,107,0.14)',
           borderRadius: 14,
           overflow: 'hidden',
           background: 'rgba(255,255,255,0.5)',
@@ -307,7 +278,7 @@ export function ApplySection() {
             <div key={label as string} style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               padding: '12px 18px',
-              borderBottom: i < arr.length - 1 ? '1px solid rgba(141,90,43,0.08)' : 'none',
+              borderBottom: i < arr.length - 1 ? '1px solid rgba(15,45,107,0.08)' : 'none',
             }}>
               <span style={{ fontSize: 12, color: 'rgba(28,25,23,0.45)', fontWeight: 500 }}>{label}</span>
               <span style={{ fontSize: 13, color: '#1C1917', fontWeight: 600, maxWidth: '60%', textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</span>
@@ -334,8 +305,8 @@ export function ApplySection() {
             onClick={() => setStep(s => (s - 1) as Step)}
             style={{
               flex: 1, padding: '12px 0', borderRadius: 10, fontWeight: 600, fontSize: 14,
-              background: 'transparent', border: '1.5px solid rgba(141,90,43,0.25)',
-              color: '#92400E', cursor: 'pointer',
+              background: 'transparent', border: '1.5px solid rgba(15,45,107,0.25)',
+              color: '#0F2D6B', cursor: 'pointer',
             }}
           >
             Back
@@ -346,7 +317,7 @@ export function ApplySection() {
             onClick={next}
             style={{
               flex: 1, padding: '12px 0', borderRadius: 10, fontWeight: 700, fontSize: 14,
-              background: '#D97706', border: 'none', color: '#fff', cursor: 'pointer',
+              background: '#FCB303', border: 'none', color: '#fff', cursor: 'pointer',
             }}
           >
             Continue →
@@ -357,7 +328,7 @@ export function ApplySection() {
             disabled={loading}
             style={{
               flex: 1, padding: '12px 0', borderRadius: 10, fontWeight: 700, fontSize: 14,
-              background: loading ? 'rgba(217,119,6,0.6)' : '#D97706',
+              background: loading ? 'rgba(252,179,3,0.6)' : '#FCB303',
               border: 'none', color: '#fff', cursor: loading ? 'not-allowed' : 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             }}

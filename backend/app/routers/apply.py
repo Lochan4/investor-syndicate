@@ -1,4 +1,5 @@
 """Public endpoints — no authentication required."""
+import os
 import secrets
 import uuid as _uuid
 
@@ -8,8 +9,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.dependencies import get_db
 from app.schemas import ApplicationCreate, ApplyUploadRequest
 from app.services import storage
+from app.services.email import send_application_confirmation
 
 router = APIRouter(tags=["apply"])
+
+_FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 
 @router.post("/apply", status_code=201)
@@ -29,6 +33,14 @@ async def submit_application(
         body.founder_name, str(body.founder_email), body.startup_name,
         body.sector, body.stage, body.one_liner, body.website,
         body.pitch_doc_key, body.pitch_doc_name, token,
+    )
+    # Fire-and-forget — email failure must not block the response
+    await send_application_confirmation(
+        founder_name=body.founder_name,
+        founder_email=str(body.founder_email),
+        startup_name=body.startup_name,
+        status_token=token,
+        frontend_url=_FRONTEND_URL,
     )
     return dict(row)
 
