@@ -1946,3 +1946,91 @@
 {"ts": "2026-10-27T15:05:51Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/ThemeToggle.tsx"}
 {"ts": "2026-10-27T15:08:37Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
 {"ts": "2026-10-27T15:08:49Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/ThemeToggle.tsx"}
+{"ts": "2026-10-27T16:39:25Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-27T16:39:28Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/layout.tsx"}
+{"ts": "2026-10-27T16:39:30Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/layout.tsx"}
+{"ts": "2026-10-27T16:41:49Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-27T16:41:55Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/LoadingScreen.tsx"}
+{"ts": "2026-10-27T16:43:57Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/LoadingScreen.tsx"}
+{"ts": "2026-10-27T17:04:36Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-27T17:05:23Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-27T17:08:06Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-27T17:08:10Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-27T18:20:35Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-27T18:20:40Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-27T19:15:43Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-27T19:15:46Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/layout.tsx"}
+{"ts": "2026-10-27T19:42:59Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/app/services/email.py"}
+{"ts": "2026-10-27T19:43:11Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/backend/app/routers/apply.py"}
+{"ts": "2026-10-27T19:43:14Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "command", "detail": "mkdir -p /Users/saitrilochan/Documents/investors/frontend/app/advisor"}
+{"ts": "2026-10-27T19:43:37Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/advisor/page.tsx"}
+{"ts": "2026-10-27T19:44:09Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-27T19:44:54Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-27T19:45:06Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-27T19:45:17Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "command", "detail": "cd /Users/saitrilochan/Documents/investors/frontend && npx tsc --noEmit 2>&1 | h"}
+{"ts": "2026-10-27T19:45:22Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "command", "detail": "npx tsc --noEmit 2>&1 | grep -E \"advisor|page\\.tsx\" | head -20"}
+{"ts": "2026-10-27T20:05:54Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-27T20:06:00Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-27T20:08:56Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "command", "detail": "node -e \"\nconst { chromium } = require('playwright');\n(async () => {\n  const b ="}
+{"ts": "2026-10-27T20:09:30Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "command", "detail": "node -e \"\nconst { chromium } = require('playwright');\n(async () => {\n  const b ="}
+{"ts": "2026-10-27T20:12:39Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-27T20:13:03Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-27T20:13:11Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-27T20:13:18Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-27T20:13:35Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "command", "detail": "node -e \"\nconst { chromium } = require('playwright');\n(async () => {\n  const b ="}
+{"ts": "2026-10-27T20:14:43Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-27T20:14:49Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-27T20:15:02Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "command", "detail": "node -e \"\nconst { chromium } = require('playwright');\n(async () => {\n  const b ="}
+{"ts": "2026-10-27T20:15:47Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-27T20:15:53Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-27T20:16:06Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "command", "detail": "node -e \"\nconst { chromium } = require('playwright');\n(async () => {\n  const b ="}
+{"ts": "2026-10-27T20:16:39Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-27T20:16:51Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "command", "detail": "node -e \"\nconst { chromium } = require('playwright');\n(async () => {\n  const b ="}
+{"ts": "2026-10-28T14:17:24Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/ProcessSection.tsx"}
+{"ts": "2026-10-28T14:17:37Z", "session_id": "02b6f057-4ac2-4118-a186-a29ed6a8e81d", "type": "command", "detail": "node -e \"\nconst { chromium } = require('playwright');\n(async () => {\n  const b ="}
+{"ts": "2026-10-28T14:34:18Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/ApplySection.tsx"}
+{"ts": "2026-10-28T14:34:22Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/ApplySection.tsx"}
+{"ts": "2026-10-28T14:34:25Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/ApplySection.tsx"}
+{"ts": "2026-10-28T14:34:27Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/ApplySection.tsx"}
+{"ts": "2026-10-28T14:34:31Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/components/ApplySection.tsx"}
+{"ts": "2026-10-28T14:50:17Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-28T14:51:43Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-28T14:53:28Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-28T15:05:29Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-28T15:11:16Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/advisor/page.tsx"}
+{"ts": "2026-10-28T15:11:28Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/advisor/page.tsx"}
+{"ts": "2026-10-28T15:12:33Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/advisor/page.tsx"}
+{"ts": "2026-10-28T15:13:12Z", "session_id": "586eb198-61df-45f9-bba5-a30fe5e77081", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/advisor/page.tsx"}
+{"ts": "2026-10-29T13:13:59Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "command", "detail": "ls \"/Users/saitrilochan/Documents/investors/QCI Club 2/\""}
+{"ts": "2026-10-29T14:31:06Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-29T14:31:11Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-29T14:31:17Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-29T14:31:26Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-29T14:38:09Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "command", "detail": "find /Users/saitrilochan/Documents/investors/frontend/app -type f -name \"*.tsx\" "}
+{"ts": "2026-10-29T14:38:09Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "command", "detail": "ls /Users/saitrilochan/Documents/investors/frontend/components/"}
+{"ts": "2026-10-29T17:48:43Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "command", "detail": "ls /Users/saitrilochan/Documents/investors/frontend/app/ && ls /Users/saitriloch"}
+{"ts": "2026-10-29T17:48:46Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "command", "detail": "tail -50 /Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-29T17:49:01Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-29T17:49:20Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/apply/page.tsx"}
+{"ts": "2026-10-29T17:49:24Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-29T17:49:28Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/advisor/page.tsx"}
+{"ts": "2026-10-29T17:49:30Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "command", "detail": "mkdir -p /Users/saitrilochan/Documents/investors/frontend/app/portfolio /Users/s"}
+{"ts": "2026-10-29T17:49:53Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/portfolio/page.tsx"}
+{"ts": "2026-10-29T17:50:17Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/pitched/page.tsx"}
+{"ts": "2026-10-29T17:51:31Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/resources/page.tsx"}
+{"ts": "2026-10-29T17:51:54Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "command", "detail": "ls /Users/saitrilochan/Documents/investors/frontend/app/portfolio/ /Users/saitri"}
+{"ts": "2026-10-29T20:30:28Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-29T20:31:06Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/advisor/page.tsx"}
+{"ts": "2026-10-30T04:40:14Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/globals.css"}
+{"ts": "2026-10-30T04:41:10Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/advisor/page.tsx"}
+{"ts": "2026-10-30T04:41:19Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-30T04:41:38Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/page.tsx"}
+{"ts": "2026-10-30T05:13:59Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "file_modified", "detail": "/Users/saitrilochan/Documents/investors/frontend/app/advisor/page.tsx"}
+{"ts": "2026-10-30T05:15:35Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "command", "detail": "ls /Users/saitrilochan/Documents/investors/backend/app/routers/ && ls /Users/sai"}
+{"ts": "2026-10-30T05:15:43Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "command", "detail": "ls /Users/saitrilochan/Documents/investors/backend/app/services/ && cat /Users/s"}
+{"ts": "2026-10-30T05:15:44Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "command", "detail": "grep -n \"startup_applications\\|ApplicationCreate\\|ApplyUpload\" /Users/saitriloch"}
+{"ts": "2026-10-30T05:15:46Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "command", "detail": "find /Users/saitrilochan/Documents/investors -name \"*.sql\" -o -name \"migrations\""}
+{"ts": "2026-10-30T05:15:51Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "command", "detail": "grep -n \"NEXT_PUBLIC_API_URL\\|R2_\\|FRONTEND_URL\\|DATABASE\" /Users/saitrilochan/D"}
+{"ts": "2026-10-30T05:16:06Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "command", "detail": "cat /Users/saitrilochan/Documents/investors/frontend/.env.local 2>/dev/null || c"}
+{"ts": "2026-10-30T05:16:30Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "command", "detail": "grep -i \"resend\\|RESEND\" /Users/saitrilochan/Documents/investors/backend/.env 2>"}
+{"ts": "2026-10-30T05:16:31Z", "session_id": "997e5ade-c5a2-4bd3-97c7-55ce0f5d350a", "type": "command", "detail": "psql postgresql://saitrilochan@localhost:5432/syndicate -c \"\\dt startup_applicat"}
