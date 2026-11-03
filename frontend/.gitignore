@@ -1,2 +1,14 @@
 .env.local
 .env.local.bak
+.next/
+node_modules/
+tsconfig.tsbuildinfo
+.claude/
+
+# askr
+.llm_snapshot/
+.askr_log
+askr_state/architecture.md
+askr_state/project_brief.md
+askr_state/notifications.log
+askr_state/*.scratch.json

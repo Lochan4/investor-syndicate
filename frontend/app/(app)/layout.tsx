@@ -6,7 +6,8 @@ import { api } from '@/lib/api'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, accessToken } = await withAuth({ ensureSignedIn: true })
-  const initials = user?.email?.slice(0, 2).toUpperCase() ?? 'IN'
+  const userEmail = user?.email ?? ''
+  const userFirstName = user?.firstName ?? null
   let platformRole = 'investor'
   try { platformRole = (await api.getMe(accessToken!)).platform_role } catch {}
 
@@ -33,7 +34,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
       {/* Avatar — fixed top-right */}
       <div style={{ position: 'fixed', top: 16, right: 20, zIndex: 50, display: 'flex', alignItems: 'center' }}>
-        <UserMenu initials={initials} />
+        <UserMenu email={userEmail} firstName={userFirstName} />
       </div>
 
       {/* Page content — top padding clears the fixed pill */}
