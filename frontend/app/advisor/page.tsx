@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { ApplySection } from '@/components/ApplySection'
+import { NavAuth } from '@/components/NavAuth'
 
 const SECTORS = [
   {
@@ -144,6 +145,7 @@ export default function AdvisorPage() {
               <a href="/pitched">Pitched</a>
               <a href="/resources">Resources</a>
               <button onClick={() => setApplyOpen(true)} className="btn" style={{ cursor: 'pointer', border: 'none', fontSize: 13, padding: '10px 18px' }}>Pitch to us</button>
+              <NavAuth />
             </div>
           </nav>
         </div>

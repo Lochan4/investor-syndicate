@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { ApplySection } from '@/components/ApplySection'
+import { NavAuth } from '@/components/NavAuth'
 
 const STATUS: Record<string, { label: string; bg: string; color: string }> = {
   active:  { label: 'Active',  bg: 'rgba(21,128,61,0.1)',   color: '#15803D' },
@@ -75,6 +76,7 @@ export default function PortfolioPage() {
               <a href="/pitched">Pitched</a>
               <a href="/resources">Resources</a>
               <button onClick={() => setApplyOpen(true)} className="btn" style={{ cursor: 'pointer', border: 'none', fontSize: 13, padding: '10px 18px' }}>Pitch to us</button>
+              <NavAuth />
             </div>
           </nav>
         </div>

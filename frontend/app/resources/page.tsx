@@ -1,6 +1,7 @@
 'use client'
 import { useState, useMemo } from 'react'
 import { ApplySection } from '@/components/ApplySection'
+import { NavAuth } from '@/components/NavAuth'
 
 type TabKey = 'experts' | 'demystify' | 'future' | 'quick'
 
@@ -128,6 +129,7 @@ export default function ResourcesPage() {
               <a href="/portfolio">Portfolio</a>
               <a href="/pitched">Pitched</a>
               <button onClick={() => setApplyOpen(true)} className="btn" style={{ cursor: 'pointer', border: 'none', fontSize: 13, padding: '10px 18px' }}>Pitch to us</button>
+              <NavAuth />
             </div>
           </nav>
         </div>
