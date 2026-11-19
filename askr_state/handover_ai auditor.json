@@ -1,25 +1,33 @@
 {
-  "task": "Diagnosed and resolved backend startup failure by identifying missing DATABASE_URL environment variable and uvicorn --env-file configuration requirement; consolidated investor application flow to modal-only pattern; removed LinkedIn references from advisor pages.",
-  "discussion_summary": "The project has a FastAPI backend (uvicorn on port 8000) that requires DATABASE_URL and Redis (docker-compose). Session 1 identified the startup failure root cause; Session 2 consolidated the investor apply flow into a single ApplySection modal and removed LinkedIn from advisors; Session 3 provided the exact uvicorn startup command and diagnosed that the app never loads .env because uvicorn needs the --env-file flag. The backend is now ready to start once DATABASE_URL is set and Redis is running.",
+  "task": "Built and tested a vault file management system with S3/R2 storage, two-stage upload UX, per-file assignment menus, bulk selection, and file move/copy logic distinguishing user uploads from main-app files.",
+  "discussion_summary": "The vault is a standalone owner page connected to Cloudflare R2, allowing users to upload files to an Inbox, then assign them to category buckets (experts, portfolio, pitched, resources) matching the QCI Club header menu. Files are organized by category and optional subfolders; Resources has 4 fixed tabs (Understand, De-Mystify, Analyze, Learn) mirroring the public Resources page. The backend uses FastAPI with asyncpg and boto3; the frontend is Next.js with React. Vault-managed files (inbox, vault, categories) are moved on assignment; main-app files (applications/, project IDs, canvas-policy/, test/) are copied to preserve originals. Published Resources files are marked and cannot be reassigned. The vault table now includes checkboxes for bulk selection, per-row assignment menus, and a bulk bar showing selected count with an Assign option. All workflows have been tested in Chrome with real R2 objects.",
   "accomplishments": [
     {
-      "what": "Identified backend startup command: uvicorn app.main:app --reload --port 8000 --env-file .env",
+      "what": "Implemented vault file table with checkbox column, per-row 'Assign to\u2026' menu, and Published tag for resources-published files",
       "done": true
     },
     {
-      "what": "Diagnosed root cause of KeyError: 'DATABASE_URL' \u2014 app.main.py never calls load_dotenv(), so uvicorn must load .env via --env-file flag",
+      "what": "Built bulk selection bar ('N selected \u00b7 Assign to\u2026') with header checkbox to select all visible files; reserved space to prevent layout shift",
       "done": true
     },
     {
-      "what": "Consolidated investor application flow to modal-only ApplySection pattern; deleted /apply and /apply/status/[token] pages",
+      "what": "Implemented file assignment logic: user uploads (Inbox, category files) are moved; main-app files (applications/, project-ID folders, canvas-policy/, test/) are copied to preserve originals",
       "done": true
     },
     {
-      "what": "Removed all LinkedIn button references and data fields from advisor page",
+      "what": "Added publish-to-Resources workflow: selecting a Resources tab (Understand, De-Mystify, Analyze, Learn) opens details form for both user uploads and main-app file copies",
       "done": true
     },
     {
-      "what": "Updated .gitignore to exclude __pycache__ directories",
+      "what": "Tested vault in Chrome: verified checkbox selection, per-row assignment, bulk bar, file move/copy behavior, and Published tag display",
+      "done": true
+    },
+    {
+      "what": "Fixed layout bug: bulk selection bar now reserves space at all times, preventing table rows from shifting on second click",
+      "done": true
+    },
+    {
+      "what": "Verified test copy portfolio/9623c675-26c6-4642-9880-224ccfc1c89f/presign_check.pdf was deleted via backend script; original test/presign_check.pdf remains intact",
       "done": true
     }
   ],
@@ -27,51 +35,63 @@
   "next_actions": [
     {
       "order": 1,
-      "action": "Set DATABASE_URL in backend/.env with a valid PostgreSQL connection string (e.g., postgresql://user:pass@localhost/investors) matching your database setup",
-      "why": "Backend startup fails without this environment variable; it is read during app lifespan initialization"
+      "action": "Commit vault feature: backend/app/routers/vault.py (assign/publish endpoints with move/copy logic) and frontend/app/vault/VaultClient.tsx (table UI, checkboxes, bulk bar, assignment menus)",
+      "why": "All code changes are complete and tested; commits should be made before moving to next features"
     },
     {
       "order": 2,
-      "action": "Verify Redis is running: cd backend && docker compose up -d",
-      "why": "Backend depends on Redis for session/cache management; docker-compose.yml defines the service"
+      "action": "Assign Founder_Due_Diligence_Policy.pdf from vault Inbox to appropriate category (experts, portfolio, pitched, or resources) or confirm it should remain in Inbox",
+      "why": "File is uploaded but unassigned; user decision needed on final destination"
     },
     {
       "order": 3,
-      "action": "Start backend with: cd backend && source .venv/bin/activate && uvicorn app.main:app --reload --port 8000 --env-file .env",
-      "why": "Correct startup command that loads .env file and starts uvicorn on port 8000 where frontend expects it"
+      "action": "Verify frontend Resources page (frontend/app/resources/page.tsx) displays published vault files correctly and links to vault assignment workflow if needed",
+      "why": "Resources page was refactored to fetch from API; needs verification that published vault items appear and are styled correctly"
     },
     {
       "order": 4,
-      "action": "Create backend/README.md documenting startup steps: docker compose up -d, source .venv/bin/activate, uvicorn command with --env-file flag",
-      "why": "Prevents future confusion about backend startup; documents the --env-file requirement that is not obvious from code"
+      "action": "Test vault file download/preview: click a file in the table to verify S3/R2 presigned URL generation and browser download/view behavior",
+      "why": "File retrieval workflow not yet tested; presigned GET URLs must work for user access"
     },
     {
       "order": 5,
-      "action": "Verify frontend Stage1Client, Stage2Client, Stage3Client, and CellChat components reflect modal-only investor flow without references to deleted /apply page",
-      "why": "Session 2 deleted /apply but frontend may still have stale links or routing logic pointing to it"
+      "action": "Document vault feature in backend/README.md or frontend/app/vault/README.md: explain two-stage upload, category structure, move vs. copy logic, and Resources publish workflow",
+      "why": "Feature is complete but undocumented; future maintainers need clear explanation of architecture and behavior"
     },
     {
       "order": 6,
-      "action": "Commit all uncommitted changes with message indicating modal-only apply flow consolidation, LinkedIn removal, and backend startup documentation",
-      "why": "Consolidate Sessions 1\u20133 work into a single coherent commit on main branch"
+      "action": "Set VAULT_OWNER_EMAILS in backend/.env with comma-separated list of authorized vault users; currently empty so any logged-in user is allowed",
+      "why": "Security: vault should be restricted to designated owners, not all authenticated users"
     }
   ],
   "decisions": [
     {
-      "decision": "Landing page has single 'Apply \u2192' CTA button instead of dual 'Become An Investor' + 'Join Our Portfolio' buttons",
-      "reason": "User removed 'Join Our Portfolio' for legal compliance (QCI Club members are already in the club, not joining a portfolio); single button simplifies UX and messaging"
+      "decision": "Vault file uploads are categorized into four buckets (experts, portfolio, pitched, resources) matching QCI Club header menu structure",
+      "reason": "Mirrors existing site navigation; allows content organization by type; enables category-specific access control and retrieval in future features"
     },
     {
-      "decision": "Secondary pages (/advisor, /portfolio, /pitched, /resources) use 'Pitch to us' button instead of 'Apply \u2192' nav link",
-      "reason": "Consistent with landing page CTA; opens ApplySection modal for investor pitch flow; clearer intent than generic 'Apply'"
+      "decision": "Vault upload UX is two-stage: drop zone queues files as draggable chips; drag each chip onto a category tile to upload it",
+      "reason": "Prevents accidental uploads to wrong category; gives user explicit control over destination; reduces cognitive load vs. single-step upload with category selector"
     },
     {
-      "decision": "Entire /apply page and /apply/status/[token] sub-page deleted; no separate apply flow",
-      "reason": "Consolidates all investor pitch entry points to single ApplySection modal; removes dead status tracking link; simplifies frontend routing and reduces code duplication"
+      "decision": "S3/R2 storage keys are prefixed with category name: {category}/{uuid}/{filename}",
+      "reason": "Enables logical grouping of files by category in object storage; simplifies future queries and access policies; mirrors frontend category structure"
     },
     {
-      "decision": "All LinkedIn button references and data fields removed from advisor page",
-      "reason": "User explicitly requested removal of all LinkedIn mentions; simplifies advisor card UI and reduces external dependencies"
+      "decision": "Vault-managed files (inbox, vault, categories) are moved on assignment; main-app files (applications/, project IDs, canvas-policy/, test/) are copied",
+      "reason": "Preserves main-app file integrity and location tracking; allows vault to manage its own files without breaking investor app dependencies"
+    },
+    {
+      "decision": "Resources has 4 fixed tabs (Understand, De-Mystify, Analyze, Learn) with per-tab validation rules (kind, category, published_on, platform) stored in resource_items table",
+      "reason": "Mirrors public Resources page structure and filters; enables granular content curation; database row tracks metadata for API and frontend display"
+    },
+    {
+      "decision": "Published Resources files show 'Published' tag in vault table and cannot be reassigned via normal assign workflow",
+      "reason": "Prevents accidental modification of published content; makes publication status visually clear; enforces one-way publish semantics"
+    },
+    {
+      "decision": "Vault file table includes checkbox column with select-all header, per-row 'Assign to\u2026' menu, and bulk selection bar ('N selected \u00b7 Assign to\u2026')",
+      "reason": "Allows users to assign multiple files at once; per-row menu enables single-file assignment; bulk bar is always rendered with visibility:hidden to prevent layout shift"
     },
     {
       "decision": "Backend uvicorn startup requires --env-file .env flag to load DATABASE_URL and other environment variables",
@@ -81,42 +101,66 @@
   "user_rejected_decisions": [],
   "failed_approaches": [
     {
-      "approach": "Running uvicorn without --env-file flag",
-      "reason": "app.main.py never loads .env, so DATABASE_URL is not available in os.environ; app crashes with KeyError during lifespan initialization"
+      "approach": "Rendering bulk selection bar conditionally (display:none when empty)",
+      "reason": "Caused table rows to shift on second checkbox click, landing clicks on wrong rows; fixed by always rendering with visibility:hidden"
+    },
+    {
+      "approach": "Using orange color scheme from investor site in vault UI",
+      "reason": "User requested vault be restyled to frontend landing page colors and fonts (no orange); changed to landing page color tokens and Figtree/Instrument Serif fonts"
+    },
+    {
+      "approach": "Grep regex for R2 keys excluded digits",
+      "reason": "Incorrectly filtered out valid keys; corrected regex to include all alphanumeric characters"
     }
   ],
   "files_in_play": [
+    "backend/app/routers/vault.py",
+    "frontend/app/vault/VaultClient.tsx",
+    "frontend/app/resources/page.tsx",
     "backend/app/main.py",
-    "backend/.env",
-    "backend/docker-compose.yml",
-    "backend/app/routers/conversation.py",
-    "backend/app/routers/investor.py",
-    "frontend/app/(app)/investor/Stage1Client.tsx",
-    "frontend/app/(app)/investor/[projectId]/Stage2Client.tsx",
-    "frontend/app/(app)/investor/[projectId]/activities/[cellId]/Stage3Client.tsx",
-    "frontend/components/CellChat.tsx",
-    "frontend/components/WindowCanvas.tsx",
-    "frontend/lib/api.ts",
-    ".gitignore"
+    "backend/migrations/009_resource_items.sql",
+    "frontend/lib/api.ts"
   ],
   "relational_files": [
     {
-      "file": "backend/requirements.txt",
-      "relationship": "configures",
-      "why": "Must include python-dotenv if uvicorn --env-file is used; verify dependency is listed"
+      "file": "backend/app/main.py",
+      "relationship": "imports",
+      "why": "Includes vault router and public_router; executes 009_resource_items.sql migration on startup"
     },
     {
-      "file": "askr_state/decisions.jsonl",
+      "file": "frontend/lib/api.ts",
       "relationship": "imported_by",
-      "why": "Project decision history; contains all architectural choices including modal-only apply flow and LinkedIn removal"
+      "why": "Provides vault and resources API client functions called by VaultClient.tsx and resources/page.tsx"
+    },
+    {
+      "file": "backend/migrations/009_resource_items.sql",
+      "relationship": "configures",
+      "why": "Creates resource_items table with per-tab validation; executed by main.py lifespan"
+    },
+    {
+      "file": "frontend/app/globals.css",
+      "relationship": "configures",
+      "why": "Defines CSS tokens (--ground, --text, --muted, --ox, --ox2, --on-ox, --surface, --line, --sans, --serif) used by VaultClient.tsx and resources/page.tsx"
+    },
+    {
+      "file": "backend/.env",
+      "relationship": "configures",
+      "why": "Contains R2_ENDPOINT_URL, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET, DATABASE_URL, VAULT_OWNER_EMAILS; loaded via --env-file flag"
     }
   ],
   "uncommitted_files": [],
   "blockers": [
-    "DATABASE_URL environment variable must be set in backend/.env before backend can start"
+    "VAULT_OWNER_EMAILS is empty in backend/.env; vault is currently accessible to any logged-in user instead of designated owners only"
   ],
-  "completed_goals": [],
+  "completed_goals": [
+    "Configure DATABASE_URL in backend/.env and verify backend starts successfully"
+  ],
   "behavioral_preferences": [
+    {
+      "rule": "Be direct, flag problems first, no sycophancy, concise",
+      "confidence": 0.95,
+      "scope": "global"
+    },
     {
       "rule": "When using git worktree, exit the worktree and return to main repo context before committing changes to the parent branch",
       "confidence": 0.95,
@@ -126,11 +170,26 @@
       "rule": "Provide explicit clarity on which branch is being modified and which files are uncommitted before proceeding with major git operations",
       "confidence": 0.95,
       "scope": "global"
+    },
+    {
+      "rule": "Before editing, check askr_state/decisions.jsonl, failed_approaches.md and rejected_decisions.jsonl",
+      "confidence": 0.9,
+      "scope": "project"
+    },
+    {
+      "rule": "Frontend design loop: Playwright screenshots at 375, 768 and 1440 px, fix the 3 worst issues, max 3 rounds",
+      "confidence": 0.9,
+      "scope": "project"
+    },
+    {
+      "rule": "Do not share OPENAI_API_KEY in backend/.env; do not circumvent the askr hook; avoid triggering confirm() dialogs",
+      "confidence": 0.9,
+      "scope": "project"
     }
   ],
   "session_metadata": {
     "trigger_type": "idle",
-    "timestamp": "2026-11-17T21:23:59.728616+00:00",
+    "timestamp": "2026-11-19T15:08:16.436424+00:00",
     "developer": "ai auditor"
   }
 }
