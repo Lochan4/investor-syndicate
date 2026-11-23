@@ -1,33 +1,37 @@
 {
-  "task": "Built and tested a vault file management system with S3/R2 storage, two-stage upload UX, per-file assignment menus, bulk selection, and file move/copy logic distinguishing user uploads from main-app files.",
-  "discussion_summary": "The vault is a standalone owner page connected to Cloudflare R2, allowing users to upload files to an Inbox, then assign them to category buckets (experts, portfolio, pitched, resources) matching the QCI Club header menu. Files are organized by category and optional subfolders; Resources has 4 fixed tabs (Understand, De-Mystify, Analyze, Learn) mirroring the public Resources page. The backend uses FastAPI with asyncpg and boto3; the frontend is Next.js with React. Vault-managed files (inbox, vault, categories) are moved on assignment; main-app files (applications/, project IDs, canvas-policy/, test/) are copied to preserve originals. Published Resources files are marked and cannot be reassigned. The vault table now includes checkboxes for bulk selection, per-row assignment menus, and a bulk bar showing selected count with an Assign option. All workflows have been tested in Chrome with real R2 objects.",
+  "task": "Implemented auto-updating site pages (Resources, Portfolio, Panel of Experts, Pitched), added file-optional entry creation for Portfolio/Experts/Pitched via vault UI, and verified end-to-end publishing workflow with YouTube videos and portfolio companies.",
+  "discussion_summary": "Session 1 built the vault file table with assignment workflows and Resources publishing. This session extended that foundation by implementing auto-refresh on public-facing pages (15-second polling + focus-triggered refresh), enabling entries without file uploads (migration 013_site_items_optional_file.sql), and adding **+ Add** buttons to Portfolio, Experts, and Pitched tiles. The vault now supports both file-based and file-optional entries; published content appears on the site within ~15 seconds without page reload. All backend tests (154/154) and frontend tests (16/16) pass; TypeScript is clean.",
   "accomplishments": [
     {
-      "what": "Implemented vault file table with checkbox column, per-row 'Assign to\u2026' menu, and Published tag for resources-published files",
+      "what": "Implemented auto-refresh on Resources, Portfolio, Panel of Experts, and Pitched pages: 15-second polling interval with immediate refresh on tab focus",
       "done": true
     },
     {
-      "what": "Built bulk selection bar ('N selected \u00b7 Assign to\u2026') with header checkbox to select all visible files; reserved space to prevent layout shift",
+      "what": "Created migration 013_site_items_optional_file.sql to make file_id nullable in site_items table, enabling entries without uploaded files",
       "done": true
     },
     {
-      "what": "Implemented file assignment logic: user uploads (Inbox, category files) are moved; main-app files (applications/, project-ID folders, canvas-policy/, test/) are copied to preserve originals",
+      "what": "Added **+ Add** buttons to Portfolio, Experts, and Pitched tiles in vault UI; entries show initials instead of photo/logo when no file is present",
       "done": true
     },
     {
-      "what": "Added publish-to-Resources workflow: selecting a Resources tab (Understand, De-Mystify, Analyze, Learn) opens details form for both user uploads and main-app file copies",
+      "what": "Verified end-to-end YouTube video publishing: pasted URL, titled entry, published from vault, video appeared on Resources \u2192 Learn page within 15 seconds with thumbnail",
       "done": true
     },
     {
-      "what": "Tested vault in Chrome: verified checkbox selection, per-row assignment, bulk bar, file move/copy behavior, and Published tag display",
+      "what": "Verified end-to-end Portfolio company publishing: filled name, sector, stage, website (https://example.com), description, latest update; published without file; card appeared on Portfolio page with description, stage, update, and clickable website link",
       "done": true
     },
     {
-      "what": "Fixed layout bug: bulk selection bar now reserves space at all times, preventing table rows from shifting on second click",
+      "what": "Implemented remove (\u2715) button for file-optional entries in vault; allows deletion of entries without file uploads",
       "done": true
     },
     {
-      "what": "Verified test copy portfolio/9623c675-26c6-4642-9880-224ccfc1c89f/presign_check.pdf was deleted via backend script; original test/presign_check.pdf remains intact",
+      "what": "Tested both Chrome tabs (vault + site) simultaneously; confirmed no console errors and proper cross-tab visibility of published content",
+      "done": true
+    },
+    {
+      "what": "All backend tests passing (154/154), all frontend tests passing (16/16), TypeScript compilation clean",
       "done": true
     }
   ],
@@ -35,52 +39,26 @@
   "next_actions": [
     {
       "order": 1,
-      "action": "Commit vault feature: backend/app/routers/vault.py (assign/publish endpoints with move/copy logic) and frontend/app/vault/VaultClient.tsx (table UI, checkboxes, bulk bar, assignment menus)",
-      "why": "All code changes are complete and tested; commits should be made before moving to next features"
+      "action": "Remove test entries ('Example YouTube video (test)' and 'Example Co (test)') from vault or document cleanup procedure for local development",
+      "why": "Test entries are currently live on local site; should be cleaned up before next session or documented as expected test data"
     },
     {
       "order": 2,
-      "action": "Assign Founder_Due_Diligence_Policy.pdf from vault Inbox to appropriate category (experts, portfolio, pitched, or resources) or confirm it should remain in Inbox",
-      "why": "File is uploaded but unassigned; user decision needed on final destination"
+      "action": "Implement edit-in-place functionality for vault entries (currently only add/remove supported)",
+      "why": "Users must remove and re-add entries to change descriptions; edit button would improve UX"
     },
     {
       "order": 3,
-      "action": "Verify frontend Resources page (frontend/app/resources/page.tsx) displays published vault files correctly and links to vault assignment workflow if needed",
-      "why": "Resources page was refactored to fetch from API; needs verification that published vault items appear and are styled correctly"
+      "action": "Commit all changes: auto-refresh logic, migration 013, vault UI updates, and settings.json tool allowlist changes",
+      "why": "Session completed working features; changes are tested and ready for version control"
     },
     {
       "order": 4,
-      "action": "Test vault file download/preview: click a file in the table to verify S3/R2 presigned URL generation and browser download/view behavior",
-      "why": "File retrieval workflow not yet tested; presigned GET URLs must work for user access"
-    },
-    {
-      "order": 5,
-      "action": "Document vault feature in backend/README.md or frontend/app/vault/README.md: explain two-stage upload, category structure, move vs. copy logic, and Resources publish workflow",
-      "why": "Feature is complete but undocumented; future maintainers need clear explanation of architecture and behavior"
-    },
-    {
-      "order": 6,
-      "action": "Set VAULT_OWNER_EMAILS in backend/.env with comma-separated list of authorized vault users; currently empty so any logged-in user is allowed",
-      "why": "Security: vault should be restricted to designated owners, not all authenticated users"
+      "action": "Review and document the 15-second refresh interval; consider making it configurable or user-triggered if real-time updates are needed",
+      "why": "Current polling is functional but may not scale; explicit refresh button or WebSocket could be explored later"
     }
   ],
   "decisions": [
-    {
-      "decision": "Vault file uploads are categorized into four buckets (experts, portfolio, pitched, resources) matching QCI Club header menu structure",
-      "reason": "Mirrors existing site navigation; allows content organization by type; enables category-specific access control and retrieval in future features"
-    },
-    {
-      "decision": "Vault upload UX is two-stage: drop zone queues files as draggable chips; drag each chip onto a category tile to upload it",
-      "reason": "Prevents accidental uploads to wrong category; gives user explicit control over destination; reduces cognitive load vs. single-step upload with category selector"
-    },
-    {
-      "decision": "S3/R2 storage keys are prefixed with category name: {category}/{uuid}/{filename}",
-      "reason": "Enables logical grouping of files by category in object storage; simplifies future queries and access policies; mirrors frontend category structure"
-    },
-    {
-      "decision": "Vault-managed files (inbox, vault, categories) are moved on assignment; main-app files (applications/, project IDs, canvas-policy/, test/) are copied",
-      "reason": "Preserves main-app file integrity and location tracking; allows vault to manage its own files without breaking investor app dependencies"
-    },
     {
       "decision": "Resources has 4 fixed tabs (Understand, De-Mystify, Analyze, Learn) with per-tab validation rules (kind, category, published_on, platform) stored in resource_items table",
       "reason": "Mirrors public Resources page structure and filters; enables granular content curation; database row tracks metadata for API and frontend display"
@@ -94,102 +72,68 @@
       "reason": "Allows users to assign multiple files at once; per-row menu enables single-file assignment; bulk bar is always rendered with visibility:hidden to prevent layout shift"
     },
     {
-      "decision": "Backend uvicorn startup requires --env-file .env flag to load DATABASE_URL and other environment variables",
-      "reason": "app.main.py does not call load_dotenv(); uvicorn must be explicitly told to load the .env file or environment variables will not be available at app startup"
+      "decision": "File assignment logic: user uploads (Inbox, category files) are moved; main-app files (applications/, project-ID folders, canvas-policy/, test/) are copied to preserve originals",
+      "reason": "Protects system files from accidental deletion; user uploads are ephemeral and safe to move; preserves audit trail"
+    },
+    {
+      "decision": "Public-facing pages (Resources, Portfolio, Panel of Experts, Pitched) auto-refresh every 15 seconds and immediately on tab focus",
+      "reason": "Provides near-real-time visibility of published content without requiring manual page reload; balances responsiveness with server load"
+    },
+    {
+      "decision": "Portfolio, Panel of Experts, and Pitched entries can be created without file uploads; entries show initials instead of photo/logo",
+      "reason": "Reduces friction for adding entries; not all portfolio companies or experts have logos; file_id is nullable in site_items table"
+    },
+    {
+      "decision": "Vault entries without files have remove (\u2715) button; entries with files use standard assignment workflow",
+      "reason": "Provides clear deletion path for file-optional entries; maintains consistency with file-based entry management"
     }
   ],
   "user_rejected_decisions": [],
-  "failed_approaches": [
-    {
-      "approach": "Rendering bulk selection bar conditionally (display:none when empty)",
-      "reason": "Caused table rows to shift on second checkbox click, landing clicks on wrong rows; fixed by always rendering with visibility:hidden"
-    },
-    {
-      "approach": "Using orange color scheme from investor site in vault UI",
-      "reason": "User requested vault be restyled to frontend landing page colors and fonts (no orange); changed to landing page color tokens and Figtree/Instrument Serif fonts"
-    },
-    {
-      "approach": "Grep regex for R2 keys excluded digits",
-      "reason": "Incorrectly filtered out valid keys; corrected regex to include all alphanumeric characters"
-    }
-  ],
+  "failed_approaches": [],
   "files_in_play": [
-    "backend/app/routers/vault.py",
-    "frontend/app/vault/VaultClient.tsx",
-    "frontend/app/resources/page.tsx",
     "backend/app/main.py",
+    "backend/app/routers/vault.py",
     "backend/migrations/009_resource_items.sql",
-    "frontend/lib/api.ts"
+    "backend/migrations/013_site_items_optional_file.sql",
+    "frontend/app/resources/page.tsx",
+    "frontend/app/vault/VaultClient.tsx",
+    "frontend/lib/api.ts",
+    ".claude/settings.json"
   ],
   "relational_files": [
     {
-      "file": "backend/app/main.py",
+      "file": "backend/app/routers/vault.py",
       "relationship": "imports",
-      "why": "Includes vault router and public_router; executes 009_resource_items.sql migration on startup"
+      "why": "Handles vault API endpoints for file assignment and entry publishing"
+    },
+    {
+      "file": "frontend/app/vault/VaultClient.tsx",
+      "relationship": "imports",
+      "why": "Implements vault UI including file table, assignment menus, and **+ Add** buttons for file-optional entries"
+    },
+    {
+      "file": "frontend/app/resources/page.tsx",
+      "relationship": "configures",
+      "why": "Implements auto-refresh polling and displays published Resources entries"
     },
     {
       "file": "frontend/lib/api.ts",
       "relationship": "imported_by",
-      "why": "Provides vault and resources API client functions called by VaultClient.tsx and resources/page.tsx"
+      "why": "Provides API client methods for vault and site endpoints"
     },
     {
-      "file": "backend/migrations/009_resource_items.sql",
-      "relationship": "configures",
-      "why": "Creates resource_items table with per-tab validation; executed by main.py lifespan"
-    },
-    {
-      "file": "frontend/app/globals.css",
-      "relationship": "configures",
-      "why": "Defines CSS tokens (--ground, --text, --muted, --ox, --ox2, --on-ox, --surface, --line, --sans, --serif) used by VaultClient.tsx and resources/page.tsx"
-    },
-    {
-      "file": "backend/.env",
-      "relationship": "configures",
-      "why": "Contains R2_ENDPOINT_URL, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET, DATABASE_URL, VAULT_OWNER_EMAILS; loaded via --env-file flag"
+      "file": "backend/migrations/013_site_items_optional_file.sql",
+      "relationship": "tested_by",
+      "why": "Migration enables file-optional entries; backend tests verify schema and API behavior"
     }
   ],
   "uncommitted_files": [],
-  "blockers": [
-    "VAULT_OWNER_EMAILS is empty in backend/.env; vault is currently accessible to any logged-in user instead of designated owners only"
-  ],
-  "completed_goals": [
-    "Configure DATABASE_URL in backend/.env and verify backend starts successfully"
-  ],
-  "behavioral_preferences": [
-    {
-      "rule": "Be direct, flag problems first, no sycophancy, concise",
-      "confidence": 0.95,
-      "scope": "global"
-    },
-    {
-      "rule": "When using git worktree, exit the worktree and return to main repo context before committing changes to the parent branch",
-      "confidence": 0.95,
-      "scope": "global"
-    },
-    {
-      "rule": "Provide explicit clarity on which branch is being modified and which files are uncommitted before proceeding with major git operations",
-      "confidence": 0.95,
-      "scope": "global"
-    },
-    {
-      "rule": "Before editing, check askr_state/decisions.jsonl, failed_approaches.md and rejected_decisions.jsonl",
-      "confidence": 0.9,
-      "scope": "project"
-    },
-    {
-      "rule": "Frontend design loop: Playwright screenshots at 375, 768 and 1440 px, fix the 3 worst issues, max 3 rounds",
-      "confidence": 0.9,
-      "scope": "project"
-    },
-    {
-      "rule": "Do not share OPENAI_API_KEY in backend/.env; do not circumvent the askr hook; avoid triggering confirm() dialogs",
-      "confidence": 0.9,
-      "scope": "project"
-    }
-  ],
+  "blockers": [],
+  "completed_goals": [],
+  "behavioral_preferences": [],
   "session_metadata": {
-    "trigger_type": "idle",
-    "timestamp": "2026-11-19T15:08:16.436424+00:00",
+    "trigger_type": "quota",
+    "timestamp": "2026-11-23T14:53:49.040033+00:00",
     "developer": "ai auditor"
   }
 }

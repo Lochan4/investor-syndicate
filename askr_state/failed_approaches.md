@@ -306,3 +306,4 @@ Cumulative cross-session log. Never overwritten — append only.
 - [2026-11-19] Rendering bulk selection bar conditionally (display:none when empty) — Caused table rows to shift on second checkbox click, landing clicks on wrong rows; fixed by always rendering with visibility:hidden
 - [2026-11-19] Using orange color scheme from investor site in vault UI — User requested vault be restyled to frontend landing page colors and fonts (no orange); changed to landing page color tokens and Figtree/Instrument Serif fonts
 - [2026-11-19] Grep regex for R2 keys excluded digits — Incorrectly filtered out valid keys; corrected regex to include all alphanumeric characters
+- [2026-11-19] Custom folder creation in Panel of Experts, Portfolio, and Pitched Companies sections — Added unnecessary UI complexity; users rarely need subfolders in these three categories; removed feature to streamline assign workflow
